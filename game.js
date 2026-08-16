@@ -620,7 +620,7 @@
                             <th colspan="3" class="th-pietra">Risorse</th>
                             <th colspan="3" class="th-ambra">Fortezza Base</th>
                             <th colspan="3" class="th-pietra">Fortezza Magg.</th>
-                            <th class="th-ambra">OutM</th>
+                            <th class="th-ambra">Fuori Magg.</th>
                             <th colspan="4" class="th-pietra">Set</th>
                         </tr>
                         <tr>
