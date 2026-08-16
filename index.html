@@ -10,7 +10,7 @@
 </head>
 <body class="flex flex-col h-screen overflow-hidden text-sm select-none">
 
-    <!-- Header -->
+    <!-- ========== HEADER ========== -->
     <header class="bg-slate-900/95 backdrop-blur p-2 shadow-lg z-20 flex justify-between items-center shrink-0 border-b border-slate-700">
         <div class="flex items-center gap-2">
             <span class="text-2xl filter drop-shadow">🏰</span>
@@ -36,21 +36,31 @@
         </div>
     </header>
     
+    <!-- Banner evento mobile -->
     <div id="mobile-event-banner" class="md:hidden bg-slate-800 border-b border-slate-700 p-1 flex justify-center items-center"></div>
 
+    <!-- ========== CORPO PRINCIPALE ========== -->
     <div class="flex flex-1 overflow-hidden relative md:flex-row flex-col">
+
+        <!-- AREA DI GIOCO (main) -->
         <main class="flex-1 flex flex-col overflow-hidden relative order-1 md:order-2">
+
+            <!-- Barra tecnologie -->
             <div class="bg-slate-900/90 border-b border-slate-700 shrink-0 z-10 backdrop-blur-sm">
                 <div id="tech-container" class="flex overflow-x-auto gap-10px padding-10px" style="padding:10px; gap:10px;"></div>
             </div>
-            <div class="flex-1 overflow-y-auto relative" id="main-scroll-area">
+
+            <!-- Plancia di gioco (con padding in basso per non essere coperta dalla barra fissa) -->
+            <div class="flex-1 overflow-y-auto relative pb-24" id="main-scroll-area">
                 <div id="board-container" class="game-board"></div>
             </div>
-            <!-- Fix comment 20260816a
-            <div class="md:hidden absolute bottom-0 left-0 w-full bg-slate-900/95 border-t border-slate-700 z-30 pb-safe backdrop-blur shadow-[0_-5px_15px_rgba(0,0,0,0.5)]">
-            -->
-            <div class="absolute bottom-0 left-0 w-full bg-slate-900/95 border-t border-slate-700 z-30 pb-safe backdrop-blur shadow-[0_-5px_15px_rgba(0,0,0,0.5)]">
+
+            <!-- ===== BARRA INFERIORE FISSA ===== -->
+            <!-- Ora è sempre visibile, fissa in basso, su tutti i dispositivi -->
+            <div class="fixed bottom-0 left-0 w-full bg-slate-900/95 border-t border-slate-700 z-30 pb-safe backdrop-blur shadow-[0_-5px_15px_rgba(0,0,0,0.5)]">
+                <!-- Statistiche del giocatore corrente -->
                 <div id="mobile-my-stats" class="flex overflow-x-auto gap-4 p-2 text-xs text-slate-200 border-b border-slate-800 items-center whitespace-nowrap px-4"></div>
+                <!-- Pulsanti azione -->
                 <div class="flex p-2 gap-2 bg-slate-900">
                     <button id="btn-pass-mobile" onclick="game.passTurn()" class="flex-1 bg-red-600 active:bg-red-700 text-white font-bold py-3 rounded-xl shadow border-b-4 border-red-800 active:border-red-700 active:translate-y-1 transition-all uppercase tracking-wide flex items-center justify-center gap-2 text-xs">
                         <i data-lucide="skip-forward" class="w-4 h-4"></i> Passa Turno
@@ -60,8 +70,11 @@
                     </button>
                 </div>
             </div>
+
         </main>
-        <!-- Fix comment 20260816a
+
+        <!-- SIDEBAR DESKTOP (commentata per mantenerla nascosta, come richiesto) -->
+        <!--
         <aside class="hidden md:flex w-1/4 min-w-[320px] bg-slate-900 p-4 flex-col border-r border-slate-700 order-2 md:order-1 z-20 shadow-2xl">
             <h3 class="text-slate-400 text-xs uppercase mb-3 font-bold tracking-wider flex items-center gap-2">
                 <i data-lucide="users" class="w-4 h-4"></i> Tavolo di Gioco
@@ -77,7 +90,9 @@
         -->
     </div>
 
-    <!-- MODALS -->
+    <!-- ========== MODALI ========== -->
+
+    <!-- Modale Riepilogo avversari (mobile/tablet) -->
     <div id="opponents-modal" class="modal items-end sm:items-center">
         <div class="modal-content mb-0 sm:mb-auto rounded-b-none sm:rounded-2xl animate-slide-up bg-slate-100 text-slate-900">
             <div class="flex justify-between items-center mb-2 border-b border-slate-300 pb-2">
@@ -89,6 +104,7 @@
         </div>
     </div>
 
+    <!-- Modale scelta generica (es. per attivare effetti) -->
     <div id="choice-modal" class="modal">
         <div class="modal-content max-w-sm text-center">
             <h3 id="choice-title" class="text-lg font-bold mb-4">Fai una scelta</h3>
@@ -97,6 +113,7 @@
         </div>
     </div>
 
+    <!-- Modale scelta tipo edificio -->
     <div id="build-type-modal" class="modal" style="z-index: 2200;">
         <div class="modal-content max-w-md">
             <h3 class="text-xl font-bold mb-4 text-center">🏗️ Scegli Tipo Edificio</h3>
@@ -117,6 +134,7 @@
         </div>
     </div>
 
+    <!-- Modale lista edifici -->
     <div id="build-list-modal" class="modal" style="z-index: 2300;">
         <div class="modal-content">
             <div class="flex justify-between items-center mb-4">
@@ -129,6 +147,7 @@
         </div>
     </div>
 
+    <!-- Modale Stronghold (Roccaforte) -->
     <div id="stronghold-modal" class="modal" style="z-index: 2500;">
         <div class="modal-content max-w-md">
             <h3 class="text-xl font-bold mb-2 fantasy-font text-purple-800">🏰 Arrivo in Roccaforte</h3>
@@ -148,6 +167,7 @@
         </div>
     </div>
 
+    <!-- Modale Gogna -->
     <div id="gogna-modal" class="modal">
         <div class="modal-content">
             <h3 class="font-bold mb-4">Gogna: Scegli Vittima</h3>
@@ -155,6 +175,7 @@
         </div>
     </div>
 
+    <!-- Modale Copia Tecnologia -->
     <div id="tech-copy-modal" class="modal">
         <div class="modal-content">
             <h3 class="text-lg font-bold mb-3">Copia Tecnologia</h3>
@@ -163,6 +184,7 @@
         </div>
     </div>
 
+    <!-- Modale Fine Partita -->
     <div id="end-modal" class="modal">
         <div class="modal-content text-center max-w-5xl">
             <h2 class="text-3xl font-bold mb-4 fantasy-font text-slate-800">Partita Terminata 🏆</h2>
@@ -183,6 +205,7 @@
         </div>
     </div>
 
+    <!-- Modale Info / Guida -->
     <div id="info-modal" class="modal">
         <div class="modal-content">
             <div class="flex justify-between mb-4 pb-2 border-b">
@@ -202,6 +225,7 @@
         </div>
     </div>
 
+    <!-- ========== SCRIPT ========== -->
     <script src="config.js"></script>
     <script src="game.js"></script>
     <script src="ai.js"></script>
