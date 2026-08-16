@@ -611,29 +611,40 @@
             html += `</tbody></table>`;
             document.getElementById('score-breakdown').innerHTML = html;
 
-            // --- NUOVA TABELLA DI DETTAGLIO ---
-            let detailHtml = `<table class="score-table w-full text-center border-collapse">
-                <thead>
-                    <tr class="text-slate-600 bg-slate-200">
-                        <th>Gioc</th>
-                        <th colspan="3">Base</th>
-                        <th colspan="3">Risorse</th>
-                        <th colspan="3">Fortezza Base</th>
-                        <th colspan="3">Fortezza Magg.</th>
-                        <th>OutM</th>
-                        <th colspan="4">Set</th>
-                    </tr>
-                    <tr class="text-slate-500 bg-slate-100 text-[10px]">
-                        <th></th>
-                        <th>PV</th><th>1°</th><th>Resid.</th>
-                        <th>Ris. Base</th><th>Bestiame</th><th>Lusso</th>
-                        <th>Fanti</th><th>Arcieri</th><th>Cavalieri</th>
-                        <th>Fanti</th><th>Arcieri</th><th>Cavalieri</th>
-                        <th>Fanti</th>
-                        <th>Fanti</th><th>Arcieri</th><th>Coppie PV</th><th>Cavalieri</th>
-                    </tr>
-                </thead>
-                <tbody>`;
+                // --- NUOVA TABELLA DI DETTAGLIO ---
+                let detailHtml = `<table class="score-table w-full text-center border-collapse">
+                    <thead>
+                        <tr>
+                            <th class="th-gioc">Gioc</th>
+                            <th colspan="3" class="th-ambra">Base</th>
+                            <th colspan="3" class="th-pietra">Risorse</th>
+                            <th colspan="3" class="th-ambra">Fortezza Base</th>
+                            <th colspan="3" class="th-pietra">Fortezza Magg.</th>
+                            <th class="th-ambra">OutM</th>
+                            <th colspan="4" class="th-pietra">Set</th>
+                        </tr>
+                        <tr>
+                            <th class="th-gioc"></th>
+                            <th class="th-ambra">PV</th>
+                            <th class="th-ambra">1°</th>
+                            <th class="th-ambra">Resid.</th>
+                            <th class="th-pietra">Ris. Base</th>
+                            <th class="th-pietra">Bestiame</th>
+                            <th class="th-pietra">Lusso</th>
+                            <th class="th-ambra">Fanti</th>
+                            <th class="th-ambra">Arcieri</th>
+                            <th class="th-ambra">Cavalieri</th>
+                            <th class="th-pietra">Fanti</th>
+                            <th class="th-pietra">Arcieri</th>
+                            <th class="th-pietra">Cavalieri</th>
+                            <th class="th-ambra">Fanti</th>
+                            <th class="th-pietra">Fanti</th>
+                            <th class="th-pietra">Arcieri</th>
+                            <th class="th-pietra">Coppie PV</th>
+                            <th class="th-pietra">Cavalieri</th>
+                        </tr>
+                    </thead>
+                    <tbody>`;
 
             scores.forEach(s => {
                 detailHtml += `<tr>
