@@ -587,18 +587,20 @@
         }
 
         endGame() {
-            this.isGameOver = true; this.updateUI();
+            this.isGameOver = true; 
+            this.updateUI();
             
             let scores = NS.calculateEndGameScores(this);
-            
+    
             const statsDiv = document.getElementById('spaces-stats');
             statsDiv.innerHTML = Object.entries(this.globalSpaceStats)
                 .sort((a,b) => b[1].count - a[1].count)
                 .map(([k,v]) => `<div class="flex justify-between border-b p-1"><span>${v.name}</span><span class="font-bold">${v.count}</span></div>`).join('');
-                
+        
             const histList = document.getElementById('event-history-list');
             histList.innerHTML = this.eventHistory.map(h => `<li class="mb-1 border-b pb-1"><strong>R${h.round} ${h.event.emoji}</strong> ${h.event.name}. ${h.details||''}</li>`).join('');
 
+            // Tabella riepilogativa principale (già esistente)
             let html = `<table class="score-table w-full text-center border-collapse"><thead><tr class="text-slate-600 bg-slate-200"><th>#</th><th>Gioc</th><th>Ris</th><th>Fuori</th><th>Dentro</th><th>Dettagli</th><th>TOT</th></tr></thead><tbody>`;
             scores.forEach((s, i) => {
                 html += `<tr class="${i===0 ? 'bg-yellow-50' : ''}"><td class="font-bold text-slate-500">${i+1}</td><td class="font-bold text-left ${s.p.id===0?'text-blue-600':'text-red-600'}">${s.p.name}</td>
@@ -608,6 +610,45 @@
             });
             html += `</tbody></table>`;
             document.getElementById('score-breakdown').innerHTML = html;
+
+            // --- NUOVA TABELLA DI DETTAGLIO ---
+            let detailHtml = `<table class="score-table w-full text-center border-collapse">
+                <thead>
+                    <tr class="text-slate-600 bg-slate-200">
+                        <th>Gioc</th>
+                        <th colspan="3">Base</th>
+                        <th colspan="3">Risorse</th>
+                        <th colspan="3">Fortezza Base</th>
+                        <th colspan="3">Fortezza Magg.</th>
+                        <th>OutM</th>
+                        <th colspan="4">Set</th>
+                    </tr>
+                    <tr class="text-slate-500 bg-slate-100 text-[10px]">
+                        <th></th>
+                        <th>PV</th><th>1°</th><th>Resid.</th>
+                        <th>Ris. Base</th><th>Bestiame</th><th>Lusso</th>
+                        <th>Fanti</th><th>Arcieri</th><th>Cavalieri</th>
+                        <th>Fanti</th><th>Arcieri</th><th>Cavalieri</th>
+                        <th>Fanti</th>
+                        <th>Fanti</th><th>Arcieri</th><th>Coppie PV</th><th>Cavalieri</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            scores.forEach(s => {
+                detailHtml += `<tr>
+                    <td class="font-bold text-left ${s.p.id===0?'text-blue-600':'text-red-600'}">${s.p.name}</td>
+                    <td>${s.baseVp}</td><td>${s.baseFirst}</td><td>${s.baseResidence}</td>
+                    <td>${s.resBase}</td><td>${s.resCattle}</td><td>${s.resLuxury}</td>
+                    <td>${s.fortBInf}</td><td>${s.fortBArc}</td><td>${s.fortBKni}</td>
+                    <td>${s.fortMInf}</td><td>${s.fortMArc}</td><td>${s.fortMKni}</td>
+                    <td>${s.outMInf}</td>
+                    <td>${s.p.infantry}</td><td>${s.p.archer}</td><td>${s.outPairs}</td><td>${s.p.knight}</td>
+                </tr>`;
+            });
+            detailHtml += `</tbody></table>`;
+            document.getElementById('score-detail-breakdown').innerHTML = detailHtml;
+
             document.getElementById('end-modal').style.display = 'flex';
         }
     }
