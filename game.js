@@ -638,8 +638,8 @@
                             <th class="th-pietra">Arcieri</th>
                             <th class="th-pietra">Cavalieri</th>
                             <th class="th-ambra">Fanti</th>
-                            <th class="th-pietra">Fanti</th>
-                            <th class="th-pietra">Arcieri</th>
+                            <th class="th-pietra">Nr. Fanti</th>
+                            <th class="th-pietra">Nr. Arcieri</th>
                             <th class="th-pietra">Coppie PV</th>
                             <th class="th-pietra">Cavalieri</th>
                         </tr>
