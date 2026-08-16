@@ -94,8 +94,11 @@
             bCont.appendChild(div);
         });
 
-        const dCont = document.getElementById('desktop-players-container'); const mCont = document.getElementById('mobile-opponents-list');
-        dCont.innerHTML = ''; mCont.innerHTML = '';
+        // ====== MODIFICHE: controlli di esistenza ======
+        const dCont = document.getElementById('desktop-players-container');
+        const mCont = document.getElementById('mobile-opponents-list');
+        if (dCont) dCont.innerHTML = '';
+        if (mCont) mCont.innerHTML = '';
 
         this.players.forEach(p => {
             const isActive = (p.id === this.currentPlayerIndex && !this.isGameOver);
@@ -124,19 +127,30 @@
             `;
             const dCard = document.createElement('div');
             dCard.className = `bg-slate-800 p-2 rounded border-l-2 ${isActive?'border-yellow-400 ring-1 ring-yellow-400/20':'border-transparent'} ${p.passed?'opacity-50':''}`;
-            dCard.innerHTML = htmlContent; dCont.appendChild(dCard);
+            dCard.innerHTML = htmlContent;
+            if (dCont) dCont.appendChild(dCard);
+
             const mCard = document.createElement('div');
             mCard.className = `p-2 rounded border ${isMe?'bg-blue-50 border-blue-200':'bg-white border-slate-200'} ${isActive?'ring-2 ring-yellow-400':''}`;
             mCard.innerHTML = htmlContent.replace('text-blue-400','text-blue-700').replace('text-red-400','text-red-700').replace(/text-slate-200/g,'text-slate-800');
-            mCont.appendChild(mCard);
+            if (mCont) mCont.appendChild(mCard);
         });
 
-        const me = this.players[0]; const mStats = document.getElementById('mobile-my-stats');
-        mStats.innerHTML = `<div class="flex items-center gap-1"><span class="text-lg">👷</span><span class="font-bold">${me.workers}</span></div><div class="flex items-center gap-1"><span class="text-lg">💰</span><span class="font-bold">${me.coin}</span></div><div class="flex items-center gap-1"><span class="text-lg">🪵</span><span class="font-bold">${me.wood}</span></div><div class="flex items-center gap-1"><span class="text-lg">🧱</span><span class="font-bold">${me.brick}</span></div><div class="flex items-center gap-1"><span class="text-lg">💎</span><span class="font-bold">${me.luxury}</span></div><div class="flex items-center gap-1"><span class="text-lg">🐄</span><span class="font-bold">${me.cattle}</span></div>`;
+        const me = this.players[0]; 
+        const mStats = document.getElementById('mobile-my-stats');
+        if (mStats) {
+            mStats.innerHTML = `<div class="flex items-center gap-1"><span class="text-lg">👷</span><span class="font-bold">${me.workers}</span></div><div class="flex items-center gap-1"><span class="text-lg">💰</span><span class="font-bold">${me.coin}</span></div><div class="flex items-center gap-1"><span class="text-lg">🪵</span><span class="font-bold">${me.wood}</span></div><div class="flex items-center gap-1"><span class="text-lg">🧱</span><span class="font-bold">${me.brick}</span></div><div class="flex items-center gap-1"><span class="text-lg">💎</span><span class="font-bold">${me.luxury}</span></div><div class="flex items-center gap-1"><span class="text-lg">🐄</span><span class="font-bold">${me.cattle}</span></div>`;
+        }
 
         const canPass = (this.currentPlayerIndex === 0 && !me.passed && !this.isGameOver && !me.extraTurn);
-        const pBtnM = document.getElementById('btn-pass-mobile'); const pBtnD = document.getElementById('btn-pass-desktop');
-        [pBtnM, pBtnD].forEach(btn => { if(btn) { btn.disabled = !canPass; btn.className = canPass ? btn.className.replace('opacity-50 grayscale cursor-not-allowed', '') : btn.className + ' opacity-50 grayscale cursor-not-allowed'; }});
+        const pBtnM = document.getElementById('btn-pass-mobile'); 
+        const pBtnD = document.getElementById('btn-pass-desktop');
+        [pBtnM, pBtnD].forEach(btn => { 
+            if(btn) { 
+                btn.disabled = !canPass; 
+                btn.className = canPass ? btn.className.replace('opacity-50 grayscale cursor-not-allowed', '') : btn.className + ' opacity-50 grayscale cursor-not-allowed'; 
+            }
+        });
         if(window.lucide) lucide.createIcons();
     };
 
