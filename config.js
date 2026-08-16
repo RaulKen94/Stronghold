@@ -6,8 +6,8 @@
         { id: 'famine', name: "Carestia", emoji: "💀", prob: 0.20, desc: "-2💰 -2🐄 (o Legno/Mattone). 2 Location bloccate." },
         { id: 'war', name: "Guerra Imminente", emoji: "⚔️", prob: 0.20, desc: "Militare -1💰. Caserma +1 Fante." },
         { id: 'black_market', name: "Mercato Nero", emoji: "⚖️", prob: 0.10, desc: "Mercato: 3 slot, +1💎. Tante monete e poi a decrescere." },
-        { id: 'sun', name: "Sole Splendente", emoji: "☀️", prob: 0.30, desc: "Nessun effetto speciale." },
-        { id: 'clouds', name: "Nuvole Dappertutto", emoji: "☁️", prob: 0.20, desc: "4 Location bloccate a caso." }
+        { id: 'sun', name: "Sole Splendente", emoji: "☀️", prob: 0.20, desc: "Nessun effetto speciale." },
+        { id: 'clouds', name: "Nuvole Dappertutto", emoji: "☁️", prob: 0.30, desc: "4 Location bloccate a caso." }
     ];
 
     NS.ARCHETYPES = {
