@@ -77,7 +77,7 @@
                 this.eventQueue.push(sel);
             }
 
-            const startCoins = [1, 2, 2, 5];
+            const startCoins = [1, 2, 3, 4];
             this.firstPlayerIndex = Math.floor(Math.random() * 4);
             const archetypeKeys = ['GENERAL', 'MERCHANT', 'ARCHITECT'];
 
