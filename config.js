@@ -16,6 +16,14 @@
         ARCHITECT: { icon: '🏗️', name: 'Architetto', color: 'text-emerald-500' }
     };
 
+    // Colori dei giocatori (usati per pallini, badge, token)
+    NS.PLAYER_COLORS = {
+        0: '#2563eb', // blu
+        1: '#dc2626', // rosso
+        2: '#16a34a', // verde
+        3: '#ca8a04'  // giallo/ocra
+    };
+
     NS.BASE_SPACES = [
         { id: 2, name: "Torre Guardia", type: 'special', cost: {}, reward: { firstPlayer: true }, slots: 1, short: "Prendi 1°" },
         { id: 7, name: "Roccaforte", type: 'special', cost: { coin: 1 }, reward: { special: 'roccaforte', vp: 1 }, slots: 4, uniquePlayer: true, short: "1💰 ➔ +1🏆. Deposita 🏰" },
