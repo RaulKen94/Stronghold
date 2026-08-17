@@ -242,7 +242,7 @@
                     const j = Math.floor(Math.random() * (i + 1));
                     [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
                 }
-                this.lockedSpaces = candidates.slice(0, this.currentEvent.id === 'clouds' ? 4 : 2);
+                this.lockedSpaces = candidates.slice(0, this.currentEvent.id === 'clouds' ? 5 : 3);
                 const lockedNames = this.spaces
                     .filter(s => this.lockedSpaces.includes(s.id))
                     .map(s => s.name)
