@@ -199,15 +199,80 @@
                 <button onclick="document.getElementById('info-modal').style.display='none'"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
             <div class="h-[60vh] overflow-y-auto pr-2 text-xs">
-                <h4 class="font-bold mb-2 uppercase text-slate-500">Eventi</h4>
-                <div class="space-y-2 mb-4">
-                    <div class="bg-red-50 p-2 rounded border border-red-200"><strong>💀 Carestia:</strong> Perdi 2 Monete e 2 Bestiame (o Legno/Mattone). 2 Luoghi bloccati.</div>
-                    <div class="bg-red-50 p-2 rounded border border-red-200"><strong>⚔️ Guerra:</strong> Costo monete per truppe ridotto di 1. Caserma dà +1 Fante.</div>
-                    <div class="bg-yellow-50 p-2 rounded border border-yellow-200"><strong>⚖️ Mercato Nero:</strong> Mercato ha 3 slot, +1 Lusso, ma le monete calano ad ogni uso (3->2->1).</div>
-                    <div class="bg-blue-50 p-2 rounded border border-blue-200"><strong>☀️ Sole:</strong> Nessun effetto.</div>
-                    <div class="bg-slate-100 p-2 rounded border border-slate-200"><strong>☁️ Nuvole:</strong> 4 Luoghi bloccati casualmente.</div>
-                </div>
-            </div>
+    <h4 class="font-bold mb-2 uppercase text-slate-500">Eventi</h4>
+    <div class="space-y-2 mb-4">
+        <div class="bg-red-50 p-2 rounded border border-red-200"><strong>💀 Carestia:</strong> Perdi 2 Monete e 2 Bestiame (o Legno/Mattone). 2 Luoghi bloccati.</div>
+        <div class="bg-red-50 p-2 rounded border border-red-200"><strong>⚔️ Guerra:</strong> Costo monete per truppe ridotto di 1. Caserma dà +1 Fante.</div>
+        <div class="bg-yellow-50 p-2 rounded border border-yellow-200"><strong>⚖️ Mercato Nero:</strong> Mercato ha 3 slot, +1 Lusso, ma le monete calano ad ogni uso (3->2->1).</div>
+        <div class="bg-blue-50 p-2 rounded border border-blue-200"><strong>☀️ Sole:</strong> Nessun effetto.</div>
+        <div class="bg-slate-100 p-2 rounded border border-slate-200"><strong>☁️ Nuvole:</strong> 4 Luoghi bloccati casualmente.</div>
+    </div>
+
+    <h4 class="font-bold mb-2 uppercase text-slate-500">Guida</h4>
+    <div class="space-y-3 text-slate-700">
+        <p>In Roccaforte i punti vittoria (PV 🏆) si accumulano sia con le azioni svolte durante i round sia con il calcolo dei bonus nel riepilogo di fine partita. Ecco l'elenco:</p>
+
+        <div>
+            <p class="font-bold">1. 🏆 PV Guadagnati in Partita</p>
+            <p class="font-semibold">Spazi Azione e Edifici:</p>
+            <ul class="list-disc pl-4 space-y-1">
+                <li>🏰 Roccaforte: +1🏆 ogni volta che depositi truppe</li>
+                <li>Palazzo: Converti le tue gemme ottenendo +3🏆 per ciascun Lusso 💎 pagato</li>
+                <li>Cantiere: +3🏆 ogni volta che costruisci un nuovo edificio</li>
+                <li>Edifici Amministrativi e Speciali: Cattedrale (+2🏆 alla costruzione e +2🏆 via azione), Monastero (+2🏆), Accampamento (+1🏆 o +2🏆), Taverna (+1🏆), Sala Consiglio (+1🏆), Gogna (+1🏆)</li>
+                <li>Tecnologie: Alcune tecnologie forniscono 🏆 immediati</li>
+            </ul>
+        </div>
+
+        <div>
+            <p class="font-bold">2. 🏰 Truppe dentro la Roccaforte</p>
+            <p class="font-semibold">Punti Base delle unità (dentro):</p>
+            <ul class="list-disc pl-4 space-y-1">
+                <li>⚔️ Fanteria: ottieni 1🏆 ogni 3 fanti</li>
+                <li>🏹 Arcieri: ottieni 1🏆 ogni 2 arcieri</li>
+                <li>🐴 Cavalieri: ottieni 1🏆 per ogni cavaliere</li>
+            </ul>
+            <p class="font-semibold">Bonus Maggioranze dentro la Roccaforte:</p>
+            <ul class="list-disc pl-4 space-y-1">
+                <li>⚔️ Maggioranza Fanti: +7🏆</li>
+                <li>🏹 Maggioranza Arcieri: +7🏆</li>
+                <li>🐴 Maggioranza Cavalieri: +10🏆</li>
+            </ul>
+        </div>
+
+        <div>
+            <p class="font-bold">3. 🏰 Truppe Fuori dalla Roccaforte</p>
+            <p class="font-semibold">Punti Base delle unità (fuori):</p>
+            <ul class="list-disc pl-4 space-y-1">
+                <li>⚔️+🏹: ottieni 1🏆 ogni 2 unità combinate tra Fanti e Arcieri rimasti fuori</li>
+                <li>🐴: 1🏆 per ogni Cavaliere rimasto fuori</li>
+            </ul>
+            <p class="font-semibold">Bonus Maggioranza Fuori dalla Roccaforte:</p>
+            <ul class="list-disc pl-4 space-y-1">
+                <li>⚔️ Maggioranza Fanti: +7🏆</li>
+            </ul>
+            <p class="italic">Nota pareggio Maggioranze: Se due o più giocatori condividono la quantità più alta di una unità (min. 1), ciascuno di essi guadagna il bonus di maggioranza per intero.</p>
+        </div>
+
+        <div>
+            <p class="font-bold">4. 💎 Conversione Risorse Inutilizzate</p>
+            <ul class="list-disc pl-4 space-y-1">
+                <li>💎 Lusso: 1🏆 per ogni Lusso</li>
+                <li>🐄 Bestiame: 1🏆 ogni 2 capi di bestiame</li>
+                <li>💰+🪵+🧱 Risorse Base: 1🏆 ogni 3 risorse totali combinate tra Monete, Legno e Mattoni</li>
+            </ul>
+        </div>
+
+        <div>
+            <p class="font-bold">5. 👑 Bonus Condizionali e Spareggio</p>
+            <ul class="list-disc pl-4 space-y-1">
+                <li>👑 Primo Giocatore: +3🏆 a chi possiede il segnalino 1° Giocatore al termine dell'ultimo round</li>
+                <li>Residenza: +6🏆 se hai costruito l'edificio residenziale blu</li>
+                <li>Criterio di Spareggio: In caso di parità nel punteggio totale, vince il giocatore che possiede più Mattoni 🧱</li>
+            </ul>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 
