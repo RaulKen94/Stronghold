@@ -29,13 +29,32 @@
         if(mobContainer) mobContainer.innerHTML = combinedHtml;
 
         const tCont = document.getElementById('tech-container'); tCont.innerHTML = '';
+        const human = this.players[0];
+        const getTechNote = (t) => {
+            if (t.id === 1) return human.maxWorkers >= 4 ? 'Hai già 4 lavoratori → +3💰' : 'Al prossimo turno: +1👷';
+            if (t.id === 2) {
+                const anyUsed = this.currentTechs.some(x => x.takenBy !== null && x.id !== 2);
+                return anyUsed ? 'Copia una tecnologia già presa' : 'Nessuna tech da copiare → +3💰';
+            }
+            if (t.id === 10) return human.tech10Used ? 'Già usata in precedenza → +2💰' : 'Prima volta: +5🏆';
+            return '';
+        };
+
         this.currentTechs.forEach((t, i) => {
-            const div = document.createElement('div'); div.className = `tech-card ${t.takenBy!==null ? 'taken' : ''}`;
-            if(t.takenBy===null) { div.innerHTML = `<span class="font-bold block mb-1 text-center">${t.text}</span>`; div.onclick = () => this.attemptClickTech(i); } 
-            else { const owner = this.players[t.takenBy]; div.innerHTML = `<span class="text-[9px] block text-indigo-200 uppercase tracking-widest text-center">Presa da</span><span class="font-bold text-center block text-white">${owner.name}</span>`; }
+            const div = document.createElement('div');
+            div.className = `tech-card ${t.takenBy !== null ? 'taken' : ''}`;
+            if (t.takenBy === null) {
+                const note = getTechNote(t);
+                div.innerHTML = `<span class="font-bold block mb-1 text-center">${t.text}</span>` +
+                                (note ? `<span class="block text-[9px] text-indigo-200 text-center mt-1">${note}</span>` : '');
+                div.onclick = () => this.attemptClickTech(i);
+            } else {
+                const owner = this.players[t.takenBy];
+                div.innerHTML = `<span class="text-[9px] block text-indigo-200 uppercase tracking-widest text-center">Presa da</span><span class="font-bold text-center block text-white">${owner.name}</span>`;
+            }
             tCont.appendChild(div);
         });
-
+        
         const bCont = document.getElementById('board-container'); bCont.innerHTML = '';
         this.spaces.forEach(s => {
             const isFull = (s.slots!==99 && s.slotsOccupied.length>=s.slots);
