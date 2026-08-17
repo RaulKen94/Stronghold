@@ -54,7 +54,7 @@
                     if (s.type === 'mil') score += 15;
                     if (s.id === 7 && stage !== 'EARLY') score += 20;
                     if (s.type === 'mil') {
-                        ['knight', 'archer', 'infantry'].forEach(u => { score += 10; });
+                        score += 30; // bonus uniforme per fanteria/arcieri/cavalieri
                     }
                 }
 
