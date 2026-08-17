@@ -3,11 +3,11 @@
     var NS = window.Roccaforte;
 
     NS.EVENTS = [
-        { id: 'famine', name: "Carestia", emoji: "💀", prob: 0.20, desc: "-2💰 -2🐄 (o Legno/Mattone). 2 Location bloccate." },
-        { id: 'war', name: "Guerra Imminente", emoji: "⚔️", prob: 0.20, desc: "Militare -1💰. Caserma +1 Fante." },
-        { id: 'black_market', name: "Mercato Nero", emoji: "⚖️", prob: 0.10, desc: "Mercato: 3 slot, +1💎. Tante monete e poi a decrescere." },
-        { id: 'sun', name: "Sole Splendente", emoji: "☀️", prob: 0.20, desc: "Nessun effetto speciale." },
-        { id: 'clouds', name: "Nuvole Dappertutto", emoji: "☁️", prob: 0.30, desc: "4 Location bloccate a caso." }
+        { id: 'famine', name: "Carestia", emoji: "💀", prob: 0.20 },
+        { id: 'war', name: "Guerra Imminente", emoji: "⚔️", prob: 0.20 },
+        { id: 'black_market', name: "Mercato Nero", emoji: "⚖️", prob: 0.10 },
+        { id: 'sun', name: "Sole Splendente", emoji: "☀️", prob: 0.20 },
+        { id: 'clouds', name: "Nuvole Dappertutto", emoji: "☁️", prob: 0.30 }
     ];
 
     NS.ARCHETYPES = {
@@ -17,24 +17,24 @@
     };
 
     NS.BASE_SPACES = [
-        { id: 2, name: "Torre Guardia", type: 'special', cost: {}, reward: { firstPlayer: true }, slots: 1, desc: "Prendi 1° Gioc.", short: "Prendi 1°" },
-        { id: 7, name: "Roccaforte", type: 'special', cost: { coin: 1 }, reward: { special: 'roccaforte', vp: 1 }, slots: 4, desc: "+1🏆. Deposita Truppe", uniquePlayer: true, short: "1💰 ➔ +1🏆. Deposita 🏰" },
-        { id: 201, name: "Porta della Città", type: 'special', cost: {}, reward: { special: 'porta', infantry: 1 }, slots: 1, desc: "Prendi le monete accumulate qui +1⚔️", short: "Prendi monete qui +1⚔️" },
-        { id: 12, name: "Municipio", type: 'special', cost: { workerCost: 2, coin: 1 }, reward: { newWorker: 1 }, slots: 3, desc: "1💰 2👷 -> +1👷 (Next)", short: "1💰 2👷 ➔ +1👷 (Futuro)" },
-        { id: 8, name: "Palazzo", type: 'vp', cost: { coin: 2 }, reward: { special: 'palazzo' }, slots: 2, desc: "2💰 Paga TUTTI 💎 -> 3🏆 cad.", short: "2💰 Paga TUTTI 💎 ➔ 3🏆 cad." },
-        { id: 14, name: "Sartoria", type: 'vp', cost: { coin: 3 }, reward: { luxury: 1 }, slots: 2, desc: "3💰 -> 1💎", short: "3💰 ➔ 1💎" },
-        { id: 17, name: "Cantiere", type: 'vp', cost: { brick: 2, coin: 1 }, reward: { vp: 3 }, slots: 2, desc: "1💰 2🧱 (+Inflazione) -> 3🏆. Costruisci.", short: "1💰 2🧱++ ➔ 3🏆 + Costruisci" },
-        { id: 10, name: "Falegnameria", type: 'res', cost: {}, reward: { wood: 2 }, slots: 1, desc: "+2🪵", short: "+2🪵" },
-        { id: 11, name: "Genio Civile", type: 'res', cost: {}, reward: { brick: 2 }, slots: 1, desc: "+2🧱", short: "+2🧱" },
-        { id: 16, name: "Porcile", type: 'res', cost: {}, reward: { cattle: 3 }, slots: 1, desc: "+3🐄", short: "+3🐄" },
-        { id: 15, name: "Mercato", type: 'res', cost: {}, reward: { coin: 3 }, slots: 1, desc: "+3💰 (Decresce se M.Nero)", short: "+3💰" },
-        { id: 22, name: "Fattoria", type: 'res', cost: {}, reward: { cattle: 2, brick: 2 }, slots: 1, desc: "+2🐄 +2🧱", short: "+2🐄 +2🧱" }, 
-        { id: 1, name: "Piazza", type: 'res', cost: {}, reward: { special: 'piazza' }, slots: 1, desc: "+1💰 (+1 🪵 o 🧱)", short: "+1💰 (+1 🪵/🧱)" }, 
-        { id: 13, name: "Campi", type: 'res', cost: {}, reward: { cattle: 2, coin: 1 }, slots: 1, desc: "+2🐄 +1💰", short: "+2🐄 +1💰" },
-        { id: 18, name: "Pensione", type: 'res', cost: { cattle: 1 }, reward: { wood: 2, brick: 1 }, slots: 1, desc: "1🐄 -> 2🪵 1🧱", short: "1🐄 ➔ 2🪵 1🧱" },
-        { id: 3, name: "Caserma", type: 'mil', cost: {}, reward: { infantry: 1 }, slots: 2, desc: "+1⚔️", short: "+1⚔️" },
-        { id: 4, name: "Poligono", type: 'mil', cost: { coin: 3, wood: 1 }, reward: { archer: 1 }, slots: 2, desc: "3💰 1🪵 -> 1🏹", short: "3💰 1🪵 ➔ 1🏹" },
-        { id: 5, name: "Scuderia", type: 'mil', cost: { cattle: 1, coin: 2, wood: 1 }, reward: { knight: 1 }, slots: 99, desc: "1🐄 2💰 1🪵 -> 1🐴", short: "1🐄 2💰 1🪵 ➔ 1🐴" }
+        { id: 2, name: "Torre Guardia", type: 'special', cost: {}, reward: { firstPlayer: true }, slots: 1, short: "Prendi 1°" },
+        { id: 7, name: "Roccaforte", type: 'special', cost: { coin: 1 }, reward: { special: 'roccaforte', vp: 1 }, slots: 4, uniquePlayer: true, short: "1💰 ➔ +1🏆. Deposita 🏰" },
+        { id: 201, name: "Porta della Città", type: 'special', cost: {}, reward: { special: 'porta', infantry: 1 }, slots: 1, short: "Prendi monete qui +1⚔️" },
+        { id: 12, name: "Municipio", type: 'special', cost: { workerCost: 2, coin: 1 }, reward: { newWorker: 1 }, slots: 3, short: "1💰 2👷 ➔ +1👷 (Futuro)" },
+        { id: 8, name: "Palazzo", type: 'vp', cost: { coin: 2 }, reward: { special: 'palazzo' }, slots: 2, short: "2💰 Paga TUTTI 💎 ➔ 3🏆 cad." },
+        { id: 14, name: "Sartoria", type: 'vp', cost: { coin: 3 }, reward: { luxury: 1 }, slots: 2, short: "3💰 ➔ 1💎" },
+        { id: 17, name: "Cantiere", type: 'vp', cost: { brick: 2, coin: 1 }, reward: { vp: 3 }, slots: 2, short: "1💰 2🧱++ ➔ 3🏆 + Costruisci" },
+        { id: 10, name: "Falegnameria", type: 'res', cost: {}, reward: { wood: 2 }, slots: 1, short: "+2🪵" },
+        { id: 11, name: "Genio Civile", type: 'res', cost: {}, reward: { brick: 2 }, slots: 1, short: "+2🧱" },
+        { id: 16, name: "Porcile", type: 'res', cost: {}, reward: { cattle: 3 }, slots: 1, short: "+3🐄" },
+        { id: 15, name: "Mercato", type: 'res', cost: {}, reward: { coin: 3 }, slots: 1, short: "+3💰" },
+        { id: 22, name: "Fattoria", type: 'res', cost: {}, reward: { cattle: 2, brick: 2 }, slots: 1, short: "+2🐄 +2🧱" },
+        { id: 1, name: "Piazza", type: 'res', cost: {}, reward: { special: 'piazza' }, slots: 1, short: "+1💰 (+1 🪵/🧱)" },
+        { id: 13, name: "Campi", type: 'res', cost: {}, reward: { cattle: 2, coin: 1 }, slots: 1, short: "+2🐄 +1💰" },
+        { id: 18, name: "Pensione", type: 'res', cost: { cattle: 1 }, reward: { wood: 2, brick: 1 }, slots: 1, short: "1🐄 ➔ 2🪵 1🧱" },
+        { id: 3, name: "Caserma", type: 'mil', cost: {}, reward: { infantry: 1 }, slots: 2, short: "+1⚔️" },
+        { id: 4, name: "Poligono", type: 'mil', cost: { coin: 3, wood: 1 }, reward: { archer: 1 }, slots: 2, short: "3💰 1🪵 ➔ 1🏹" },
+        { id: 5, name: "Scuderia", type: 'mil', cost: { cattle: 1, coin: 2, wood: 1 }, reward: { knight: 1 }, slots: 99, short: "1🐄 2💰 1🪵 ➔ 1🐴" }
     ];
 
     NS.NEW_BUILDINGS = [
