@@ -424,31 +424,49 @@
         }
         // Gogna
         else if (type === 'gogna') {
-            document.getElementById('choice-modal').style.display = 'none';
-            const gModal = document.getElementById('gogna-modal');
-            const gOpts = document.getElementById('gogna-options');
-            gOpts.innerHTML = '';
+        document.getElementById('choice-modal').style.display = 'none';
+        const gModal = document.getElementById('gogna-modal');
+        const gOpts = document.getElementById('gogna-options');
+        gOpts.innerHTML = '';
 
-            this.players.forEach(target => {
-                if (target.id !== p.id && target.id !== this.pendingSpace.ownerId) {
-                    const btn = document.createElement('button');
-                    btn.className = "p-2 bg-red-100 border border-red-500 rounded text-left w-full";
-                    const t = target;
-                    btn.innerHTML = `<div class="flex justify-between"><strong>${t.name}</strong> <span>🏆${t.vp}</span></div>
+        // Mappa colori giocatori (uguale a quella usata nel riepilogo)
+        const playerColorMap = {
+            0: '#2563eb', // blu
+            1: '#dc2626', // rosso
+            2: '#16a34a', // verde
+            3: '#ca8a04'  // giallo/ocra
+        };
+
+        this.players.forEach(target => {
+            if (target.id !== p.id && target.id !== this.pendingSpace.ownerId) {
+                const btn = document.createElement('button');
+                btn.className = "p-2 bg-red-100 border border-red-500 rounded text-left w-full";
+                const t = target;
+                const dotColor = playerColorMap[t.id] || '#000';
+
+                btn.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <strong class="flex items-center gap-1">
+                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${dotColor};"></span>
+                            ${t.name}
+                        </strong>
+                        <span>🏆${t.vp}</span>
+                    </div>
                     <div class="text-[10px]">Mano: ${t.infantry + t.archer + t.knight}</div>
-                    <div class="text-[10px] text-purple-700">Roccaforte: ${t.stronghold.infantry + t.stronghold.archer + t.stronghold.knight}</div>`;
+                    <div class="text-[10px] text-purple-700">Roccaforte: ${t.stronghold.infantry + t.stronghold.archer + t.stronghold.knight}</div>
+                `;
 
-                    btn.onclick = () => {
-                        this.gognaTarget = target.id;
-                        this.log(`${p.name} mette alla gogna ${target.name}`);
-                        gModal.style.display = 'none';
-                        this.finishSpecial();
-                    };
-                    gOpts.appendChild(btn);
-                }
-            });
-            gModal.style.display = 'flex';
-        }
+                btn.onclick = () => {
+                    this.gognaTarget = target.id;
+                    this.log(`${p.name} mette alla gogna ${target.name}`);
+                    gModal.style.display = 'none';
+                    this.finishSpecial();
+                };
+                gOpts.appendChild(btn);
+            }
+        });
+        gModal.style.display = 'flex';
+    }
     };
 
     /**
