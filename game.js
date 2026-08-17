@@ -567,28 +567,6 @@
         }
 
         /**
-         * AI BUILD
-         * L'AI sceglie automaticamente un edificio da costruire.
-         */
-        aiBuild(p) {
-            if (!p.hasResidence && p.luxury >= 1) {
-                // Costruisce sempre la Residenza se può
-                const b = NS.NEW_BUILDINGS.find(x => x.type === 'blue');
-                p.luxury--;
-                p.hasResidence = true;
-                this.applyBuild(p, b);
-            } else {
-                // Altrimenti sceglie un edificio casuale non ancora costruito
-                const avail = NS.NEW_BUILDINGS.filter(x => x.type !== 'blue' && !this.builtBuildings.includes(x.id));
-                if (avail.length > 0) {
-                    const b = avail[Math.floor(Math.random() * avail.length)];
-                    this.applyBuild(p, b);
-                }
-            }
-            this.processCantiereQueue();
-        }
-
-        /**
          * APPLY BUILD
          * Aggiunge l'edificio alla lista e crea un nuovo spazio nella plancia.
          */
@@ -728,50 +706,41 @@
          */
         applySpecialReward(type, p, spaceId) {
             if (type === 'piazza') {
-                // +1 moneta e, per AI, +1 legno o mattone casuale
+                // +1 moneta per tutti
                 p.coin += 1;
-                if(!p.isHuman) {
-                    if(Math.random()>0.5) p.wood++;
-                    else p.brick++;
+                // Per l'IA, applica anche la scelta casuale tra legno e mattone
+                if (!p.isHuman) {
+                    this.applySpecialRewardAI(type, p, spaceId);
                 }
             } else if (type === 'roccaforte') {
                 // +1 PV
                 p.vp += 1;
-                if(p.isHuman) this.showFloatingText(spaceId, `+1🏆`, 'yellow');
+                if (p.isHuman) this.showFloatingText(spaceId, `+1🏆`, 'yellow');
             } else if (type === 'porta') {
-                // Raccoglie le monete accumulate sulla Porta
+                // Raccoglie le monete accumulate sulla Porta (condiviso)
                 const amt = this.accumulatedCoinsPorta;
-                if(amt > 0) {
+                if (amt > 0) {
                     p.coin += amt;
                     this.accumulatedCoinsPorta = 0;
                     this.log(`${p.name} raccoglie ${amt}💰 dalla Porta.`);
                 }
             } else if (type === 'consiglio') {
-                // Sala del Consiglio: recupero truppe se inferiore al leader
+                // Sala del Consiglio: recupero truppe (condiviso)
                 let gained = [];
                 ['knight', 'archer', 'infantry'].forEach(unit => {
                     let maxOthers = 0;
                     this.players.forEach(opp => {
-                        if(opp.id !== p.id) maxOthers = Math.max(maxOthers, opp.stronghold[unit]);
+                        if (opp.id !== p.id) maxOthers = Math.max(maxOthers, opp.stronghold[unit]);
                     });
-                    if(p.stronghold[unit] < maxOthers) {
+                    if (p.stronghold[unit] < maxOthers) {
                         p[unit]++;
                         gained.push(unit);
                     }
                 });
-                if(gained.length > 0) this.log(`${p.name} ottiene rinforzi dal Consiglio.`);
-            }
-            else if (!p.isHuman) {
-                // Effetti speciali per l'AI
-                if(type==='monastero') p.wood++;
-                else if(type==='taverna') { p.infantry++; p.vp++; }
-                else if(type==='accampamento') {
-                    if(p.wood>0){ p.wood--; p.vp++; p.infantry++; }
-                }
-                else if(type==='gogna') {
-                    const target = this.players.find(pl => pl.id !== p.id && pl.id !== spaceId.ownerId);
-                    if(target) this.gognaTarget = target.id;
-                }
+                if (gained.length > 0) this.log(`${p.name} ottiene rinforzi dal Consiglio.`);
+            } else if (!p.isHuman) {
+                // Per gli altri tipi speciali, la logica è esclusiva dell'IA
+                this.applySpecialRewardAI(type, p, spaceId);
             }
         }
 
@@ -840,19 +809,6 @@
             this.log(`${p.name} ricerca ${tech.text}`);
             this.nextTurn();
             return true;
-        }
-
-        /**
-         * CALCULATE PROJECTED SCORE
-         * Calcola il punteggio proiettato (per l'AI) basato su PV, fortezza, residenza.
-         */
-        calculateProjectedScore(p) {
-            let score = p.vp;
-            score += Math.floor(p.stronghold.infantry / 3);
-            score += Math.floor(p.stronghold.archer / 2);
-            score += p.stronghold.knight;
-            if (p.hasResidence) score += 6;
-            return score;
         }
 
         /**
