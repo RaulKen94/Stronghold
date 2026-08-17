@@ -93,7 +93,8 @@
             b.total - a.total ||
             b.p.brick - a.p.brick ||
             b.p.wood - a.p.wood ||
-            b.p.coin - a.p.coin
+            b.p.coin - a.p.coin ||
+            b.p.initialTurnOrder - a.p.initialTurnOrder   // chi aveva turno iniziale più alto (più per ultimo) vince
         );
         
         return scores;
