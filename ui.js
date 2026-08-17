@@ -201,7 +201,7 @@
 
             // Badge proprietario per edifici costruiti
             if (s.ownerId !== undefined) {
-                const ownerColor = s.ownerId === 0 ? '#2563eb' : (s.ownerId === 1 ? '#dc2626' : (s.ownerId === 2 ? '#16a34a' : '#ca8a04'));
+                const ownerColor = NS.PLAYER_COLORS[s.ownerId] || '#000';
                 badgeHtml += `<div class="owner-badge" style="background:${ownerColor};" title="Proprietario: ${this.players[s.ownerId].name}">${s.ownerId === 0 ? '★' : ('P' + s.ownerId)}</div>`;
             }
 
