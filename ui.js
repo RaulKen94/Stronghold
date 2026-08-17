@@ -276,13 +276,7 @@
             mCard.className = `p-2 rounded border ${isMe ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200'} ${isActive ? 'ring-2 ring-yellow-400' : ''}`;
 
             // Mappa colori per i pallini identificativi dei giocatori
-            const playerColorMap = {
-                0: '#2563eb', // blu
-                1: '#dc2626', // rosso
-                2: '#16a34a', // verde
-                3: '#ca8a04'  // giallo/ocra
-            };
-            const dotColor = playerColorMap[p.id] || '#000';
+            const dotColor = NS.PLAYER_COLORS[p.id] || '#000';
 
             // Inserisce il pallino colorato prima del nome
             const htmlWithDot = htmlContent.replace(
@@ -430,12 +424,7 @@
         gOpts.innerHTML = '';
 
         // Mappa colori giocatori (uguale a quella usata nel riepilogo)
-        const playerColorMap = {
-            0: '#2563eb', // blu
-            1: '#dc2626', // rosso
-            2: '#16a34a', // verde
-            3: '#ca8a04'  // giallo/ocra
-        };
+        const playerColorMap = NS.PLAYER_COLORS;
 
         this.players.forEach(target => {
             if (target.id !== p.id && target.id !== this.pendingSpace.ownerId) {
