@@ -37,6 +37,7 @@
                 return anyUsed ? 'Copia una tecnologia già presa' : 'Nessuna tech da copiare → +3💰';
             }
             if (t.id === 10) return human.tech10Used ? 'Già usata in precedenza → +2💰' : 'Prima volta: +5🏆';
+            if (t.id === 14) return 'Solo per il turno corrente: +1👷 (max 4, poi torna a 4)';
             return '';
         };
 
