@@ -104,10 +104,7 @@
                     tech10Used: false,
                     getIndicator: false,
                     incomeModifier: 0,
-                    hasResidence: false,
-                    nextEventKnown: false,
-                    extraTurn: false,
-                    blockNextMoveSpaceId: null
+                    hasResidence: false
                 });
             }
             this.currentPlayerIndex = this.firstPlayerIndex;
@@ -151,7 +148,7 @@
             if (this.round > 1) {
                 this.currentEvent = this.eventQueue[this.round - 2]; 
             } else {
-                this.currentEvent = { name: "Inizio Partita", emoji: "🏁", desc: "Buona fortuna!" };
+                this.currentEvent = { name: "Inizio Partita", emoji: "🏁" };
             }
             
             this.eventHistory.push({ round: this.round, event: this.currentEvent, details: "" });
@@ -187,8 +184,6 @@
                 p.passed = false;
                 p.techUsed = false;
                 p.getIndicator = false;
-                p.nextEventKnown = false;
-                p.blockNextMoveSpaceId = null; 
             });
 
             if (this.currentEvent && this.currentEvent.id === 'famine') {
@@ -222,15 +217,6 @@
 
         nextTurn() {
             if (this.isGameOver) return;
-            
-            const curr = this.players[this.currentPlayerIndex];
-            if (curr.extraTurn && !curr.passed) {
-                curr.extraTurn = false;
-                this.log(`${curr.name} gioca ancora!`);
-                this.updateUI();
-                setTimeout(() => this.checkAiTurn(), 600);
-                return;
-            }
 
             if (this.players.every(p => p.passed)) {
                 this.endRound();
@@ -429,7 +415,6 @@
             if (space.id === 2 && this.watchtowerBlocked) return this.flashError("Bloccato dalla Tech!");
             if (this.lockedSpaces.includes(space.id)) return this.flashError("Bloccato dall'Evento!");
             if (this.gognaTarget === p.id && (space.type === 'mil' || space.id === 2)) return this.flashError("Sei alla Gogna!");
-            if (p.blockNextMoveSpaceId !== null && p.blockNextMoveSpaceId === space.id) return this.flashError("Spazio bloccato dai Bagni!");
 
             if (space.ownerId !== undefined && space.ownerId !== p.id && space.type !== 'blue') {
                 if (p.coin < 1) return this.flashError("Devi 1 moneta al proprietario!");
@@ -479,7 +464,7 @@
             if (space.reward.special) {
                 if (p.isHuman) {
                     const sp = space.reward.special;
-                    if (['piazza','pozzo','monastero','taverna','accampamento','gogna'].includes(sp)) {
+                    if (['piazza','monastero','taverna','accampamento','gogna'].includes(sp)) {
                         this.pendingSpace = space;
                         this.openSpecialModal(sp, p);
                         return true;
@@ -505,8 +490,6 @@
             if (type === 'piazza') {
                 p.coin += 1;
                 if(!p.isHuman) { if(Math.random()>0.5) p.wood++; else p.brick++; }
-            } else if (type === 'pozzo') {
-                 if(!p.isHuman) { p.wood < p.brick ? p.wood++ : p.brick++; }
             } else if (type === 'roccaforte') {
                 p.vp += 1; if(p.isHuman) this.showFloatingText(spaceId, `+1🏆`, 'yellow');
             } else if (type === 'porta') {
@@ -600,7 +583,7 @@
             const histList = document.getElementById('event-history-list');
             histList.innerHTML = this.eventHistory.map(h => `<li class="mb-1 border-b pb-1"><strong>R${h.round} ${h.event.emoji}</strong> ${h.event.name}. ${h.details||''}</li>`).join('');
 
-            // Tabella riepilogativa principale (già esistente)
+            // Tabella riepilogativa principale
             let html = `<table class="score-table w-full text-center border-collapse"><thead><tr class="text-slate-600 bg-slate-200"><th>#</th><th>Gioc</th><th>Ris</th><th>Fuori</th><th>Dentro</th><th>Dettagli</th><th>TOT</th></tr></thead><tbody>`;
             scores.forEach((s, i) => {
                 html += `<tr class="${i===0 ? 'bg-yellow-50' : ''}"><td class="font-bold text-slate-500">${i+1}</td><td class="font-bold text-left ${s.p.id===0?'text-blue-600':'text-red-600'}">${s.p.name}</td>
@@ -611,40 +594,40 @@
             html += `</tbody></table>`;
             document.getElementById('score-breakdown').innerHTML = html;
 
-                // --- NUOVA TABELLA DI DETTAGLIO ---
-                let detailHtml = `<table class="score-table w-full text-center border-collapse">
-                    <thead>
-                        <tr>
-                            <th class="th-gioc">Gioc</th>
-                            <th colspan="3" class="th-ambra">Base</th>
-                            <th colspan="3" class="th-pietra">Risorse</th>
-                            <th colspan="3" class="th-ambra">Fortezza Base</th>
-                            <th colspan="3" class="th-pietra">Fortezza Magg.</th>
-                            <th class="th-ambra">Fuori Magg.</th>
-                            <th colspan="4" class="th-pietra">Set</th>
-                        </tr>
-                        <tr>
-                            <th class="th-gioc"></th>
-                            <th class="th-ambra">PV</th>
-                            <th class="th-ambra">1°</th>
-                            <th class="th-ambra">Resid.</th>
-                            <th class="th-pietra">Ris. Base</th>
-                            <th class="th-pietra">Bestiame</th>
-                            <th class="th-pietra">Lusso</th>
-                            <th class="th-ambra">Fanti</th>
-                            <th class="th-ambra">Arcieri</th>
-                            <th class="th-ambra">Cavalieri</th>
-                            <th class="th-pietra">Fanti</th>
-                            <th class="th-pietra">Arcieri</th>
-                            <th class="th-pietra">Cavalieri</th>
-                            <th class="th-ambra">Fanti</th>
-                            <th class="th-pietra">Nr. Fanti</th>
-                            <th class="th-pietra">Nr. Arcieri</th>
-                            <th class="th-pietra">Coppie PV</th>
-                            <th class="th-pietra">Cavalieri</th>
-                        </tr>
-                    </thead>
-                    <tbody>`;
+            // Nuova tabella di dettaglio
+            let detailHtml = `<table class="score-table w-full text-center border-collapse">
+                <thead>
+                    <tr>
+                        <th class="th-gioc">Gioc</th>
+                        <th colspan="3" class="th-ambra">Base</th>
+                        <th colspan="3" class="th-pietra">Risorse</th>
+                        <th colspan="3" class="th-ambra">Fortezza Base</th>
+                        <th colspan="3" class="th-pietra">Fortezza Magg.</th>
+                        <th class="th-ambra">Fuori Magg.</th>
+                        <th colspan="4" class="th-pietra">Set</th>
+                    </tr>
+                    <tr>
+                        <th class="th-gioc"></th>
+                        <th class="th-ambra">PV</th>
+                        <th class="th-ambra">1°</th>
+                        <th class="th-ambra">Resid.</th>
+                        <th class="th-pietra">Ris. Base</th>
+                        <th class="th-pietra">Bestiame</th>
+                        <th class="th-pietra">Lusso</th>
+                        <th class="th-ambra">Fanti</th>
+                        <th class="th-ambra">Arcieri</th>
+                        <th class="th-ambra">Cavalieri</th>
+                        <th class="th-pietra">Fanti</th>
+                        <th class="th-pietra">Arcieri</th>
+                        <th class="th-pietra">Cavalieri</th>
+                        <th class="th-ambra">Fanti</th>
+                        <th class="th-pietra">Nr. Fanti</th>
+                        <th class="th-pietra">Nr. Arcieri</th>
+                        <th class="th-pietra">Coppie PV</th>
+                        <th class="th-pietra">Cavalieri</th>
+                    </tr>
+                </thead>
+                <tbody>`;
 
             scores.forEach(s => {
                 detailHtml += `<tr>
