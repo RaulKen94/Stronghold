@@ -184,6 +184,10 @@
                 const cantiere = this.spaces.find(s => s.id === 17);
                 if(cantiere) {
                     this.cantiereInflation += cantiere.slotsOccupied.length;
+                    // Limite massimo: 2 mattoni extra, quindi costo totale massimo 4 mattoni
+                    if (this.cantiereInflation > 2) {
+                        this.cantiereInflation = 2;
+                    }
                 }
             }
 
