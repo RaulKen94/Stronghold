@@ -89,7 +89,12 @@
         
         // Calcolo totale e ordinamento
         scores.forEach(s => s.total = s.base + s.fortBase + s.fortMaj + s.outMaj + s.troopOut + s.res);
-        scores.sort((a, b) => b.total - a.total || b.p.brick - a.p.brick);
+        scores.sort((a, b) =>
+            b.total - a.total ||
+            b.p.brick - a.p.brick ||
+            b.p.wood - a.p.wood ||
+            b.p.coin - a.p.coin
+        );
         
         return scores;
     };
