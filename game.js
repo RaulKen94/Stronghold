@@ -154,7 +154,8 @@
                     tech10Used: false,
                     getIndicator: false,
                     incomeModifier: 0,
-                    hasResidence: false
+                    hasResidence: false,
+                    initialTurnOrder: coinIdx    // 0 = primo giocatore, 3 = ultimo
                 });
             }
             this.currentPlayerIndex = this.firstPlayerIndex;
