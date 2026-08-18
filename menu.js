@@ -47,6 +47,39 @@
         document.getElementById('multiplayer-modal').style.display = 'none';
     };
 
+    /**
+     * Flusso per creare una stanza.
+     */
+    NS.createRoomFlow = async function() {
+        const playerName = prompt('Inserisci il tuo nome:') || 'Giocatore';
+        const maxPlayers = prompt('Quanti giocatori umani? (1-4)') || '4';
+        if (isNaN(maxPlayers) || maxPlayers < 1 || maxPlayers > 4) {
+            alert('Numero non valido');
+            return;
+        }
+        try {
+            const { roomId, code } = await NS.createRoom(playerName, parseInt(maxPlayers));
+            NS.showLobby(roomId, code, playerName, true);
+        } catch (e) {
+            alert('Errore: ' + e.message);
+        }
+    };
+
+    /**
+     * Flusso per partecipare a una stanza.
+     */
+    NS.joinRoomFlow = async function() {
+        const playerName = prompt('Inserisci il tuo nome:') || 'Giocatore';
+        const roomCode = prompt('Inserisci il codice stanza:');
+        if (!roomCode) return;
+        try {
+            const { roomId, code } = await NS.joinRoom(playerName, roomCode.trim().toUpperCase());
+            NS.showLobby(roomId, code, playerName, false);
+        } catch (e) {
+            alert('Errore: ' + e.message);
+        }
+    };
+
     // Esponi le funzioni globalmente per poterle usare negli attributi onclick
     window.showMainMenu = NS.showMainMenu;
     window.startSinglePlayerGame = NS.startSinglePlayerGame;
