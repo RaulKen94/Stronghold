@@ -2,6 +2,7 @@
     window.Roccaforte = window.Roccaforte || {};
     var NS = window.Roccaforte;
 
+    /*
     async function testSupabase() {
         if (!NS.supabase) {
             alert('Supabase non inizializzato. Controlla supabase-config.js');
@@ -18,7 +19,7 @@
     }
 
     // Esegui il test e poi mostra il menu
-    testSupabase().finally(() => {
+    testSupabase().finally(() => {*/
         window.showMainMenu();
-    });
+    //});
 })();
