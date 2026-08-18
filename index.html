@@ -9,7 +9,30 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="flex flex-col h-screen overflow-hidden text-sm select-none">
+    
+<!-- ========== MENU PRINCIPALE ========== -->
+<div id="main-menu" style="display:none; position:fixed; inset:0; background:#0f172a; z-index:3000; flex-direction:column; align-items:center; justify-content:center; gap:20px;">
+    <h1 class="fantasy-font text-yellow-500 text-4xl mb-8">🏰 Roccaforte</h1>
+    <button onclick="startSinglePlayerGame()" class="menu-button bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-8 rounded-xl shadow-lg text-xl w-64">
+        ⚔️ Gioca
+    </button>
+    <button onclick="openMultiplayerModal()" class="menu-button bg-green-600 hover:bg-green-500 text-white font-bold py-4 px-8 rounded-xl shadow-lg text-xl w-64">
+        🌐 Multiplayer
+    </button>
+</div>
 
+<!-- ========== MODALE MULTIPLAYER ========== -->
+<div id="multiplayer-modal" class="modal" style="z-index:3100;">
+    <div class="modal-content max-w-sm text-center">
+        <h3 class="text-xl font-bold mb-6">Multiplayer</h3>
+        <div class="flex flex-col gap-3">
+            <button onclick="alert('In arrivo')" class="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-500">Crea Stanza</button>
+            <button onclick="alert('In arrivo')" class="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-500">Partecipa</button>
+            <button onclick="closeMultiplayerModal()" class="bg-slate-200 text-slate-700 p-3 rounded-lg font-bold hover:bg-slate-300">Indietro</button>
+        </div>
+    </div>
+</div>
+    
     <!-- ========== HEADER ========== -->
     <header class="bg-slate-900/95 backdrop-blur p-2 shadow-lg z-20 flex justify-between items-center shrink-0 border-b border-slate-700">
         <div class="flex items-center gap-2">
@@ -188,6 +211,9 @@
             <button onclick="game.resetGame()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-lg transition transform hover:scale-[1.02]">
                 <i data-lucide="refresh-cw" class="w-5 h-5"></i> Nuova Partita
             </button>
+            <button onclick="showMainMenu()" class="w-full bg-slate-600 hover:bg-slate-500 text-white font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm mt-2 transition">
+                🏠 Torna al menu principale
+            </button>
         </div>
     </div>
 
@@ -329,6 +355,7 @@
     <script src="ai.js"></script>
     <script src="ui.js"></script>
     <script src="endgamecalc.js"></script>
+    <script src="menu.js"></script>
     <script src="main.js"></script>
 </body>
 </html>
