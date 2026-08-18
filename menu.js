@@ -85,4 +85,6 @@
     window.startSinglePlayerGame = NS.startSinglePlayerGame;
     window.openMultiplayerModal = NS.openMultiplayerModal;
     window.closeMultiplayerModal = NS.closeMultiplayerModal;
+    window.createRoomFlow = NS.createRoomFlow;
+    window.joinRoomFlow = NS.joinRoomFlow;
 })();
