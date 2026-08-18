@@ -2,5 +2,8 @@
     window.Roccaforte = window.Roccaforte || {};
     var NS = window.Roccaforte;
 
-    window.game = new NS.Game();
+    // All'avvio mostra il menu principale (non parte subito una partita)
+    window.showMainMenu();
+    //OLD:window.game = new NS.Game();
+    
 })();
