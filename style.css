@@ -163,6 +163,20 @@ h1, h2, h3, .fantasy-font { font-family: 'Cinzel', serif; }
 }
 /* #END - Colori medievali per le aree della tabella dettaglio */
 
+/* #START - Menu principale */
+#main-menu {
+    display: none; /* verrà impostato a flex da showMainMenu() */
+}
+
+.menu-button {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.menu-button:active {
+    transform: translateY(2px);
+}
+/* #END - Menu principale */
+
 .res-pill { display: inline-flex; align-items: center; gap: 2px; background: rgba(255,255,255,0.4); padding: 1px 6px; border-radius: 6px; margin-right: 2px; font-weight: bold; font-size: 0.75rem; border: 1px solid rgba(0,0,0,0.05); }
 
 .combined-event-banner {
