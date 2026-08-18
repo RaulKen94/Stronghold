@@ -2,21 +2,23 @@
     window.Roccaforte = window.Roccaforte || {};
     var NS = window.Roccaforte;
 
-    // Test rapido: prova a leggere il numero di stanze
-async function testSupabase() {
-    const { data, error } = await window.Roccaforte.supabase
-        .from('rooms')
-        .select('*');
-    if (error) {
-        alert.error('Errore connessione Supabase:', error);
-    } else {
-        alert.log('Connessione Supabase OK! Stanze presenti:', data);
+    async function testSupabase() {
+        if (!NS.supabase) {
+            alert('Supabase non inizializzato. Controlla supabase-config.js');
+            return;
+        }
+        const { data, error } = await NS.supabase
+            .from('rooms')
+            .select('*');
+        if (error) {
+            alert('Errore connessione Supabase: ' + JSON.stringify(error));
+        } else {
+            alert('Connessione Supabase OK! Stanze presenti: ' + JSON.stringify(data));
+        }
     }
-}
-testSupabase();
-    
-    // All'avvio mostra il menu principale (non parte subito una partita)
-    window.showMainMenu();
-    //OLD:window.game = new NS.Game();
-    
+
+    // Esegui il test e poi mostra il menu
+    testSupabase().finally(() => {
+        window.showMainMenu();
+    });
 })();
