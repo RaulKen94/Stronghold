@@ -882,19 +882,19 @@
          * EXECUTE TECH
          * Assegna una tecnologia al giocatore e ne applica l'effetto.
          */
-        executeTech(p, techIdx) {
-            if (p.techUsed) return this.flashError("Tech già usata!");
+        executeTech(p, techIdx, isRemote = false) {
+            if (p.techUsed) return isRemote ? false : this.flashError("Tech già usata!");
             const tech = this.currentTechs[techIdx];
-            if (!tech || tech.takenBy !== null) return this.flashError("Già presa!");
-
+            if (!tech || tech.takenBy !== null) return isRemote ? false : this.flashError("Già presa!");
+        
             // Tech speciale "Copia Tech"
             if (tech.id === 2) {
                 const used = this.currentTechs.filter(t => t.takenBy !== null && t.id !== 2);
-                if(used.length === 0) {
-                    if(p.isHuman) alert("Nessuna tech da copiare. +3💰");
+                if (used.length === 0) {
+                    if (!isRemote && p.isHuman) alert("Nessuna tech da copiare. +3💰");
                     p.coin += 3;
                 } else {
-                    if(p.isHuman) {
+                    if (!isRemote && p.isHuman) {
                         return this.showCopyModal(used, p, techIdx);
                     } else {
                         const target = used[Math.floor(this.rng() * used.length)];
@@ -903,9 +903,9 @@
                     }
                 }
             } else {
-                if(typeof tech.effect === 'function') tech.effect(p, this);
+                if (typeof tech.effect === 'function') tech.effect(p, this);
             }
-
+        
             tech.takenBy = p.id;
             p.techUsed = true;
             this.log(`${p.name} ricerca ${tech.text}`);
