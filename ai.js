@@ -176,4 +176,19 @@
             if (target) this.gognaTarget = target.id;
         }
     };
+
+    /**
+    * CHOOSE AI BUILD
+    */
+    NS.Game.prototype.chooseAIBuild = function(p) {
+        if (!p.hasResidence && p.luxury >= 1) {
+            return NS.NEW_BUILDINGS.find(x => x.type === 'blue');
+        }
+        const avail = NS.NEW_BUILDINGS.filter(x => x.type !== 'blue' && !this.builtBuildings.includes(x.id));
+        if (avail.length > 0) {
+            return avail[Math.floor(this.rng() * avail.length)];
+        }
+        return null;
+    };
+    
 })();
