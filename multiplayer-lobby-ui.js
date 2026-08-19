@@ -64,11 +64,7 @@
                 if (!confirm('Vuoi avviare la partita?')) return;
                 try {
                     await NS.startRoom(roomId);
-                    alert('Partita avviata! (Fase 3 completata, Fase 4 in arrivo)');
-                    // Per ora nascondi la lobby e mostra il menu
-                    if (unsubscribe) unsubscribe();
-                    lobbyDiv.style.display = 'none';
-                    window.showMainMenu();
+                    // Non facciamo nulla qui: la Realtime callback si occuperà di avviare la partita
                 } catch (e) {
                     alert('Errore avvio partita: ' + e.message);
                 }
