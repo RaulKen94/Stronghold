@@ -531,14 +531,51 @@
                 this.finalizeRound();
                 return;
             }
-
+        
             const pid = this.cantiereQueue.shift();
             const p = this.players[pid];
-
+        
             if (p.isHuman) {
-                this.openBuildTypeModal();
+                if (this.isMultiplayer && !p.isLocal) {
+                    // Giocatore umano remoto: l'host invia la richiesta
+                    if (this.isHost) {
+                        this.sendMove({
+                            player_id: p.id,
+                            move_type: 'build_request'
+                        });
+                    }
+                    return; // aspetta la risposta
+                } else {
+                    // Giocatore umano locale: apri la modale
+                    this.openBuildTypeModal(p);
+                }
             } else {
-                this.aiBuild(p);
+                // AI: solo l'host esegue
+                if (this.isMultiplayer && !this.isHost) return;
+
+                const chosen = this.chooseAIBuild(p);
+                if (chosen) {
+                    if (this.isMultiplayer && this.isHost) {
+                        // Invia la mossa di scelta edificio
+                        this.sendMove({
+                            player_id: p.id,
+                            move_type: 'build_choice',
+                            building_id: chosen.id
+                        });
+                        // Non applica subito: aspetta l'eco della mossa
+                    } else {
+                        // Single-player: applica direttamente
+                        if (chosen.type === 'blue') {
+                            p.luxury--;
+                            p.hasResidence = true;
+                        }
+                        this.applyBuild(p, chosen);
+                        this.processCantiereQueue();
+                    }
+                } else {
+                    // Nessun edificio disponibile: passa oltre
+                    this.processCantiereQueue();
+                }
             }
         }
 
