@@ -92,7 +92,18 @@
         var unsubscribe = NS.subscribeToRoom(
             roomId,
             (newPlayer) => { refreshPlayers(); },
-            (newMove) => { /* per ora ignora */ }
+            (newMove) => { /* per ora ignora */ },
+            (updatedRoom) => {
+                if (updatedRoom.status === 'playing') {
+                    // La partita è iniziata
+                    if (unsubscribe) unsubscribe();
+                    lobbyDiv.style.display = 'none';
+                    alert('La partita è iniziata!');
+                    // In Fase 4 avvieremo il gioco vero e proprio
+                    // Per ora mostriamo solo il menu
+                    window.showMainMenu();
+                }
+            }
         );
 
         // Carica iniziale della lista
