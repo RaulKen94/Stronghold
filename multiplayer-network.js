@@ -153,7 +153,7 @@
     * UPDATE ROOM HUMAN COUNT
     */
     NS.updateRoomHumanCount = async function(roomId, count) {
-        if (count < 2 || count > 4) throw new Error('Numero non valido');
+        if (count < 2 || count > 4) throw new Error('Numero non valido (min 2, max 4)');
         const { error } = await NS.supabase
             .from('rooms')
             .update({ human_count: count })
