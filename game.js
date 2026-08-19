@@ -925,15 +925,67 @@
             const player = this.players[move.player_id];
             if (!player) return;
         
-            if (move.move_type === 'space') {
-                this.executeAction(player, move.space_id, true, move.choiceData || null);
-            } else if (move.move_type === 'tech') {
-                this.executeTech(player, move.tech_idx, true);
-            } else if (move.move_type === 'pass') {
-                if (!player.passed) {
-                    player.passed = true;
-                    this.log(`${player.name} passa.`);
-                    this.nextTurn();
+            switch (move.move_type) {
+                case 'space':
+                    this.executeAction(player, move.space_id, true, move.choiceData || null);
+                    break;
+        
+                case 'tech':
+                    this.executeTech(player, move.tech_idx, true);
+                    break;
+        
+                case 'pass':
+                    if (!player.passed) {
+                        player.passed = true;
+                        this.log(`${player.name} passa.`);
+                        this.nextTurn();
+                    }
+                    break;
+
+                case 'stronghold_request':
+                    // Il giocatore locale deve aprire la modale di deposito
+                    if (player.isLocal) {
+                        this.renderStrongholdModal(player);
+                    }
+                    break;
+        
+                case 'stronghold_deposit': {
+                    const depositAmount = move.infantry || 0;
+                    if (depositAmount > 0) {
+                        player.stronghold.infantry += depositAmount;
+                        player.infantry -= depositAmount;
+                        this.log(`${player.name} deposita ${depositAmount} fanti.`);
+                    }
+                    // Solo l'host avanza la coda
+                    if (this.isHost) {
+                        this.processStrongholdQueue();
+                    }
+                    break;
+                }
+        
+                case 'build_request':
+                    // Il giocatore locale deve aprire la modale di costruzione
+                    if (player.isLocal) {
+                        this.openBuildTypeModal(player);
+                    }
+                    break;
+
+                case 'build_choice': {
+                    const building = NS.NEW_BUILDINGS.find(x => x.id === move.building_id);
+                    if (building) {
+                        // Per la residenza blu, deduci il costo
+                        if (building.type === 'blue') {
+                            if (player.luxury < 1) break; // non dovrebbe accadere
+                            player.luxury--;
+                            player.hasResidence = true;
+                        }
+                        this.applyBuild(player, building);
+                        // Solo l'host avanza la coda
+                        if (this.isHost) {
+                            this.processCantiereQueue();
+                        }
+                    }
+                    break;
                 }
             }
         }
