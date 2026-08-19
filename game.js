@@ -794,20 +794,19 @@
          * APPLY SPECIAL REWARD
          * Gestisce gli effetti speciali delle location.
          */
-        applySpecialReward(type, p, spaceId) {
+        applySpecialReward(type, p, spaceId, choiceData = null) {
             if (type === 'piazza') {
-                // +1 moneta per tutti
                 p.coin += 1;
-                // Per l'IA, applica anche la scelta casuale tra legno e mattone
-                if (!p.isHuman) {
+                if (choiceData) {
+                    if (choiceData.resource === 'wood') p.wood++;
+                    else if (choiceData.resource === 'brick') p.brick++;
+                } else if (!p.isHuman) {
                     this.applySpecialRewardAI(type, p, spaceId);
                 }
             } else if (type === 'roccaforte') {
-                // +1 PV
                 p.vp += 1;
                 if (p.isHuman) this.showFloatingText(spaceId, `+1🏆`, 'yellow');
             } else if (type === 'porta') {
-                // Raccoglie le monete accumulate sulla Porta (condiviso)
                 const amt = this.accumulatedCoinsPorta;
                 if (amt > 0) {
                     p.coin += amt;
@@ -815,7 +814,6 @@
                     this.log(`${p.name} raccoglie ${amt}💰 dalla Porta.`);
                 }
             } else if (type === 'consiglio') {
-                // Sala del Consiglio: recupero truppe (condiviso)
                 let gained = [];
                 ['knight', 'archer', 'infantry'].forEach(unit => {
                     let maxOthers = 0;
@@ -828,12 +826,49 @@
                     }
                 });
                 if (gained.length > 0) this.log(`${p.name} ottiene rinforzi dal Consiglio.`);
-            } else if (!p.isHuman) {
-                // Per gli altri tipi speciali, la logica è esclusiva dell'IA
-                this.applySpecialRewardAI(type, p, spaceId);
+            } else if (type === 'monastero') {
+                if (choiceData) {
+                    if (choiceData.resource === 'wood') p.wood++;
+                    else if (choiceData.resource === 'brick') p.brick++;
+                    else if (choiceData.resource === 'cattle') p.cattle++;
+                } else if (!p.isHuman) {
+                    this.applySpecialRewardAI(type, p, spaceId);
+                }
+            } else if (type === 'taverna') {
+                if (choiceData) {
+                    if (choiceData.option === 'A') { p.brick++; p.vp++; }
+                    else if (choiceData.option === 'B') { p.wood++; p.cattle++; }
+                    else if (choiceData.option === 'C') { p.archer++; }
+                    else if (choiceData.option === 'D') { p.infantry++; p.vp++; }
+                } else if (!p.isHuman) {
+                    this.applySpecialRewardAI(type, p, spaceId);
+                }
+            } else if (type === 'accampamento') {
+                if (choiceData) {
+                    if (choiceData.option === 'wood') {
+                        if (p.wood >= 1) { p.wood--; p.vp++; p.infantry++; }
+                    } else if (choiceData.option === 'cattle') {
+                        if (p.cattle >= 1) { p.cattle--; p.archer++; }
+                    } else if (choiceData.option === 'all') {
+                        if (p.wood >= 1 && p.cattle >= 1 && p.coin >= 3) {
+                            p.wood--; p.cattle--; p.coin -= 3; p.vp += 2; p.infantry += 2; p.archer++;
+                        }
+                    }
+                } else if (!p.isHuman) {
+                    this.applySpecialRewardAI(type, p, spaceId);
+                }
+            } else if (type === 'gogna') {
+                if (choiceData) {
+                    if (choiceData.targetId !== undefined) {
+                        const target = this.players.find(pl => pl.id === choiceData.targetId);
+                        if (target) this.gognaTarget = target.id;
+                    }
+                } else if (!p.isHuman) {
+                    this.applySpecialRewardAI(type, p, spaceId);
+                }
             }
         }
-
+        
         /**
         * SEND CHOICE
         */
