@@ -148,16 +148,20 @@
     };
     
     /**
-     * Imposta lo stato della stanza a 'playing'.
+     * Avvia la partita generando un seed casuale e salvandolo nella stanza.
      * @param {string} roomId - ID della stanza
      */
     NS.startRoom = async function(roomId) {
+        // Genera un seed casuale (intero) per il PRNG del gioco
+        const seed = Math.floor(Math.random() * 1000000);
+
         const { error } = await NS.supabase
             .from('rooms')
-            .update({ status: 'playing' })
+            .update({ status: 'playing', game_seed: seed })
             .eq('id', roomId);
         if (error) throw error;
-        return true;
+
+        return seed;
     };
 
 })();
