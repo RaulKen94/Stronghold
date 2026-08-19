@@ -65,7 +65,7 @@
             document.getElementById('human-count-display').textContent = currentHumanCount;
     
             document.getElementById('btn-dec-humans').onclick = async () => {
-                if (currentHumanCount <= 1) return;
+                if (currentHumanCount <= 2) return;
                 currentHumanCount--;
                 await NS.updateRoomHumanCount(roomId, currentHumanCount);
                 document.getElementById('human-count-display').textContent = currentHumanCount;
