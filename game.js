@@ -464,10 +464,10 @@
                 else this.finalizeRound();
                 return;
             }
-
+        
             const pid = this.strongholdQueue.shift();
             const p = this.players[pid];
-
+        
             // Arcieri e cavalieri vengono depositati automaticamente
             if (p.archer > 0) {
                 p.stronghold.archer += p.archer;
@@ -478,16 +478,41 @@
                 p.knight = 0;
             }
 
-            // La fanteria richiede una scelta (solo per umano)
+            // La fanteria richiede una scelta (solo per umani)
             if (p.infantry > 0) {
                 if (p.isHuman) {
-                    this.renderStrongholdModal(p);
+                    if (this.isMultiplayer && !p.isLocal) {
+                        // Giocatore umano remoto: invia una mossa per chiedere la scelta
+                        if (this.isHost) {
+                            this.sendMove({
+                                player_id: p.id,
+                                move_type: 'stronghold_request'
+                            });
+                        }
+                        // Non proseguire: aspetta che il giocatore remoto invii la scelta
+                        return;
+                    } else {
+                        // Giocatore umano locale: apri la modale
+                        this.renderStrongholdModal(p);
+                        return;
+                    }
                 } else {
-                    // L'AI deposita tutti i fanti con probabilità 80%
+                    // AI: decide automaticamente (solo l'host)
+                    if (this.isMultiplayer && !this.isHost) return; // solo l'host muove le AI
+
                     const putIn = this.rng() > 0.2 ? p.infantry : 0;
                     p.stronghold.infantry += putIn;
                     p.infantry -= putIn;
                     this.log(`${p.name} deposita ${putIn} fanti.`);
+        
+                    // Invia la mossa per sincronizzare
+                    if (this.isMultiplayer && this.isHost) {
+                        this.sendMove({
+                            player_id: p.id,
+                            move_type: 'stronghold_deposit',
+                            infantry: putIn
+                        });
+                    }
                     this.processStrongholdQueue();
                 }
             } else {
