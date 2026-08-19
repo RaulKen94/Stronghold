@@ -16,7 +16,7 @@
      * Rappresenta l'intera partita e gestisce tutte le meccaniche di gioco.
      */
     class Game {
-        constructor(seed) {
+        constructor(seed, playerConfig) {
             this.seed = (seed !== undefined && seed !== null) ? seed : Math.floor(Math.random() * 1000000);
             this.rng = mulberry32(this.seed);
 
@@ -130,45 +130,46 @@
          * Crea i giocatori, genera la coda eventi, prepara il primo round.
          */
         initGame() {
-            // Genera 8 eventi casuali in base alle probabilità
-            for(let i=0; i<8; i++) {
-                let r = this.rng();
-                let cum = 0;
-                let sel = NS.EVENTS[NS.EVENTS.length - 1];
-                for (let e of NS.EVENTS) {
-                    cum += e.prob;
-                    if (r < cum) {
-                        sel = e;
-                        break;
-                    }
+        // Genera 8 eventi casuali in base alle probabilità
+        for (let i = 0; i < 8; i++) {
+            let r = this.rng();
+            let cum = 0;
+            let sel = NS.EVENTS[NS.EVENTS.length - 1];
+            for (let e of NS.EVENTS) {
+                cum += e.prob;
+                if (r < cum) {
+                    sel = e;
+                    break;
                 }
-                this.eventQueue.push(sel);
             }
+            this.eventQueue.push(sel);
+        }
 
-            // Monete iniziali in base all'ordine di turno
+        // Primo giocatore casuale ma deterministico
+        this.firstPlayerIndex = Math.floor(this.rng() * 4);
+
+        if (this.playerConfig) {
+            // Modalità multiplayer: usa la configurazione fornita
             const startCoins = [1, 2, 3, 4];
-            this.firstPlayerIndex = Math.floor(this.rng() * 4);
-            const archetypeKeys = ['GENERAL', 'MERCHANT', 'ARCHITECT'];
-
-            // Crea i 4 giocatori (il primo è umano)
-            for (let i = 0; i < 4; i++) {
+            this.players = this.playerConfig.map((cfg, i) => {
                 let coinIdx = (i - this.firstPlayerIndex + 4) % 4;
-                let pArchetype = null;
-                if (i !== 0) {
-                    // Assegna un archetipo casuale all'AI
-                    pArchetype = archetypeKeys[Math.floor(this.rng() * archetypeKeys.length)];
-                }
-
-                this.players.push({
+                return {
                     id: i,
-                    name: i === 0 ? "Tu" : `PC ${i}`,
-                    archetype: pArchetype,
-                    isHuman: i === 0,
-                    isLocal: false, // Nuovo campo per multiplayer
+                    name: cfg.name || `Giocatore ${i + 1}`,
+                    archetype: cfg.archetype || null,
+                    isHuman: cfg.isHuman === undefined ? true : cfg.isHuman,
+                    isLocal: cfg.isLocal === undefined ? false : cfg.isLocal,
                     coin: startCoins[coinIdx],
-                    wood: 0, brick: 0, luxury: 0, cattle: 0,
-                    infantry: 0, archer: 0, knight: 0,
-                    workers: 2, maxWorkers: 2, futureWorkers: 0,
+                    wood: 0,
+                    brick: 0,
+                    luxury: 0,
+                    cattle: 0,
+                    infantry: 0,
+                    archer: 0,
+                    knight: 0,
+                    workers: 2,
+                    maxWorkers: 2,
+                    futureWorkers: 0,
                     vp: 0,
                     stronghold: { infantry: 0, archer: 0, knight: 0 },
                     passed: false,
@@ -177,16 +178,55 @@
                     getIndicator: false,
                     incomeModifier: 0,
                     hasResidence: false,
-                    initialTurnOrder: coinIdx    // 0 = primo giocatore, 3 = ultimo
+                    initialTurnOrder: coinIdx
+                };
+            });
+        } else {
+            // Modalità single-player: 1 umano + 3 AI
+            const startCoins = [1, 2, 3, 4];
+            const archetypeKeys = ['GENERAL', 'MERCHANT', 'ARCHITECT'];
+            this.players = [];
+            for (let i = 0; i < 4; i++) {
+                let coinIdx = (i - this.firstPlayerIndex + 4) % 4;
+                let pArchetype = null;
+                if (i !== 0) {
+                    pArchetype = archetypeKeys[Math.floor(this.rng() * archetypeKeys.length)];
+                }
+                this.players.push({
+                    id: i,
+                    name: i === 0 ? "Tu" : `PC ${i}`,
+                    archetype: pArchetype,
+                    isHuman: i === 0,
+                    isLocal: i === 0, // solo il giocatore umano è locale
+                    coin: startCoins[coinIdx],
+                    wood: 0,
+                    brick: 0,
+                    luxury: 0,
+                    cattle: 0,
+                    infantry: 0,
+                    archer: 0,
+                    knight: 0,
+                    workers: 2,
+                    maxWorkers: 2,
+                    futureWorkers: 0,
+                    vp: 0,
+                    stronghold: { infantry: 0, archer: 0, knight: 0 },
+                    passed: false,
+                    techUsed: false,
+                    tech10Used: false,
+                    getIndicator: false,
+                    incomeModifier: 0,
+                    hasResidence: false,
+                    initialTurnOrder: coinIdx
                 });
             }
-            this.currentPlayerIndex = this.firstPlayerIndex;
-
-            // Avvia il primo round
-            this.startRound();
-            this.updateUI();
-            this.checkAiTurn();
         }
+    
+        this.currentPlayerIndex = this.firstPlayerIndex;
+        this.startRound();
+        this.updateUI();
+        this.checkAiTurn();
+    }
 
         /**
          * START ROUND
