@@ -835,6 +835,28 @@
         }
 
         /**
+        * SEND CHOICE
+        */
+        sendChoice(choiceData) {
+            if (this.isMultiplayer && this.sendMove) {
+                const p = this.players[this.currentPlayerIndex];
+                this.sendMove({
+                    player_id: p.id,
+                    move_type: 'space',
+                    space_id: this.pendingSpace.id,
+                    choiceData: choiceData
+                });
+                document.getElementById('choice-modal').style.display = 'none';
+                document.getElementById('gogna-modal').style.display = 'none';
+                this.pendingSpace = null;
+            } else {
+                const p = this.players[this.currentPlayerIndex];
+                this.applySpecialReward(this.pendingSpace.reward.special, p, this.pendingSpace.id, choiceData);
+                this.finishSpecial();
+            }
+        }
+
+        /**
         * APPLY REMOTE MOVE
         * Questo metodo verrà chiamato dall'adapter quando arriva una nuova mossa dal database.
         */
