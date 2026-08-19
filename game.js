@@ -22,6 +22,8 @@
 
             // Configurazione giocatori per multiplayer (opzionale)
             this.playerConfig = playerConfig || null;
+            this.isMultiplayer = !!playerConfig;
+            this.isHost = isHost || false; // solo in multiplayer
             
             // Stato dei giocatori
             this.players = [];
@@ -76,9 +78,6 @@
             // Opzioni già usate nella Taverna
             this.tavernaUsedOptions = [];
 
-            // Flag per capire se la partita è multiplayer
-            this.isMultiplayer = !!playerConfig;
-
             // Callback per inviare mosse in multiplayer (impostato dall'adapter)
             this.sendMove = null;
 
@@ -130,103 +129,103 @@
          * Crea i giocatori, genera la coda eventi, prepara il primo round.
          */
         initGame() {
-        // Genera 8 eventi casuali in base alle probabilità
-        for (let i = 0; i < 8; i++) {
-            let r = this.rng();
-            let cum = 0;
-            let sel = NS.EVENTS[NS.EVENTS.length - 1];
-            for (let e of NS.EVENTS) {
-                cum += e.prob;
-                if (r < cum) {
-                    sel = e;
-                    break;
+            // Genera 8 eventi casuali in base alle probabilità
+            for (let i = 0; i < 8; i++) {
+                let r = this.rng();
+                let cum = 0;
+                let sel = NS.EVENTS[NS.EVENTS.length - 1];
+                for (let e of NS.EVENTS) {
+                    cum += e.prob;
+                    if (r < cum) {
+                        sel = e;
+                        break;
+                    }
                 }
+                this.eventQueue.push(sel);
             }
-            this.eventQueue.push(sel);
-        }
-
-        // Primo giocatore casuale ma deterministico
-        this.firstPlayerIndex = Math.floor(this.rng() * 4);
-
-        if (this.playerConfig) {
-            // Modalità multiplayer: usa la configurazione fornita
-            const startCoins = [1, 2, 3, 4];
-            this.players = this.playerConfig.map((cfg, i) => {
-                let coinIdx = (i - this.firstPlayerIndex + 4) % 4;
-                return {
-                    id: i,
-                    name: cfg.name || `Giocatore ${i + 1}`,
-                    archetype: cfg.archetype || null,
-                    isHuman: cfg.isHuman === undefined ? true : cfg.isHuman,
-                    isLocal: cfg.isLocal === undefined ? false : cfg.isLocal,
-                    coin: startCoins[coinIdx],
-                    wood: 0,
-                    brick: 0,
-                    luxury: 0,
-                    cattle: 0,
-                    infantry: 0,
-                    archer: 0,
-                    knight: 0,
-                    workers: 2,
-                    maxWorkers: 2,
-                    futureWorkers: 0,
-                    vp: 0,
-                    stronghold: { infantry: 0, archer: 0, knight: 0 },
-                    passed: false,
-                    techUsed: false,
-                    tech10Used: false,
-                    getIndicator: false,
-                    incomeModifier: 0,
-                    hasResidence: false,
-                    initialTurnOrder: coinIdx
-                };
-            });
-        } else {
-            // Modalità single-player: 1 umano + 3 AI
-            const startCoins = [1, 2, 3, 4];
-            const archetypeKeys = ['GENERAL', 'MERCHANT', 'ARCHITECT'];
-            this.players = [];
-            for (let i = 0; i < 4; i++) {
-                let coinIdx = (i - this.firstPlayerIndex + 4) % 4;
-                let pArchetype = null;
-                if (i !== 0) {
-                    pArchetype = archetypeKeys[Math.floor(this.rng() * archetypeKeys.length)];
-                }
-                this.players.push({
-                    id: i,
-                    name: i === 0 ? "Tu" : `PC ${i}`,
-                    archetype: pArchetype,
-                    isHuman: i === 0,
-                    isLocal: i === 0, // solo il giocatore umano è locale
-                    coin: startCoins[coinIdx],
-                    wood: 0,
-                    brick: 0,
-                    luxury: 0,
-                    cattle: 0,
-                    infantry: 0,
-                    archer: 0,
-                    knight: 0,
-                    workers: 2,
-                    maxWorkers: 2,
-                    futureWorkers: 0,
-                    vp: 0,
-                    stronghold: { infantry: 0, archer: 0, knight: 0 },
-                    passed: false,
-                    techUsed: false,
-                    tech10Used: false,
-                    getIndicator: false,
-                    incomeModifier: 0,
-                    hasResidence: false,
-                    initialTurnOrder: coinIdx
-                });
-            }
-        }
     
-        this.currentPlayerIndex = this.firstPlayerIndex;
-        this.startRound();
-        this.updateUI();
-        this.checkAiTurn();
-    }
+            // Primo giocatore casuale ma deterministico
+            this.firstPlayerIndex = Math.floor(this.rng() * 4);
+
+            if (this.playerConfig) {
+                // Modalità multiplayer: usa la configurazione fornita
+                const startCoins = [1, 2, 3, 4];
+                this.players = this.playerConfig.map((cfg, i) => {
+                    let coinIdx = (i - this.firstPlayerIndex + 4) % 4;
+                    return {
+                        id: i,
+                        name: cfg.name || `Giocatore ${i + 1}`,
+                        archetype: cfg.archetype || null,
+                        isHuman: cfg.isHuman === undefined ? true : cfg.isHuman,
+                        isLocal: cfg.isLocal === undefined ? false : cfg.isLocal,
+                        coin: startCoins[coinIdx],
+                        wood: 0,
+                        brick: 0,
+                        luxury: 0,
+                        cattle: 0,
+                        infantry: 0,
+                        archer: 0,
+                        knight: 0,
+                        workers: 2,
+                        maxWorkers: 2,
+                        futureWorkers: 0,
+                        vp: 0,
+                        stronghold: { infantry: 0, archer: 0, knight: 0 },
+                        passed: false,
+                        techUsed: false,
+                        tech10Used: false,
+                        getIndicator: false,
+                        incomeModifier: 0,
+                        hasResidence: false,
+                        initialTurnOrder: coinIdx
+                    };
+                });
+            } else {
+                // Modalità single-player: 1 umano + 3 AI
+                const startCoins = [1, 2, 3, 4];
+                const archetypeKeys = ['GENERAL', 'MERCHANT', 'ARCHITECT'];
+                this.players = [];
+                for (let i = 0; i < 4; i++) {
+                    let coinIdx = (i - this.firstPlayerIndex + 4) % 4;
+                    let pArchetype = null;
+                    if (i !== 0) {
+                        pArchetype = archetypeKeys[Math.floor(this.rng() * archetypeKeys.length)];
+                    }
+                    this.players.push({
+                        id: i,
+                        name: i === 0 ? "Tu" : `PC ${i}`,
+                        archetype: pArchetype,
+                        isHuman: i === 0,
+                        isLocal: i === 0, // solo il giocatore umano è locale
+                        coin: startCoins[coinIdx],
+                        wood: 0,
+                        brick: 0,
+                        luxury: 0,
+                        cattle: 0,
+                        infantry: 0,
+                        archer: 0,
+                        knight: 0,
+                        workers: 2,
+                        maxWorkers: 2,
+                        futureWorkers: 0,
+                        vp: 0,
+                        stronghold: { infantry: 0, archer: 0, knight: 0 },
+                        passed: false,
+                        techUsed: false,
+                        tech10Used: false,
+                        getIndicator: false,
+                        incomeModifier: 0,
+                        hasResidence: false,
+                        initialTurnOrder: coinIdx
+                    });
+                }
+            }
+        
+            this.currentPlayerIndex = this.firstPlayerIndex;
+            this.startRound();
+            this.updateUI();
+            this.checkAiTurn();
+        }
 
         /**
          * START ROUND
@@ -418,13 +417,16 @@
          */
         checkAiTurn() {
             const p = this.players[this.currentPlayerIndex];
-            if (!p.isHuman && !p.passed && !this.isGameOver) {
-                try {
-                    this.aiMove(p);
-                } catch (e) {
-                    console.error("AI Error:", e);
-                    this.passTurn();
-                }
+            if (p.isHuman || p.passed || this.isGameOver) return;
+        
+            // In multiplayer, solo l'host esegue le mosse delle AI
+            if (this.isMultiplayer && !this.isHost) return;
+        
+            try {
+                this.aiMove(p);
+            } catch (e) {
+                console.error("AI Error:", e);
+                this.passTurn();
             }
         }
 
@@ -689,7 +691,7 @@
          * EXECUTE ACTION
          * Esegue l'azione su uno spazio: controlla costi, applica ricompense.
          */
-        executeAction(p, spaceId, isRemote = false) {
+        executeAction(p, spaceId, isRemote = false, choiceData = null) {
             const space = this.spaces.find(s => s.id === spaceId);
             if (!space || space.type === 'blue') return false; // gli spazi residenziali non sono cliccabili
 
@@ -760,17 +762,16 @@
 
             // ---- Gestione ricompense speciali ----
             if (space.reward.special) {
-                if (p.isHuman) {
-                    const sp = space.reward.special;
-                    // Se lo speciale richiede una scelta, apri la modale
-                    if (['piazza','monastero','taverna','accampamento','gogna'].includes(sp)) {
-                        this.pendingSpace = space;
-                        this.openSpecialModal(sp, p);
-                        return true;
-                    }
+                const sp = space.reward.special;
+                if (p.isHuman && !isRemote && ['piazza','monastero','taverna','accampamento','gogna'].includes(sp)) {
+                    // Apre la modale solo se non remoto e non abbiamo già choiceData
+                    this.pendingSpace = space;
+                    this.openSpecialModal(sp, p, choiceData); // passerà la scelta
+                    return true;
                 }
-                // Per AI o speciali senza scelta
-                this.applySpecialReward(space.reward.special, p, space.id);
+                // Se è remoto o non richiede scelta, applica la ricompensa speciale
+                // Se è remoto e richiede scelta, usa choiceData
+                this.applySpecialReward(space.reward.special, p, space.id, choiceData);
             } else {
                 // ---- Ricompense normali ----
                 for(let k in space.reward) {
