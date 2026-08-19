@@ -19,6 +19,9 @@
         constructor(seed) {
             this.seed = (seed !== undefined && seed !== null) ? seed : Math.floor(Math.random() * 1000000);
             this.rng = mulberry32(this.seed);
+
+            // Configurazione giocatori per multiplayer (opzionale)
+            this.playerConfig = playerConfig || null;
             
             // Stato dei giocatori
             this.players = [];
@@ -72,6 +75,12 @@
             this.gognaTarget = null;
             // Opzioni già usate nella Taverna
             this.tavernaUsedOptions = [];
+
+            // Flag per capire se la partita è multiplayer
+            this.isMultiplayer = !!playerConfig;
+
+            // Callback per inviare mosse in multiplayer (impostato dall'adapter)
+            this.sendMove = null;
 
             // Avvia il gioco
             this.initGame();
