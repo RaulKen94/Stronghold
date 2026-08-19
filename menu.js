@@ -51,14 +51,13 @@
      * Flusso per creare una stanza.
      */
     NS.createRoomFlow = async function() {
-        const playerName = prompt('Inserisci il tuo nome:') || 'Giocatore';
-        const maxPlayers = prompt('Quanti giocatori umani? (1-4)') || '4';
-        if (isNaN(maxPlayers) || maxPlayers < 1 || maxPlayers > 4) {
-            alert('Numero non valido');
-            return;
+        let playerName = '';
+        while (!playerName.trim()) {
+            playerName = prompt('Inserisci il tuo nome:') || '';
+            if (!playerName.trim()) alert('Il nome è obbligatorio');
         }
         try {
-            const { roomId, code, playerId } = await NS.createRoom(playerName, parseInt(maxPlayers));
+            const { roomId, code, playerId } = await NS.createRoom(playerName);
             NS.showLobby(roomId, code, playerName, true, playerId);
         } catch (e) {
             alert('Errore: ' + e.message);
@@ -69,7 +68,11 @@
      * Flusso per partecipare a una stanza.
      */
     NS.joinRoomFlow = async function() {
-        const playerName = prompt('Inserisci il tuo nome:') || 'Giocatore';
+        let playerName = '';
+        while (!playerName.trim()) {
+            playerName = prompt('Inserisci il tuo nome:') || '';
+            if (!playerName.trim()) alert('Il nome è obbligatorio');
+        }
         const roomCode = prompt('Inserisci il codice stanza:');
         if (!roomCode) return;
         try {
