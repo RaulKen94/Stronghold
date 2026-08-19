@@ -91,12 +91,17 @@
             (newMove) => { /* per ora ignora */ },
             (updatedRoom) => {
                 if (updatedRoom.status === 'playing') {
-                    // La partita è iniziata
+                    // La partita è iniziata, leggi il seed
+                    const seed = updatedRoom.game_seed;
+                    if (seed === undefined || seed === null) {
+                        alert('Errore: seed non disponibile');
+                        return;
+                    }
+                    // Ferma la sottoscrizione e nascondi la lobby
                     if (unsubscribe) unsubscribe();
                     lobbyDiv.style.display = 'none';
-                    alert('La partita è iniziata!');
-                    // In Fase 4 avvieremo il gioco vero e proprio
-                    // Per ora mostriamo solo il menu
+                    // Per ora mostriamo il seed e torniamo al menu (il gioco verrà integrato in seguito)
+                    alert('Partita avviata con seed: ' + seed);
                     window.showMainMenu();
                 }
             }
