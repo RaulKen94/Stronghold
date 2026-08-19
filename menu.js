@@ -58,8 +58,8 @@
             return;
         }
         try {
-            const { roomId, code } = await NS.createRoom(playerName, parseInt(maxPlayers));
-            NS.showLobby(roomId, code, playerName, true);
+            const { roomId, code, playerId } = await NS.createRoom(playerName, parseInt(maxPlayers));
+            NS.showLobby(roomId, code, playerName, true, playerId);
         } catch (e) {
             alert('Errore: ' + e.message);
         }
@@ -73,8 +73,8 @@
         const roomCode = prompt('Inserisci il codice stanza:');
         if (!roomCode) return;
         try {
-            const { roomId, code } = await NS.joinRoom(playerName, roomCode.trim().toUpperCase());
-            NS.showLobby(roomId, code, playerName, false);
+            const { roomId, code, playerId } = await NS.joinRoom(playerName, roomCode.trim().toUpperCase());
+            NS.showLobby(roomId, code, playerName, false, playerId);
         } catch (e) {
             alert('Errore: ' + e.message);
         }
