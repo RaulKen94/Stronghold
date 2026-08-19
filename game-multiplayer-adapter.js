@@ -13,39 +13,56 @@
      * @param {number} seed - seed per il PRNG
      * @param {number} localPlayerId - ID del giocatore locale
      * @param {Array} playersInfo - array di oggetti {id, player_name, is_host}
+     * @param {number} humanCount - count giocatori umani
      */
-    NS.startMultiplayerGame = async function(roomId, seed, localPlayerId, playersInfo) {
+    NS.startMultiplayerGame = async function(roomId, seed, localPlayerId, playersInfo, humanCount) {
         // Costruisce la configurazione dei giocatori
-        const playerConfig = playersInfo.map(p => ({
+        // Ordina i giocatori umani per joined_at
+        const sortedHumanPlayers = playersInfo.sort((a, b) => new Date(a.joined_at) - new Date(b.joined_at));
+        const playerConfig = sortedHumanPlayers.map(p => ({
             name: p.player_name,
-            isHuman: true,          // tutti umani per ora
+            isHuman: true,
             isLocal: p.id === localPlayerId,
             archetype: null
         }));
-
-        // Crea il gioco con seed e configurazione
-        const game = new NS.Game(seed, playerConfig);
+    
+        // Completa con AI fino a 4
+        const aiArchetypes = ['GENERAL', 'MERCHANT', 'ARCHITECT'];
+        for (let i = playerConfig.length; i < 4; i++) {
+            playerConfig.push({
+                name: `PC ${i+1}`,
+                isHuman: false,
+                isLocal: false,
+                archetype: aiArchetypes[i % aiArchetypes.length]
+            });
+        }
+    
+        // Determina se questo client è l'host
+        const isHost = playersInfo.some(p => p.id === localPlayerId && p.is_host);
+    
+        // Crea il gioco con seed, configurazione e flag isHost
+        const game = new NS.Game(seed, playerConfig, isHost);
 
         // Imposta il callback di invio mosse
         game.sendMove = async (move) => {
             try {
                 await NS.supabase.from('moves').insert([{
                     room_id: roomId,
-                    player_id: localPlayerId,
+                    player_id: move.player_id,
                     move_data: move
                 }]);
             } catch (e) {
                 alert('Invio mossa fallito: ' + e.message);
             }
         };
-
-        // Rende il gioco globale per compatibilità
+    
+        // Rende il gioco globale
         window.game = game;
-
+    
         // Nascondi lobby e menu
         document.getElementById('multiplayer-lobby').style.display = 'none';
         document.getElementById('main-menu').style.display = 'none';
-
+    
         // Sottoscrizione alle mosse
         NS.subscribeToMoves(roomId, (move) => {
             game.applyRemoteMove(move.move_data);
