@@ -16,14 +16,14 @@
      * Rappresenta l'intera partita e gestisce tutte le meccaniche di gioco.
      */
     class Game {
-        constructor(seed, playerConfig) {
+        constructor(seed, playerConfig, isHost = false) {
             this.seed = (seed !== undefined && seed !== null) ? seed : Math.floor(Math.random() * 1000000);
             this.rng = mulberry32(this.seed);
 
             // Configurazione giocatori per multiplayer (opzionale)
             this.playerConfig = playerConfig || null;
             this.isMultiplayer = !!playerConfig;
-            this.isHost = isHost || false; // solo in multiplayer
+            this.isHost = isHost;
             
             // Stato dei giocatori
             this.players = [];
