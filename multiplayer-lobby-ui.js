@@ -16,11 +16,9 @@
      * @param {string} playerId - ID del giocatore
      */
     NS.showLobby = async function(roomId, roomCode, playerName, isHost, playerId) {
-        // Nascondi menu e modale
         document.getElementById('main-menu').style.display = 'none';
         document.getElementById('multiplayer-modal').style.display = 'none';
     
-        // Crea o riusa il contenitore della lobby
         let lobbyDiv = document.getElementById('multiplayer-lobby');
         if (!lobbyDiv) {
             lobbyDiv = document.createElement('div');
@@ -33,19 +31,53 @@
         lobbyDiv.style.display = 'flex';
         lobbyDiv.innerHTML = '';
     
-        // Titolo con codice stanza
         const title = document.createElement('h2');
         title.className = 'fantasy-font text-2xl mb-4';
         title.textContent = 'Stanza ' + roomCode;
         lobbyDiv.appendChild(title);
     
-        // Lista giocatori
+        // Contenitore giocatori
         const playersContainer = document.createElement('div');
         playersContainer.id = 'lobby-players-list';
         playersContainer.className = 'flex flex-col gap-2 w-64';
         lobbyDiv.appendChild(playersContainer);
-
-        // Pulsante Indietro
+    
+        // Contenitore per il controllo umani (solo host)
+        if (isHost) {
+            const humanControl = document.createElement('div');
+            humanControl.className = 'flex items-center gap-2 bg-slate-800 p-2 rounded';
+            humanControl.innerHTML = `
+                <span class="text-sm">Giocatori umani:</span>
+                <button id="btn-dec-humans" class="bg-slate-600 hover:bg-slate-500 text-white font-bold px-2 py-1 rounded">-</button>
+                <span id="human-count-display" class="font-bold">2</span>
+                <button id="btn-inc-humans" class="bg-slate-600 hover:bg-slate-500 text-white font-bold px-2 py-1 rounded">+</button>
+            `;
+            lobbyDiv.appendChild(humanControl);
+    
+            // Lettura human_count attuale
+            let currentHumanCount = 2; // default; verrà aggiornato dalla funzione refresh
+            const { data: roomData } = await NS.supabase
+                .from('rooms')
+                .select('human_count')
+                .eq('id', roomId)
+                .single();
+            if (roomData) currentHumanCount = roomData.human_count;
+            document.getElementById('human-count-display').textContent = currentHumanCount;
+    
+            document.getElementById('btn-dec-humans').onclick = async () => {
+                if (currentHumanCount <= 1) return;
+                currentHumanCount--;
+                await NS.updateRoomHumanCount(roomId, currentHumanCount);
+                document.getElementById('human-count-display').textContent = currentHumanCount;
+            };
+            document.getElementById('btn-inc-humans').onclick = async () => {
+                if (currentHumanCount >= 4) return;
+                currentHumanCount++;
+                await NS.updateRoomHumanCount(roomId, currentHumanCount);
+                document.getElementById('human-count-display').textContent = currentHumanCount;
+            };
+        }
+    
         const backBtn = document.createElement('button');
         backBtn.textContent = 'Indietro';
         backBtn.className = 'bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-4 rounded mt-4';
@@ -56,7 +88,6 @@
         };
         lobbyDiv.appendChild(backBtn);
     
-        // Se host, pulsante Avvia partita
         if (isHost) {
             const startBtn = document.createElement('button');
             startBtn.textContent = 'Avvia partita';
@@ -65,22 +96,19 @@
                 if (!confirm('Vuoi avviare la partita?')) return;
                 try {
                     await NS.startRoom(roomId);
-                    // Non facciamo nulla qui: la callback Realtime avvierà il gioco
                 } catch (e) {
                     alert('Errore avvio partita: ' + e.message);
                 }
             };
             lobbyDiv.appendChild(startBtn);
         }
-
-        // Salva il playerId locale e la lista giocatori
+    
         let localPlayerId = playerId;
         let playersList = [];
     
-        // Funzione per aggiornare la lista giocatori
         async function refreshPlayers() {
             const players = await NS.getRoomPlayers(roomId);
-            playersList = players; // salva per avvio
+            playersList = players;
             playersContainer.innerHTML = '';
             players.forEach(p => {
                 const div = document.createElement('div');
@@ -90,7 +118,6 @@
             });
         }
     
-        // Sottoscrizione Realtime
         var unsubscribe = NS.subscribeToRoom(
             roomId,
             (newPlayer) => { refreshPlayers(); },
@@ -105,14 +132,14 @@
                     if (unsubscribe) unsubscribe();
                     lobbyDiv.style.display = 'none';
     
-                    // Avvia la partita multiplayer
-                    NS.startMultiplayerGame(roomId, seed, localPlayerId, playersList);
+                    // Passa anche humanCount
+                    const humanCount = updatedRoom.human_count;
+                    NS.startMultiplayerGame(roomId, seed, localPlayerId, playersList, humanCount);
                 }
             }
         );
-    
-        // Carica iniziale
+
         await refreshPlayers();
     };
-
+    
 })();
