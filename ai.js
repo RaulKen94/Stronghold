@@ -62,7 +62,7 @@
                 (p.brick >= brickCost) &&
                 (!s.cost.cattle || p.cattle >= s.cost.cattle)) {
 
-                let score = 5 + Math.random() * 10;
+                let score = 5 + this.rng() * 10;
 
                 if (p.archetype === 'GENERAL') {
                     if (s.type === 'mil') score += 15;
@@ -144,7 +144,7 @@
             // Altrimenti sceglie un edificio casuale non ancora costruito
             const avail = NS.NEW_BUILDINGS.filter(x => x.type !== 'blue' && !this.builtBuildings.includes(x.id));
             if (avail.length > 0) {
-                const b = avail[Math.floor(Math.random() * avail.length)];
+                const b = avail[Math.floor(this.rng() * avail.length)];
                 this.applyBuild(p, b);
             }
         }
@@ -158,7 +158,7 @@
     NS.Game.prototype.applySpecialRewardAI = function(type, p, spaceId) {
         if (type === 'piazza') {
             // L'IA sceglie casualmente tra legno e mattone
-            if (Math.random() > 0.5) p.wood++;
+            if (this.rng() > 0.5) p.wood++;
             else p.brick++;
         } else if (type === 'monastero') {
             p.wood++;
