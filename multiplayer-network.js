@@ -102,9 +102,10 @@
      * @param {string} roomId - ID della stanza
      * @param {function} onPlayerJoined - callback quando un giocatore si unisce
      * @param {function} onMoveInserted - callback quando viene inserita una mossa
+     * @param {function} onRoomStatusChanged - callback quando cambia lo stato della stanza
      * @returns {function} - funzione per annullare la sottoscrizione
      */
-    NS.subscribeToRoom = function(roomId, onPlayerJoined, onMoveInserted) {
+    NS.subscribeToRoom = function(roomId, onPlayerJoined, onMoveInserted, onRoomStatusChanged) {
         const playersChannel = NS.supabase
             .channel('players-changes')
             .on(
@@ -127,9 +128,22 @@
             )
             .subscribe();
 
+        // Nuovo canale per i cambiamenti alla stanza
+        const roomChannel = NS.supabase
+            .channel('room-status-changes')
+            .on(
+                'postgres_changes',
+                { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
+                (payload) => {
+                   if (onRoomStatusChanged) onRoomStatusChanged(payload.new);
+                }
+            )
+            .subscribe();
+
         return () => {
             playersChannel.unsubscribe();
             movesChannel.unsubscribe();
+            roomChannel.unsubscribe();
         };
     };
     
