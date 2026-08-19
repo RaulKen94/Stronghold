@@ -700,15 +700,28 @@
          * Conferma la costruzione di un edificio (solo umano).
          */
         confirmBuild(b) {
-            const p = this.players[0];
-            if (b.type === 'blue') {
-                if (p.luxury < 1) return;
-                p.luxury--;
-                p.hasResidence = true;
+            const p = this.pendingBuildPlayer || this.players[0];
+        
+            if (this.isMultiplayer) {
+                // Invia la scelta come mossa
+                this.sendMove({
+                    player_id: p.id,
+                    move_type: 'build_choice',
+                    building_id: b.id
+                });
+                document.getElementById('build-list-modal').style.display = 'none';
+                this.pendingBuildPlayer = null;
+            } else {
+                // Single-player: applica direttamente
+                if (b.type === 'blue') {
+                    if (p.luxury < 1) return;
+                    p.luxury--;
+                    p.hasResidence = true;
+                }
+                this.applyBuild(p, b);
+                document.getElementById('build-list-modal').style.display = 'none';
+                this.processCantiereQueue();
             }
-            this.applyBuild(p, b);
-            document.getElementById('build-list-modal').style.display = 'none';
-            this.processCantiereQueue();
         }
 
         /**
