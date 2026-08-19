@@ -12,7 +12,7 @@
      * @param {string} roomId - ID della stanza
      * @param {number} seed - seed per il PRNG
      * @param {number} localPlayerId - ID del giocatore locale
-     * @param {Array} playersInfo - array di oggetti {name, isHost,...}
+     * @param {Array} playersInfo - array di oggetti {id, player_name, is_host}
      */
     NS.startMultiplayerGame = async function(roomId, seed, localPlayerId, playersInfo) {
         // Costruisce la configurazione dei giocatori
@@ -48,12 +48,7 @@
 
         // Sottoscrizione alle mosse
         NS.subscribeToMoves(roomId, (move) => {
-            if (move.player_id === localPlayerId) {
-                // La propria mossa è già stata inviata; la applichiamo
-                game.applyRemoteMove(move.move_data);
-            } else {
-                game.applyRemoteMove(move.move_data);
-            }
+            game.applyRemoteMove(move.move_data);
         });
     };
 
