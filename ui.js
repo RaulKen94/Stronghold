@@ -365,97 +365,69 @@
      * Apre una modale di scelta per gli spazi che richiedono una decisione
      * (es. Piazza, Monastero, Taverna, Accampamento, Gogna).
      */
-    NS.Game.prototype.openSpecialModal = function(type, p) {
+    NS.Game.prototype.openSpecialModal = function(type, p, choiceData) {
+        if (choiceData) {
+            // Se arriva una scelta remota, applicala direttamente
+            this.applySpecialReward(type, p, this.pendingSpace.id, choiceData);
+            this.finishSpecial();
+            return;
+        }
+    
         const modal = document.getElementById('choice-modal');
         const opts = document.getElementById('choice-options');
         opts.innerHTML = '';
         modal.style.display = 'flex';
-
-        // Scelta risorsa base (Piazza, Pozzo, Monastero)
-        if (type === 'piazza' || type === 'pozzo' || type === 'monastero') {
+    
+        if (type === 'piazza' || type === 'monastero') {
             const choices = [
-                { txt: "🪵 Legno", cb: () => { p.wood++; this.finishSpecial(); } },
-                { txt: "🧱 Mattone", cb: () => { p.brick++; this.finishSpecial(); } }
+                { txt: "🪵 Legno", cb: () => { this.sendChoice({ resource: 'wood' }); } },
+                { txt: "🧱 Mattone", cb: () => { this.sendChoice({ resource: 'brick' }); } }
             ];
             if (type === 'monastero') {
-                choices.push({ txt: "🐄 Bestiame", cb: () => { p.cattle++; this.finishSpecial(); } });
+                choices.push({ txt: "🐄 Bestiame", cb: () => { this.sendChoice({ resource: 'cattle' }); } });
             }
             choices.forEach(o => this.createChoiceBtn(opts, o.txt, o.cb));
-        }
-        // Menu Taverna
-        else if (type === 'taverna') {
+        } else if (type === 'taverna') {
             const menu = [
-                { id: 'A', txt: "🧱+🏆", cb: () => { p.brick++; p.vp++; } },
-                { id: 'B', txt: "🪵+🐄", cb: () => { p.wood++; p.cattle++; } },
-                { id: 'C', txt: "🏹", cb: () => { p.archer++; } },
-                { id: 'D', txt: "⚔️+🏆", cb: () => { p.infantry++; p.vp++; } }
+                { id: 'A', txt: "🧱+🏆", cb: () => { this.sendChoice({ option: 'A' }); } },
+                { id: 'B', txt: "🪵+🐄", cb: () => { this.sendChoice({ option: 'B' }); } },
+                { id: 'C', txt: "🏹", cb: () => { this.sendChoice({ option: 'C' }); } },
+                { id: 'D', txt: "⚔️+🏆", cb: () => { this.sendChoice({ option: 'D' }); } }
             ];
             menu.forEach(m => {
                 const used = this.tavernaUsedOptions.includes(m.id);
                 if (!used) {
                     this.createChoiceBtn(opts, m.txt, () => {
-                        m.cb();
                         this.tavernaUsedOptions.push(m.id);
-                        this.finishSpecial();
+                        this.sendChoice({ option: m.id });
                     });
                 }
             });
+        } else if (type === 'accampamento') {
+            this.createChoiceBtn(opts, "Paga 1🪵 -> 1🏆 1⚔️", () => { this.sendChoice({ option: 'wood' }); });
+            this.createChoiceBtn(opts, "Paga 1🐄 -> 1🏹", () => { this.sendChoice({ option: 'cattle' }); });
+            this.createChoiceBtn(opts, "Paga 1🪵 1🐄 3💰 -> 2🏆 2⚔️ 1🏹", () => { this.sendChoice({ option: 'all' }); });
+        } else if (type === 'gogna') {
+            document.getElementById('choice-modal').style.display = 'none';
+            const gModal = document.getElementById('gogna-modal');
+            const gOpts = document.getElementById('gogna-options');
+            gOpts.innerHTML = '';
+            this.players.forEach(target => {
+                if (target.id !== p.id && target.id !== this.pendingSpace.ownerId) {
+                    const btn = document.createElement('button');
+                    btn.className = "p-2 bg-red-100 border border-red-500 rounded text-left w-full";
+                    const t = target;
+                    const dotColor = NS.PLAYER_COLORS[t.id] || '#000';
+                    btn.innerHTML = `<div class="flex justify-between items-center"><strong class="flex items-center gap-1"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${dotColor};"></span>${t.name}</strong><span>🏆${t.vp}</span></div>`;
+                    btn.onclick = () => {
+                        gModal.style.display = 'none';
+                        this.sendChoice({ targetId: t.id });
+                    };
+                    gOpts.appendChild(btn);
+                }
+            });
+            gModal.style.display = 'flex';
         }
-        // Accampamento
-        else if (type === 'accampamento') {
-            this.createChoiceBtn(opts, "Paga 1🪵 -> 1🏆 1⚔️", () => {
-                if (p.wood < 1) { alert("Manca Legno"); return; }
-                p.wood--; p.vp++; p.infantry++; this.finishSpecial();
-            });
-            this.createChoiceBtn(opts, "Paga 1🐄 -> 1🏹", () => {
-                if (p.cattle < 1) { alert("Manca Bestiame"); return; }
-                p.cattle--; p.archer++; this.finishSpecial();
-            });
-            this.createChoiceBtn(opts, "Paga 1🪵 1🐄 3💰 -> 2🏆 2⚔️ 1🏹", () => {
-                if (p.wood < 1 || p.cattle < 1 || p.coin < 3) { alert("Risorse insufficienti"); return; }
-                p.wood--; p.cattle--; p.coin -= 3; p.vp += 2; p.infantry += 2; p.archer++; this.finishSpecial();
-            });
-        }
-        // Gogna
-        else if (type === 'gogna') {
-        document.getElementById('choice-modal').style.display = 'none';
-        const gModal = document.getElementById('gogna-modal');
-        const gOpts = document.getElementById('gogna-options');
-        gOpts.innerHTML = '';
-
-        // Mappa colori giocatori (uguale a quella usata nel riepilogo)
-        const playerColorMap = NS.PLAYER_COLORS;
-
-        this.players.forEach(target => {
-            if (target.id !== p.id && target.id !== this.pendingSpace.ownerId) {
-                const btn = document.createElement('button');
-                btn.className = "p-2 bg-red-100 border border-red-500 rounded text-left w-full";
-                const t = target;
-                const dotColor = playerColorMap[t.id] || '#000';
-
-                btn.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <strong class="flex items-center gap-1">
-                            <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${dotColor};"></span>
-                            ${t.name}
-                        </strong>
-                        <span>🏆${t.vp}</span>
-                    </div>
-                    <div class="text-[10px]">Mano: ${t.infantry + t.archer + t.knight}</div>
-                    <div class="text-[10px] text-purple-700">Roccaforte: ${t.stronghold.infantry + t.stronghold.archer + t.stronghold.knight}</div>
-                `;
-
-                btn.onclick = () => {
-                    this.gognaTarget = target.id;
-                    this.log(`${p.name} mette alla gogna ${target.name}`);
-                    gModal.style.display = 'none';
-                    this.finishSpecial();
-                };
-                gOpts.appendChild(btn);
-            }
-        });
-        gModal.style.display = 'flex';
-    }
     };
 
     /**
