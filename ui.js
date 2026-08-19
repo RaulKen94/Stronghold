@@ -462,29 +462,41 @@
         const valDisplay = document.getElementById('sh-range-val');
         const tableBody = document.getElementById('stronghold-comparison-body');
         const btn = document.getElementById('btn-confirm-stronghold');
-
-        // Imposta il range massimo sulla fanteria disponibile
+    
         range.max = p.infantry;
         range.value = p.infantry;
         valDisplay.innerText = p.infantry;
-
-        // Crea tabella confronto deposito
+    
         let html = '';
         this.players.forEach(pl => {
-            html += `<tr class="${pl.id === p.id ? 'font-bold bg-blue-50' : ''}"><td>${pl.name}</td><td>${pl.stronghold.infantry} ⚔️</td><td>${pl.infantry} ⚔️</td></tr>`;
+            html += `<tr class="${pl.id === p.id ? 'font-bold bg-blue-50' : ''}">
+                <td>${pl.name}</td>
+                <td>${pl.stronghold.infantry} ⚔️</td>
+                <td>${pl.infantry} ⚔️</td>
+            </tr>`;
         });
         tableBody.innerHTML = html;
 
-        // Conferma deposito
         btn.onclick = () => {
             const val = parseInt(range.value);
-            p.stronghold.infantry += val;
-            p.infantry -= val;
-            this.log(`Hai depositato ${val} fanti.`);
-            modal.style.display = 'none';
-            this.processStrongholdQueue();
+            if (this.isMultiplayer) {
+                // Invia la mossa di deposito
+                this.sendMove({
+                    player_id: p.id,
+                    move_type: 'stronghold_deposit',
+                    infantry: val
+                });
+                modal.style.display = 'none';
+            } else {
+                // Single-player: applica direttamente
+                p.stronghold.infantry += val;
+                p.infantry -= val;
+                this.log(`Hai depositato ${val} fanti.`);
+                modal.style.display = 'none';
+                this.processStrongholdQueue();
+            }
         };
-
+    
         modal.style.display = 'flex';
     };
 
