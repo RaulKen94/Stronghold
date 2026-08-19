@@ -619,30 +619,40 @@
         attemptClickSpace(spaceId) {
             if (this.isGameOver) return;
             const p = this.players[this.currentPlayerIndex];
-            if (!p.isHuman || p.passed) return;
-            this.executeAction(p, spaceId);
+            if (!p.isLocal || p.passed) return; // solo giocatore locale può agire
+
+            if (this.isMultiplayer && this.sendMove) {
+                // Invia la mossa al database
+                this.sendMove({
+                    player_id: p.id,
+                    move_type: 'space',
+                    space_id: spaceId
+                });
+            } else {
+                this.executeAction(p, spaceId);
+            }
         }
 
         /**
          * EXECUTE ACTION
          * Esegue l'azione su uno spazio: controlla costi, applica ricompense.
          */
-        executeAction(p, spaceId) {
+        executeAction(p, spaceId, isRemote = false) {
             const space = this.spaces.find(s => s.id === spaceId);
             if (!space || space.type === 'blue') return false; // gli spazi residenziali non sono cliccabili
 
             // ---- Controlli preliminari ----
             let workerCost = space.cost.workerCost || 1;
-            if (p.workers < workerCost) return this.flashError("Lavoratori insufficienti!");
-            if (space.slots !== 99 && space.slotsOccupied.length >= space.slots) return this.flashError("Spazio pieno!");
-            if (space.uniquePlayer && space.slotsOccupied.includes(p.id)) return this.flashError("Sei già qui!");
-            if (space.id === 2 && this.watchtowerBlocked) return this.flashError("Bloccato dalla Tech!");
-            if (this.lockedSpaces.includes(space.id)) return this.flashError("Bloccato dall'Evento!");
-            if (this.gognaTarget === p.id && (space.type === 'mil' || space.id === 2)) return this.flashError("Sei alla Gogna!");
+            if (p.workers < workerCost) return isRemote ? false : this.flashError("Lavoratori insufficienti!");
+            if (space.slots !== 99 && space.slotsOccupied.length >= space.slots) return isRemote ? false : this.flashError("Spazio pieno!");
+            if (space.uniquePlayer && space.slotsOccupied.includes(p.id)) return isRemote ? false : this.flashError("Sei già qui!");
+            if (space.id === 2 && this.watchtowerBlocked) return isRemote ? false : this.flashError("Bloccato dalla Tech!");
+            if (this.lockedSpaces.includes(space.id)) return isRemote ? false : this.flashError("Bloccato dall'Evento!");
+            if (this.gognaTarget === p.id && (space.type === 'mil' || space.id === 2)) return isRemote ? false : this.flashError("Sei alla Gogna!");
 
             // Pagamento al proprietario (per edifici costruiti)
             if (space.ownerId !== undefined && space.ownerId !== p.id && space.type !== 'blue') {
-                if (p.coin < 1) return this.flashError("Devi 1 moneta al proprietario!");
+                if (p.coin < 1) return isRemote ? false : this.flashError("Devi 1 moneta al proprietario!");
                 p.coin--;
                 this.players[space.ownerId].coin++;
                 this.log(`${p.name} paga 1💰 a ${this.players[space.ownerId].name}`);
@@ -660,7 +670,7 @@
                 (space.cost.wood && p.wood < space.cost.wood) ||
                 (brickCost > 0 && p.brick < brickCost) ||
                 (space.cost.cattle && p.cattle < space.cost.cattle))
-                return this.flashError(`Risorse insufficienti! Cantiere: ${brickCost}🧱`);
+                return isRemote ? false : this.flashError(`Risorse insufficienti! Cantiere: ${brickCost}🧱`);
 
             // ---- Sottrai costi ----
             p.workers -= workerCost;
@@ -674,7 +684,7 @@
             if (space.id === 8) {
                 if (p.luxury <= 0) {
                     p.workers += workerCost; // rimborsa il lavoratore
-                    return this.flashError("No Lusso!");
+                    return isRemote ? false : this.flashError("No Lusso!");
                 }
                 let amount = p.luxury;
                 p.luxury = 0;
@@ -772,6 +782,22 @@
         }
 
         /**
+        * APPLY REMOTE MOVE
+        * Questo metodo verrà chiamato dall'adapter quando arriva una nuova mossa dal database.
+        */
+        applyRemoteMove(move) {
+            if (this.isGameOver) return;
+            const player = this.players[move.player_id];
+            if (!player) return;
+
+            if (move.move_type === 'space') {
+                this.executeAction(player, move.space_id, true);
+            } else if (move.move_type === 'tech') {
+                this.executeTech(player, move.tech_idx, true);
+            }
+        }
+
+        /**
          * FINALIZE MOVE
          * Registra l'occupazione dello spazio, incrementa contatori e passa il turno.
          */
@@ -799,10 +825,19 @@
         attemptClickTech(techIdx) {
             if (this.isGameOver) return;
             const p = this.players[this.currentPlayerIndex];
-            if (!p.isHuman || p.passed) return;
-            this.executeTech(p, techIdx);
-        }
+            if (!p.isLocal || p.passed) return;
 
+            if (this.isMultiplayer && this.sendMove) {
+                this.sendMove({
+                    player_id: p.id,
+                    move_type: 'tech',
+                    tech_idx: techIdx
+                });
+            } else {
+                this.executeTech(p, techIdx);
+            }
+        }
+        
         /**
          * EXECUTE TECH
          * Assegna una tecnologia al giocatore e ne applica l'effetto.
