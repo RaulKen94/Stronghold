@@ -36,7 +36,7 @@
             if (error) throw error;
             roomData = data;
         } while (roomData);
-
+    
         // Inserisci la stanza
         const { data: newRoom, error: roomError } = await NS.supabase
             .from('rooms')
@@ -45,14 +45,16 @@
             .single();
         if (roomError) throw roomError;
         const roomId = newRoom.id;
-
+    
         // Inserisci il giocatore host
-        const { error: playerError } = await NS.supabase
+        const { data: playerData, error: playerInsertError } = await NS.supabase
             .from('players')
-            .insert([{ room_id: roomId, player_name: playerName, is_host: true }]);
-        if (playerError) throw playerError;
-
-        return { roomId, code };
+            .insert([{ room_id: roomId, player_name: playerName, is_host: true }])
+            .select()
+            .single();
+        if (playerInsertError) throw playerInsertError;
+    
+        return { roomId, code, playerId: playerData.id };
     };
 
     /**
@@ -67,7 +69,7 @@
             .single();
         if (roomError) throw new Error('Stanza non trovata');
         if (roomData.status !== 'waiting') throw new Error('La stanza non è in attesa');
-
+    
         // Controlla numero giocatori
         const { data: players, error: playersError } = await NS.supabase
             .from('players')
@@ -75,14 +77,16 @@
             .eq('room_id', roomData.id);
         if (playersError) throw playersError;
         if (players.length >= roomData.max_players) throw new Error('Stanza piena');
-
+    
         // Inserisci il nuovo giocatore
-        const { error: insertError } = await NS.supabase
+        const { data: playerData, error: insertError } = await NS.supabase
             .from('players')
-            .insert([{ room_id: roomData.id, player_name: playerName, is_host: false }]);
+            .insert([{ room_id: roomData.id, player_name: playerName, is_host: false }])
+            .select()
+            .single();
         if (insertError) throw insertError;
-
-        return { roomId: roomData.id, code: roomData.code };
+    
+        return { roomId: roomData.id, code: roomData.code, playerId: playerData.id };
     };
 
     /**
