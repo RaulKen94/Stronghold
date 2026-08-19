@@ -644,24 +644,24 @@
          * Mostra la lista degli edifici del tipo selezionato.
          */
         openBuildList(type) {
+            const p = this.pendingBuildPlayer || this.players[0];
+        
             document.getElementById('build-type-modal').style.display = 'none';
             const modal = document.getElementById('build-list-modal');
             const container = document.getElementById('build-list-container');
             container.innerHTML = '';
-
+        
             const title = document.getElementById('build-list-title');
             title.innerText = type === 'vp' ? "Edifici Amministrativi (Gialli)" :
                               (type === 'res' ? "Edifici Produttivi (Verdi)" : "Residenziale (Blu)");
-
+        
             let list = [];
             if (type === 'blue') {
                 list = NS.NEW_BUILDINGS.filter(b => b.type === 'blue');
             } else {
                 list = NS.NEW_BUILDINGS.filter(b => b.type === type);
             }
-
-            const p = this.players[0];
-
+        
             list.forEach(b => {
                 const isBuilt = this.builtBuildings.includes(b.id);
                 const div = document.createElement('div');
@@ -676,7 +676,7 @@
                     extraClass = 'opacity-50';
                     label = '<div class="text-xs font-bold text-red-500">Manca 1💎</div>';
                 }
-
+        
                 div.className = `build-card ${extraClass}`;
                 div.innerHTML = `
                     <div class="flex justify-between items-start">
@@ -691,7 +691,7 @@
                 }
                 container.appendChild(div);
             });
-
+        
             modal.style.display = 'flex';
         }
 
