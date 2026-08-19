@@ -55,12 +55,24 @@
         };
         lobbyDiv.appendChild(backBtn);
 
-        // Se l'host, mostra il pulsante Avvia partita (per ora non funzionante)
+        // Se l'host, mostra il pulsante Avvia partita
         if (isHost) {
             const startBtn = document.createElement('button');
             startBtn.textContent = 'Avvia partita';
             startBtn.className = 'bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded mt-4';
-            startBtn.onclick = () => alert('Avvio partita non ancora implementato (Fase 3)');
+            startBtn.onclick = async () => {
+                if (!confirm('Vuoi avviare la partita?')) return;
+                try {
+                    await NS.startRoom(roomId);
+                    alert('Partita avviata! (Fase 3 completata, Fase 4 in arrivo)');
+                    // Per ora nascondi la lobby e mostra il menu
+                    if (unsubscribe) unsubscribe();
+                    lobbyDiv.style.display = 'none';
+                    window.showMainMenu();
+                } catch (e) {
+                    alert('Errore avvio partita: ' + e.message);
+                }
+            };
             lobbyDiv.appendChild(startBtn);
         }
 
