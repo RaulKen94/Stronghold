@@ -132,4 +132,18 @@
             movesChannel.unsubscribe();
         };
     };
+    
+    /**
+     * Imposta lo stato della stanza a 'playing'.
+     * @param {string} roomId - ID della stanza
+     */
+    NS.startRoom = async function(roomId) {
+        const { error } = await NS.supabase
+            .from('rooms')
+            .update({ status: 'playing' })
+            .eq('id', roomId);
+        if (error) throw error;
+        return true;
+    };
+
 })();
