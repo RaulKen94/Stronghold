@@ -80,6 +80,7 @@
 
             // Callback per inviare mosse in multiplayer (impostato dall'adapter)
             this.sendMove = null;
+            this.pendingBuildPlayer = null;   // Giocatore attuale per la costruzione
 
             // Avvia il gioco
             this.initGame();
@@ -616,11 +617,12 @@
          * OPEN BUILD TYPE MODAL
          * Mostra la scelta del tipo di edificio da costruire (solo umano).
          */
-        openBuildTypeModal() {
+        openBuildTypeModal(p = null) {
+            if (!p) p = this.pendingBuildPlayer || this.players[0];
+            this.pendingBuildPlayer = p;
+        
             document.getElementById('build-type-modal').style.display = 'flex';
-            const p = this.players[0];
             const btnBlue = document.getElementById('btn-build-blue');
-            // Disabilita il Residenziale se già posseduto
             if (p.hasResidence) {
                 btnBlue.className += " opacity-50 pointer-events-none";
             } else {
