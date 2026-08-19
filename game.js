@@ -2,12 +2,24 @@
     window.Roccaforte = window.Roccaforte || {};
     var NS = window.Roccaforte;
 
+    function mulberry32(a) {
+        return function() {
+            a |= 0; a = a + 0x6D2B79F5 | 0;
+            var t = Math.imul(a ^ a >>> 15, 1 | a);
+            t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+            return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        };
+    }
+
     /**
      * CLASSE GAME
      * Rappresenta l'intera partita e gestisce tutte le meccaniche di gioco.
      */
     class Game {
-        constructor() {
+        constructor(seed) {
+            this.seed = (seed !== undefined && seed !== null) ? seed : Math.floor(Math.random() * 1000000);
+            this.rng = mulberry32(this.seed);
+            
             // Stato dei giocatori
             this.players = [];
             // Numero del round corrente
@@ -111,7 +123,7 @@
         initGame() {
             // Genera 8 eventi casuali in base alle probabilità
             for(let i=0; i<8; i++) {
-                let r = Math.random();
+                let r = this.rng();
                 let cum = 0;
                 let sel = NS.EVENTS[NS.EVENTS.length - 1];
                 for (let e of NS.EVENTS) {
@@ -126,7 +138,7 @@
 
             // Monete iniziali in base all'ordine di turno
             const startCoins = [1, 2, 3, 4];
-            this.firstPlayerIndex = Math.floor(Math.random() * 4);
+            this.firstPlayerIndex = Math.floor(this.rng() * 4);
             const archetypeKeys = ['GENERAL', 'MERCHANT', 'ARCHITECT'];
 
             // Crea i 4 giocatori (il primo è umano)
@@ -135,7 +147,7 @@
                 let pArchetype = null;
                 if (i !== 0) {
                     // Assegna un archetipo casuale all'AI
-                    pArchetype = archetypeKeys[Math.floor(Math.random() * archetypeKeys.length)];
+                    pArchetype = archetypeKeys[Math.floor(this.rng() * archetypeKeys.length)];
                 }
 
                 this.players.push({
@@ -143,6 +155,7 @@
                     name: i === 0 ? "Tu" : `PC ${i}`,
                     archetype: pArchetype,
                     isHuman: i === 0,
+                    isLocal: false, // Nuovo campo per multiplayer
                     coin: startCoins[coinIdx],
                     wood: 0, brick: 0, luxury: 0, cattle: 0,
                     infantry: 0, archer: 0, knight: 0,
@@ -193,7 +206,7 @@
             }
 
             // Mischia le tecnologie e ne seleziona 4
-            const shuffled = [...NS.TECH_DEFINITIONS].sort(() => 0.5 - Math.random());
+            const shuffled = [...NS.TECH_DEFINITIONS].sort(() => 0.5 - this.rng());
             this.currentTechs = shuffled.slice(0, 4).map(t => ({ ...t, takenBy: null }));
 
             // Se è il primo round, inizializza gli spazi base
@@ -244,7 +257,7 @@
                     .map(s => s.id);
                 // Mischia gli ID
                 for (let i = candidates.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
+                    const j = Math.floor(this.rng() * (i + 1));
                     [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
                 }
                 this.lockedSpaces = candidates.slice(0, this.currentEvent.id === 'clouds' ? 5 : 3);
@@ -408,7 +421,7 @@
                     this.renderStrongholdModal(p);
                 } else {
                     // L'AI deposita tutti i fanti con probabilità 80%
-                    const putIn = Math.random() > 0.2 ? p.infantry : 0;
+                    const putIn = this.rng() > 0.2 ? p.infantry : 0;
                     p.stronghold.infantry += putIn;
                     p.infantry -= putIn;
                     this.log(`${p.name} deposita ${putIn} fanti.`);
@@ -800,7 +813,7 @@
                     if(p.isHuman) {
                         return this.showCopyModal(used, p, techIdx);
                     } else {
-                        const target = used[Math.floor(Math.random() * used.length)];
+                        const target = used[Math.floor(this.rng() * used.length)];
                         target.effect(p, this);
                         this.log(`${p.name} copia (AI) ${target.text}`);
                     }
