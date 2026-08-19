@@ -22,8 +22,7 @@
     /**
      * Crea una nuova stanza e aggiunge il giocatore come host.
      */
-    NS.createRoom = async function(playerName, maxPlayers = 4) {
-        // Genera un codice univoco (controllo semplificato)
+    NS.createRoom = async function(playerName) {
         let code;
         let roomData;
         do {
@@ -36,11 +35,11 @@
             if (error) throw error;
             roomData = data;
         } while (roomData);
-    
-        // Inserisci la stanza
+
+        // Inserisci la stanza con human_count di default 2
         const { data: newRoom, error: roomError } = await NS.supabase
             .from('rooms')
-            .insert([{ code, max_players: maxPlayers, status: 'waiting' }])
+            .insert([{ code, status: 'waiting', human_count: 2 }])
             .select()
             .single();
         if (roomError) throw roomError;
@@ -56,12 +55,12 @@
     
         return { roomId, code, playerId: playerData.id };
     };
+    
 
     /**
      * Aggiunge un giocatore a una stanza esistente tramite codice.
      */
     NS.joinRoom = async function(playerName, roomCode) {
-        // Trova la stanza per codice
         const { data: roomData, error: roomError } = await NS.supabase
             .from('rooms')
             .select('*')
@@ -70,15 +69,14 @@
         if (roomError) throw new Error('Stanza non trovata');
         if (roomData.status !== 'waiting') throw new Error('La stanza non è in attesa');
     
-        // Controlla numero giocatori
+        // Controlla numero giocatori umani già presenti
         const { data: players, error: playersError } = await NS.supabase
             .from('players')
             .select('*')
             .eq('room_id', roomData.id);
         if (playersError) throw playersError;
-        if (players.length >= roomData.max_players) throw new Error('Stanza piena');
+        if (players.length >= roomData.human_count) throw new Error('Stanza piena (limite giocatori umani raggiunto)');
     
-        // Inserisci il nuovo giocatore
         const { data: playerData, error: insertError } = await NS.supabase
             .from('players')
             .insert([{ room_id: roomData.id, player_name: playerName, is_host: false }])
@@ -149,6 +147,18 @@
             movesChannel.unsubscribe();
             roomChannel.unsubscribe();
         };
+    };
+
+    /**
+    * UPDATE ROOM HUMAN COUNT
+    */
+    NS.updateRoomHumanCount = async function(roomId, count) {
+        if (count < 2 || count > 4) throw new Error('Numero non valido');
+        const { error } = await NS.supabase
+            .from('rooms')
+            .update({ human_count: count })
+            .eq('id', roomId);
+        if (error) throw error;
     };
     
     /**
