@@ -844,11 +844,10 @@
             if (!player) return;
         
             if (move.move_type === 'space') {
-                this.executeAction(player, move.space_id, true);
+                this.executeAction(player, move.space_id, true, move.choiceData || null);
             } else if (move.move_type === 'tech') {
                 this.executeTech(player, move.tech_idx, true);
             } else if (move.move_type === 'pass') {
-                // Applica il passaggio turno remoto
                 if (!player.passed) {
                     player.passed = true;
                     this.log(`${player.name} passa.`);
