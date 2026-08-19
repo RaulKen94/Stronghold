@@ -370,10 +370,22 @@
             if (this.isGameOver) return;
             const p = this.players[this.currentPlayerIndex];
             if (p.passed) return;
-            p.passed = true;
-            this.log(`${p.name} passa.`);
-            this.nextTurn();
-        }
+        
+            if (this.isMultiplayer && this.sendMove) {
+                // Invia mossa "pass" al server
+                this.sendMove({
+                    player_id: p.id,
+                    move_type: 'pass'
+                });
+                // Non eseguire subito il passaggio, aspetta la conferma remota
+                return;
+            }
+
+    // Single-player: passa normalmente
+    p.passed = true;
+    this.log(`${p.name} passa.`);
+    this.nextTurn();
+}
 
         /**
          * NEXT TURN
@@ -829,11 +841,18 @@
             if (this.isGameOver) return;
             const player = this.players[move.player_id];
             if (!player) return;
-
+        
             if (move.move_type === 'space') {
                 this.executeAction(player, move.space_id, true);
             } else if (move.move_type === 'tech') {
                 this.executeTech(player, move.tech_idx, true);
+            } else if (move.move_type === 'pass') {
+                // Applica il passaggio turno remoto
+                if (!player.passed) {
+                    player.passed = true;
+                    this.log(`${player.name} passa.`);
+                    this.nextTurn();
+                }
             }
         }
 
