@@ -13,12 +13,13 @@
      * @param {string} roomCode - Codice pubblico della stanza
      * @param {string} playerName - Nome del giocatore locale
      * @param {boolean} isHost - Indica se il giocatore è host
+     * @param {string} playerId - ID del giocatore
      */
-    NS.showLobby = async function(roomId, roomCode, playerName, isHost) {
+    NS.showLobby = async function(roomId, roomCode, playerName, isHost, playerId) {
         // Nascondi menu e modale
         document.getElementById('main-menu').style.display = 'none';
         document.getElementById('multiplayer-modal').style.display = 'none';
-
+    
         // Crea o riusa il contenitore della lobby
         let lobbyDiv = document.getElementById('multiplayer-lobby');
         if (!lobbyDiv) {
@@ -31,13 +32,13 @@
         }
         lobbyDiv.style.display = 'flex';
         lobbyDiv.innerHTML = '';
-
+    
         // Titolo con codice stanza
         const title = document.createElement('h2');
         title.className = 'fantasy-font text-2xl mb-4';
         title.textContent = 'Stanza ' + roomCode;
         lobbyDiv.appendChild(title);
-
+    
         // Lista giocatori
         const playersContainer = document.createElement('div');
         playersContainer.id = 'lobby-players-list';
@@ -54,8 +55,8 @@
             window.showMainMenu();
         };
         lobbyDiv.appendChild(backBtn);
-
-        // Se l'host, mostra il pulsante Avvia partita
+    
+        // Se host, pulsante Avvia partita
         if (isHost) {
             const startBtn = document.createElement('button');
             startBtn.textContent = 'Avvia partita';
@@ -64,7 +65,7 @@
                 if (!confirm('Vuoi avviare la partita?')) return;
                 try {
                     await NS.startRoom(roomId);
-                    // Non facciamo nulla qui: la Realtime callback si occuperà di avviare la partita
+                    // Non facciamo nulla qui: la callback Realtime avvierà il gioco
                 } catch (e) {
                     alert('Errore avvio partita: ' + e.message);
                 }
@@ -72,9 +73,14 @@
             lobbyDiv.appendChild(startBtn);
         }
 
+        // Salva il playerId locale e la lista giocatori
+        let localPlayerId = playerId;
+        let playersList = [];
+    
         // Funzione per aggiornare la lista giocatori
         async function refreshPlayers() {
             const players = await NS.getRoomPlayers(roomId);
+            playersList = players; // salva per avvio
             playersContainer.innerHTML = '';
             players.forEach(p => {
                 const div = document.createElement('div');
@@ -83,31 +89,30 @@
                 playersContainer.appendChild(div);
             });
         }
-
-        // Sottoscrivi ai cambiamenti (nuovi giocatori, mosse)
+    
+        // Sottoscrizione Realtime
         var unsubscribe = NS.subscribeToRoom(
             roomId,
             (newPlayer) => { refreshPlayers(); },
             (newMove) => { /* per ora ignora */ },
             (updatedRoom) => {
                 if (updatedRoom.status === 'playing') {
-                    // La partita è iniziata, leggi il seed
                     const seed = updatedRoom.game_seed;
                     if (seed === undefined || seed === null) {
                         alert('Errore: seed non disponibile');
                         return;
                     }
-                    // Ferma la sottoscrizione e nascondi la lobby
                     if (unsubscribe) unsubscribe();
                     lobbyDiv.style.display = 'none';
-                    // Per ora mostriamo il seed e torniamo al menu (il gioco verrà integrato in seguito)
-                    alert('Partita avviata con seed: ' + seed);
-                    window.showMainMenu();
+    
+                    // Avvia la partita multiplayer
+                    NS.startMultiplayerGame(roomId, seed, localPlayerId, playersList);
                 }
             }
         );
-
-        // Carica iniziale della lista
+    
+        // Carica iniziale
         await refreshPlayers();
     };
+
 })();
