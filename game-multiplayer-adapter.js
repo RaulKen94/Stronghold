@@ -72,7 +72,7 @@
         game.sendMove = async (move) => {
             const player = game.players[move.player_id];
             const dbPlayerId = player ? player.dbPlayerId : null;
-
+            alert('sendMove chiamato. Mossa: ' + JSON.stringify(move));
             try {
                 const { error } = await NS.supabase.from('moves').insert([{
                     room_id: roomId,
@@ -112,7 +112,8 @@
                 // ignora errori temporanei
             }
         }, 2000);
-
+        
+        alert('startMultiplayerGame avviato. RoomId: ' + roomId + ', Seed: ' + seed + ', localPlayerId: ' + localPlayerId + ', playersInfo: ' + JSON.stringify(playersInfo));
         window.game = game;
 
         document.getElementById('multiplayer-lobby').style.display = 'none';
