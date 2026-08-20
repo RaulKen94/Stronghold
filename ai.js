@@ -26,7 +26,7 @@
         const amIWinning = (leaderId === p.id);
     
         let opts = [];
-    
+
         if (!p.techUsed) {
             this.currentTechs.forEach((t, i) => {
                 if (t.takenBy === null) {
@@ -61,7 +61,7 @@
                 (!s.cost.cattle || p.cattle >= s.cost.cattle)) {
     
                 let score = 5 + this.rng() * 10;
-
+    
                 if (p.archetype === 'GENERAL') {
                     if (s.type === 'mil') score += 15;
                     if (s.id === 7 && stage !== 'EARLY') score += 20;
@@ -87,7 +87,7 @@
                 if (s.id === 201 && this.accumulatedCoinsPorta > 2) score += 25;
                 if (s.id === 8 && p.luxury > 0) score += 20 * p.luxury;
                 if (s.id === 17 && p.hasResidence && stage === 'LATE') score -= 10;
-
+    
                 if (!amIWinning && stage === 'LATE') {
                     if (s.type === 'vp') score += 15;
                 }
@@ -108,7 +108,7 @@
         let success = false;
         if (best.type === 'tech') success = this.executeTech(p, best.idx);
         else success = this.executeAction(p, best.id);
-    
+
         if (!success) {
             console.warn(`AI ${p.name} failed move.`);
             this.passTurn();
