@@ -15,7 +15,7 @@
      * @param {boolean} isHost - Indica se il giocatore è host
      * @param {string} playerId - ID del giocatore
      */
-    NS.showLobby = async function(roomId, roomCode, playerName, isHost, playerId) {
+     NS.showLobby = async function(roomId, roomCode, playerName, isHost, playerId) {
         document.getElementById('main-menu').style.display = 'none';
         document.getElementById('multiplayer-modal').style.display = 'none';
     
@@ -87,7 +87,7 @@
             window.showMainMenu();
         };
         lobbyDiv.appendChild(backBtn);
-    
+
         if (isHost) {
             const startBtn = document.createElement('button');
             startBtn.textContent = 'Avvia partita';
@@ -104,11 +104,9 @@
         }
     
         let localPlayerId = playerId;
-        let playersList = [];
     
         async function refreshPlayers() {
             const players = await NS.getRoomPlayers(roomId);
-            playersList = players;
             playersContainer.innerHTML = '';
             players.forEach(p => {
                 const div = document.createElement('div');
@@ -132,13 +130,15 @@
                     if (unsubscribe) unsubscribe();
                     lobbyDiv.style.display = 'none';
     
-                    // Passa anche humanCount
-                    const humanCount = updatedRoom.human_count;
-                    NS.startMultiplayerGame(roomId, seed, localPlayerId, playersList, humanCount);
+                    // Ottieni i giocatori aggiornati dal DB
+                    NS.getRoomPlayers(roomId).then(players => {
+                        const humanCount = updatedRoom.human_count;
+                        NS.startMultiplayerGame(roomId, seed, localPlayerId, players, humanCount);
+                    });
                 }
             }
         );
-
+    
         await refreshPlayers();
     };
     
