@@ -608,18 +608,26 @@
          * Gestisce il click su uno spazio della plancia (solo umano).
          */
         attemptClickSpace(spaceId) {
-            alert('attemptClickSpace. Zona: ' + spaceId + ', Turno: ' + this.players[this.currentPlayerIndex].name + ', isLocal: ' + this.players[this.currentPlayerIndex].isLocal + ', passed: ' + this.players[this.currentPlayerIndex].passed);
             if (this.isGameOver) return;
             const p = this.players[this.currentPlayerIndex];
-            if (!p.isLocal || p.passed) return;
-
+        
+            // Non fare nulla se il turno non è del giocatore locale
+            if (!p || !p.isLocal || p.passed) return;
+        
+            // Blocca se non è il turno del giocatore locale (ridondante ma esplicito)
+            if (p.id !== this.currentPlayerIndex) return;
+        
             if (this.isMultiplayer && this.sendMove) {
-                this.sendMove({ player_id: p.id, move_type: 'space', space_id: spaceId });
+                // Invia la mossa al database
+                this.sendMove({
+                    player_id: p.id,
+                    move_type: 'space',
+                    space_id: spaceId
+                });
             } else {
                 this.executeAction(p, spaceId);
             }
         }
-
         /**
          * EXECUTE ACTION
          * Esegue l'azione su uno spazio: controlla costi, applica ricompense.
@@ -891,10 +899,20 @@
         attemptClickTech(techIdx) {
             if (this.isGameOver) return;
             const p = this.players[this.currentPlayerIndex];
-            if (!p.isLocal || p.passed) return;
-
+        
+            // Non fare nulla se il turno non è del giocatore locale
+            if (!p || !p.isLocal || p.passed) return;
+        
+            // Blocca se non è il turno del giocatore locale (ridondante ma esplicito)
+            if (p.id !== this.currentPlayerIndex) return;
+        
             if (this.isMultiplayer && this.sendMove) {
-                this.sendMove({ player_id: p.id, move_type: 'tech', tech_idx: techIdx });
+                // Invia la mossa al database
+                this.sendMove({
+                    player_id: p.id,
+                    move_type: 'tech',
+                    tech_idx: techIdx
+                });
             } else {
                 this.executeTech(p, techIdx);
             }
