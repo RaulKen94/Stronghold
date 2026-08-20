@@ -453,6 +453,7 @@
                     this.openBuildTypeModal(p);
                 }
             } else {
+                alert(`[processCantiereQueue] Player: ${p.name} | Coda: [${this.cantiereQueue.map(id=>id).join(', ')}]`);
                 const chosen = this.chooseAIBuild(p);
                 if (chosen) {
                     if (chosen.type === 'blue') {
