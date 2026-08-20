@@ -470,23 +470,39 @@
     NS.Game.prototype.showCopyModal = function(list, p, idx) {
         const div = document.getElementById('tech-copy-options');
         div.innerHTML = '';
-
+    
         list.forEach(t => {
             const btn = document.createElement('button');
             btn.className = "bg-indigo-100 text-indigo-900 p-2 rounded text-left font-bold border border-indigo-300";
             btn.innerText = t.text;
+    
             btn.onclick = () => {
                 document.getElementById('tech-copy-modal').style.display = 'none';
-                t.effect(p, this);
-                this.currentTechs[idx].takenBy = p.id;
-                p.techUsed = true;
-                this.log(`${p.name} copia ${t.text}`);
-                this.nextTurn();
+    
+                if (this.isMultiplayer && this.sendMove) {
+                    // Invia mossa specifica per la copia tecnologia
+                    this.sendMove({
+                        player_id: p.id,
+                        move_type: 'copy_tech',
+                        tech_idx: idx,
+                        copied_tech_id: t.id
+                    });
+                    // Non applicare effetti qui: la mossa verrà applicata da applyRemoteMove su tutti i client.
+                } else {
+                    // Single-player: applica subito
+                    t.effect(p, this);
+                    this.currentTechs[idx].takenBy = p.id;
+                    p.techUsed = true;
+                    this.log(`${p.name} copia ${t.text}`);
+                    this.nextTurn();
+                }
             };
+    
             div.appendChild(btn);
         });
-
+    
         document.getElementById('tech-copy-modal').style.display = 'flex';
         return true;
     };
+    
 })();
