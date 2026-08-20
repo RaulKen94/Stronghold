@@ -604,21 +604,64 @@
         // ===================== AZIONI SPAZIO =====================
 
         /**
+         * VALIDATE SPACE ACTION
+         * Verifica se un'azione su uno spazio è valida per il giocatore senza applicarla.
+         */
+        validateSpaceAction(p, spaceId) {
+            const space = this.spaces.find(s => s.id === spaceId);
+            if (!space || space.type === 'blue') return false;
+        
+            let workerCost = space.cost.workerCost || 1;
+            if (p.workers < workerCost) return false;
+            if (space.slots !== 99 && space.slotsOccupied.length >= space.slots) return false;
+            if (space.uniquePlayer && space.slotsOccupied.includes(p.id)) return false;
+            if (space.id === 2 && this.watchtowerBlocked) return false;
+            if (this.lockedSpaces.includes(space.id)) return false;
+            if (this.gognaTarget === p.id && (space.type === 'mil' || space.id === 2)) return false;
+        
+            // Costi
+            let coinCost = space.cost.coin || 0;
+            if (this.currentEvent && this.currentEvent.id === 'war' && space.type === 'mil') coinCost = Math.max(0, coinCost - 1);
+            let brickCost = space.cost.brick || 0;
+            if (space.id === 17) brickCost += this.cantiereInflation;
+        
+            if ((coinCost > 0 && p.coin < coinCost) ||
+                (space.cost.wood && p.wood < space.cost.wood) ||
+                (brickCost > 0 && p.brick < brickCost) ||
+                (space.cost.cattle && p.cattle < space.cost.cattle)) return false;
+        
+            // Pagamento al proprietario (se edificio avversario)
+            if (space.ownerId !== undefined && space.ownerId !== p.id && space.type !== 'blue') {
+                if (p.coin < 1) return false;
+            }
+        
+            return true;
+        }
+
+        /**
+         * VALIDATE TECH ACTION
+         * Verifica se un'azione su una tecnologia è valida per il giocatore senza applicarla.
+         */
+        validateTechAction(p, techIdx) {
+            if (p.techUsed) return false;
+            const tech = this.currentTechs[techIdx];
+            if (!tech || tech.takenBy !== null) return false;
+            return true;
+        }
+        
+        /**
          * ATTEMPT CLICK SPACE
          * Gestisce il click su uno spazio della plancia (solo umano).
          */
         attemptClickSpace(spaceId) {
             if (this.isGameOver) return;
             const p = this.players[this.currentPlayerIndex];
-        
-            // Non fare nulla se il turno non è del giocatore locale
             if (!p || !p.isLocal || p.passed) return;
-        
-            // Blocca se non è il turno del giocatore locale (ridondante ma esplicito)
             if (p.id !== this.currentPlayerIndex) return;
         
             if (this.isMultiplayer && this.sendMove) {
-                // Invia la mossa al database
+                // Non inviare se la mossa non è valida
+                if (!this.validateSpaceAction(p, spaceId)) return;
                 this.sendMove({
                     player_id: p.id,
                     move_type: 'space',
@@ -628,6 +671,7 @@
                 this.executeAction(p, spaceId);
             }
         }
+        
         /**
          * EXECUTE ACTION
          * Esegue l'azione su uno spazio: controlla costi, applica ricompense.
@@ -899,15 +943,12 @@
         attemptClickTech(techIdx) {
             if (this.isGameOver) return;
             const p = this.players[this.currentPlayerIndex];
-        
-            // Non fare nulla se il turno non è del giocatore locale
             if (!p || !p.isLocal || p.passed) return;
-        
-            // Blocca se non è il turno del giocatore locale (ridondante ma esplicito)
             if (p.id !== this.currentPlayerIndex) return;
         
             if (this.isMultiplayer && this.sendMove) {
-                // Invia la mossa al database
+                // Non inviare se la mossa non è valida
+                if (!this.validateTechAction(p, techIdx)) return;
                 this.sendMove({
                     player_id: p.id,
                     move_type: 'tech',
