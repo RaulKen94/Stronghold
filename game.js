@@ -497,6 +497,22 @@
         // ===================== BUILDING SYSTEM =====================
 
         /**
+         * VALIDATE BUILD ACTION
+         * Verifica se il giocatore può costruire l'edificio selezionato.
+         * @param {object} p - giocatore
+         * @param {object} b - edificio
+         * @returns {boolean}
+         */
+        validateBuildAction(p, b) {
+            // Al momento solo la Residenza (blu) ha un costo in lusso
+            if (b.type === 'blue' && p.luxury < 1) {
+                return false;
+            }
+            // eventuali altri costi futuri
+            return true;
+        }
+
+        /**
          * OPEN BUILD TYPE MODAL
          * Mostra la scelta del tipo di edificio da costruire.
          */
@@ -571,13 +587,25 @@
          */
         confirmBuild(b) {
             const p = this.pendingBuildPlayer || this.players[0];
-            if (this.isMultiplayer) {
-                this.sendMove({ player_id: p.id, move_type: 'build_choice', building_id: b.id });
+        
+            // Controlla se il giocatore può costruire l'edificio
+            if (!this.validateBuildAction(p, b)) {
+                alert('Non hai le risorse necessarie per costruire questo edificio.');
+                return; // la modale rimane aperta
+            }
+        
+            if (this.isMultiplayer && this.sendMove) {
+                // Invia la scelta come mossa
+                this.sendMove({
+                    player_id: p.id,
+                    move_type: 'build_choice',
+                    building_id: b.id
+                });
                 document.getElementById('build-list-modal').style.display = 'none';
                 this.pendingBuildPlayer = null;
             } else {
+                // Single-player: applica direttamente
                 if (b.type === 'blue') {
-                    if (p.luxury < 1) return;
                     p.luxury--;
                     p.hasResidence = true;
                 }
