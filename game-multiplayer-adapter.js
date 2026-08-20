@@ -70,20 +70,25 @@
 
         // Callback per inviare una mossa
         game.sendMove = async (move) => {
+            alert('sendMove chiamato. Mossa: ' + JSON.stringify(move));
+        
             const player = game.players[move.player_id];
             const dbPlayerId = player ? player.dbPlayerId : null;
-            alert('sendMove chiamato. Mossa: ' + JSON.stringify(move));
+        
             try {
-                const { error } = await NS.supabase.from('moves').insert([{
+                const { data, error } = await NS.supabase.from('moves').insert([{
                     room_id: roomId,
-                    player_id: dbPlayerId,   // UUID per umani, null per AI
+                    player_id: dbPlayerId,
                     move_data: move
                 }]);
+        
                 if (error) {
-                    alert('Errore Supabase: ' + error.message);
+                    alert('Errore inserimento mossa: ' + error.message);
+                } else {
+                    alert('Mossa inserita correttamente nel database.');
                 }
             } catch (e) {
-                alert('Eccezione invio mossa: ' + e.message);
+                alert('Eccezione inserimento mossa: ' + e.message);
             }
         };
 
@@ -106,6 +111,7 @@
                 if (error) return;
 
                 if (data && data.length > 0) {
+                    alert('Polling ha trovato ' + data.length + ' nuove mosse');
                     data.forEach(row => pushMove(row));
                 }
             } catch (e) {
