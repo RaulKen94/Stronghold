@@ -9,11 +9,6 @@
 
     /**
      * Avvia una partita multiplayer.
-     * @param {string} roomId - ID della stanza
-     * @param {number} seed - seed per il PRNG
-     * @param {string} localPlayerId - UUID del giocatore locale
-     * @param {Array} playersInfo - array di oggetti {id, player_name, is_host, joined_at}
-     * @param {number} humanCount - numero di giocatori umani
      */
     NS.startMultiplayerGame = async function(roomId, seed, localPlayerId, playersInfo, humanCount) {
         // Ordina i giocatori umani per joined_at
@@ -25,7 +20,7 @@
             isHuman: true,
             isLocal: p.id === localPlayerId,
             archetype: null,
-            dbPlayerId: p.id          // UUID reale del giocatore in tabella players
+            dbPlayerId: p.id          // UUID reale del giocatore
         }));
 
         // Completa con AI fino a 4
@@ -36,15 +31,18 @@
                 isHuman: false,
                 isLocal: false,
                 archetype: aiArchetypes[i % aiArchetypes.length],
-                dbPlayerId: null        // le AI non hanno un record in players
+                dbPlayerId: null
             });
         }
 
-        // Determina se questo client è l'host
         const isHost = playersInfo.some(p => p.id === localPlayerId && p.is_host);
 
         // Crea il gioco
         const game = new NS.Game(seed, playerConfig, isHost);
+
+        // Inizializza il tracking delle mosse applicate
+        game.appliedSeqSet = new Set();
+        game.lastAppliedSeq = 0;
 
         // Callback per inviare una mossa
         game.sendMove = async (move) => {
@@ -54,8 +52,8 @@
             try {
                 const { error } = await NS.supabase.from('moves').insert([{
                     room_id: roomId,
-                    player_id: dbPlayerId,   // UUID per umani, null per AI
-                    move_data: move          // contiene l'indice interno del giocatore
+                    player_id: dbPlayerId,
+                    move_data: move
                 }]);
                 if (error) {
                     alert('Errore Supabase: ' + error.message);
@@ -65,15 +63,48 @@
             }
         };
 
+        // Funzione per applicare una mossa da un row (con seq)
+        function applyMove(row) {
+            if (!row || !row.seq) return;
+            if (game.appliedSeqSet.has(row.seq)) return;
+
+            game.appliedSeqSet.add(row.seq);
+            game.lastAppliedSeq = Math.max(game.lastAppliedSeq, row.seq);
+
+            game.applyRemoteMove(row.move_data);
+        }
+
+        // Sottoscrizione Realtime alle mosse
+        NS.subscribeToMoves(roomId, (payload) => {
+            applyMove(payload.new);
+        });
+
+        // Polling di fallback: ogni 2 secondi controlla eventuali mosse mancanti
+        const pollInterval = setInterval(async () => {
+            try {
+                const { data, error } = await NS.supabase
+                    .from('moves')
+                    .select('*')
+                    .eq('room_id', roomId)
+                    .gt('seq', game.lastAppliedSeq)
+                    .order('seq', { ascending: true });
+
+                if (error) return;
+
+                if (data && data.length > 0) {
+                    data.forEach(row => applyMove(row));
+                }
+            } catch (e) {
+                // ignora errori di rete temporanei
+            }
+        }, 2000);
+
+        // Pulisce l'intervallo quando la partita termina? Non necessario per ora.
+
         window.game = game;
 
         document.getElementById('multiplayer-lobby').style.display = 'none';
         document.getElementById('main-menu').style.display = 'none';
-
-        // Sottoscrizione alle mosse
-        NS.subscribeToMoves(roomId, (move) => {
-            game.applyRemoteMove(move.move_data);
-        });
     };
 
     /**
@@ -86,7 +117,7 @@
                 'postgres_changes',
                 { event: 'INSERT', schema: 'public', table: 'moves', filter: `room_id=eq.${roomId}` },
                 (payload) => {
-                    callback(payload.new);
+                    callback(payload);
                 }
             )
             .subscribe();
