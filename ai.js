@@ -163,7 +163,10 @@
         }
         const avail = NS.NEW_BUILDINGS.filter(x => x.type !== 'blue' && !this.builtBuildings.includes(x.id));
         if (avail.length > 0) {
-            return avail[Math.floor(this.rng() * avail.length)];
+            const rand = this.rng();
+            const chosen = avail[Math.floor(rand * avail.length)];
+            alert(`[chooseAIBuild] Player: ${p.name} | Rand: ${rand} | Disponibili: [${avail.map(b=>b.id).join(', ')}] | Scelto: ${chosen.id}`);
+            return chosen;
         }
         return null;
     };
