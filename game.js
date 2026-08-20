@@ -421,9 +421,6 @@
             const p = this.players[this.currentPlayerIndex];
             if (p.isHuman || p.passed || this.isGameOver) return;
         
-            // In multiplayer, solo l'host esegue le mosse delle AI
-            if (this.isMultiplayer && !this.isHost) return;
-        
             try {
                 this.aiMove(p);
             } catch (e) {
@@ -499,9 +496,6 @@
                         return;
                     }
                 } else {
-                    // AI: decide automaticamente (solo l'host)
-                    if (this.isMultiplayer && !this.isHost) return; // solo l'host muove le AI
-
                     const putIn = this.rng() > 0.2 ? p.infantry : 0;
                     p.stronghold.infantry += putIn;
                     p.infantry -= putIn;
@@ -552,9 +546,6 @@
                     this.openBuildTypeModal(p);
                 }
             } else {
-                // AI: solo l'host esegue
-                if (this.isMultiplayer && !this.isHost) return;
-
                 const chosen = this.chooseAIBuild(p);
                 if (chosen) {
                     if (this.isMultiplayer && this.isHost) {
