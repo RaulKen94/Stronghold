@@ -359,7 +359,7 @@
         checkAiTurn() {
             const p = this.players[this.currentPlayerIndex];
             if (p.isHuman || p.passed || this.isGameOver) return;
-            alert('checkAiTurn. Turno corrente: ' + this.players[this.currentPlayerIndex].name + ' (isHuman: ' + this.players[this.currentPlayerIndex].isHuman + ', isHost: ' + this.isHost + ')');
+            //alert('checkAiTurn. Turno corrente: ' + this.players[this.currentPlayerIndex].name + ' (isHuman: ' + this.players[this.currentPlayerIndex].isHuman + ', isHost: ' + this.isHost + ')');
             try {
                 this.aiMove(p);
             } catch (e) {
