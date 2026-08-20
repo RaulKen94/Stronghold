@@ -11,62 +11,65 @@
      * Avvia una partita multiplayer.
      * @param {string} roomId - ID della stanza
      * @param {number} seed - seed per il PRNG
-     * @param {number} localPlayerId - ID del giocatore locale
-     * @param {Array} playersInfo - array di oggetti {id, player_name, is_host}
-     * @param {number} humanCount - count giocatori umani
+     * @param {string} localPlayerId - UUID del giocatore locale
+     * @param {Array} playersInfo - array di oggetti {id, player_name, is_host, joined_at}
+     * @param {number} humanCount - numero di giocatori umani
      */
     NS.startMultiplayerGame = async function(roomId, seed, localPlayerId, playersInfo, humanCount) {
-        // Costruisce la configurazione dei giocatori
         // Ordina i giocatori umani per joined_at
-        const sortedHumanPlayers = playersInfo.sort((a, b) => new Date(a.joined_at) - new Date(b.joined_at));
+        const sortedHumanPlayers = [...playersInfo].sort((a, b) => new Date(a.joined_at) - new Date(b.joined_at));
+
+        // Costruisce la configurazione dei giocatori
         const playerConfig = sortedHumanPlayers.map(p => ({
             name: p.player_name,
             isHuman: true,
             isLocal: p.id === localPlayerId,
-            archetype: null
+            archetype: null,
+            dbPlayerId: p.id          // UUID reale del giocatore in tabella players
         }));
-    
+
         // Completa con AI fino a 4
         const aiArchetypes = ['GENERAL', 'MERCHANT', 'ARCHITECT'];
         for (let i = playerConfig.length; i < 4; i++) {
             playerConfig.push({
-                name: `PC ${i+1}`,
+                name: `PC ${i + 1}`,
                 isHuman: false,
                 isLocal: false,
-                archetype: aiArchetypes[i % aiArchetypes.length]
+                archetype: aiArchetypes[i % aiArchetypes.length],
+                dbPlayerId: null        // le AI non hanno un record in players
             });
         }
-    
+
         // Determina se questo client è l'host
         const isHost = playersInfo.some(p => p.id === localPlayerId && p.is_host);
-    
-        // Crea il gioco con seed, configurazione e flag isHost
+
+        // Crea il gioco
         const game = new NS.Game(seed, playerConfig, isHost);
 
-        // Imposta il callback di invio mosse
+        // Callback per inviare una mossa
         game.sendMove = async (move) => {
+            const player = game.players[move.player_id];
+            const dbPlayerId = player ? player.dbPlayerId : null;
+
             try {
                 const { error } = await NS.supabase.from('moves').insert([{
                     room_id: roomId,
-                    player_id: move.player_id,   // al momento errato: UUID vs intero
-                    move_data: move
+                    player_id: dbPlayerId,   // UUID per umani, null per AI
+                    move_data: move          // contiene l'indice interno del giocatore
                 }]);
                 if (error) {
                     alert('Errore Supabase: ' + error.message);
-                    return;
                 }
             } catch (e) {
                 alert('Eccezione invio mossa: ' + e.message);
             }
         };
-    
-        // Rende il gioco globale
+
         window.game = game;
-    
-        // Nascondi lobby e menu
+
         document.getElementById('multiplayer-lobby').style.display = 'none';
         document.getElementById('main-menu').style.display = 'none';
-    
+
         // Sottoscrizione alle mosse
         NS.subscribeToMoves(roomId, (move) => {
             game.applyRemoteMove(move.move_data);
