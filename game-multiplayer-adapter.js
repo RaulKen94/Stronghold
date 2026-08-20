@@ -47,18 +47,34 @@
         game.sendMove = async (move) => {
             const player = game.players[move.player_id];
             const dbPlayerId = player ? player.dbPlayerId : null;
-
+        
             try {
-                const { error } = await NS.supabase.from('moves').insert([{
-                    room_id: roomId,
-                    player_id: dbPlayerId,   // UUID per umani, null per AI
-                    move_data: move
-                }]);
+                // Inserisci e ottieni l'ID della riga creata
+                const { data, error } = await NS.supabase
+                    .from('moves')
+                    .insert([{
+                        room_id: roomId,
+                        player_id: dbPlayerId,
+                        move_data: move
+                    }])
+                    .select('id')
+                    .single();
+        
                 if (error) {
-                    alert('Errore Supabase: ' + error.message);
+                    alert('Errore inserimento mossa: ' + error.message);
+                    return;
                 }
+        
+                // Aggiungi l'ID al set delle mosse già applicate
+                if (data && data.id) {
+                    game.appliedMoveIds.add(data.id);
+                }
+        
+                // Applica subito la mossa sull'host (per aggiornare la grafica)
+                game.applyRemoteMove(move);
+        
             } catch (e) {
-                alert('Eccezione invio mossa: ' + e.message);
+                alert('Eccezione inserimento mossa: ' + e.message);
             }
         };
 
