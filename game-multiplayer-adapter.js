@@ -46,13 +46,17 @@
         // Imposta il callback di invio mosse
         game.sendMove = async (move) => {
             try {
-                await NS.supabase.from('moves').insert([{
+                const { error } = await NS.supabase.from('moves').insert([{
                     room_id: roomId,
-                    player_id: move.player_id,
+                    player_id: move.player_id,   // al momento errato: UUID vs intero
                     move_data: move
                 }]);
+                if (error) {
+                    alert('Errore Supabase: ' + error.message);
+                    return;
+                }
             } catch (e) {
-                alert('Invio mossa fallito: ' + e.message);
+                alert('Eccezione invio mossa: ' + e.message);
             }
         };
     
