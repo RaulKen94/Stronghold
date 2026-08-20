@@ -29,125 +29,94 @@
     NS.Game.prototype.updateUI = function() {
 
         // ---------- HEADER ----------
-        // Aggiorna il numero del round
         document.getElementById('round-display').innerText = this.round;
-
-        // Indicatore del turno corrente
+    
         const curr = this.players[this.currentPlayerIndex];
         const turnDiv = document.getElementById('turn-indicator');
-        turnDiv.innerText = `${curr.isHuman ? 'Tocca a TE' : curr.name}`;
-        // Cambia stile in base al giocatore (umano = blu, AI = grigio)
-        turnDiv.className = `px-2 py-1 rounded-full font-bold text-[10px] shadow-md border transition-all ${curr.id === 0 ? 'bg-blue-600 border-blue-400 text-white animate-pulse' : 'bg-slate-600 border-slate-500 text-slate-300'}`;
-
+        // Mostra "Tocca a TE" solo se il giocatore corrente è locale
+        turnDiv.innerText = curr.isLocal ? 'Tocca a TE' : curr.name;
+        turnDiv.className = `px-2 py-1 rounded-full font-bold text-[10px] shadow-md border transition-all ${curr.isLocal ? 'bg-blue-600 border-blue-400 text-white animate-pulse' : 'bg-slate-600 border-slate-500 text-slate-300'}`;
+    
         // ---------- BANNER EVENTO ----------
-        // Mostra l'evento corrente e l'evento successivo in un banner combinato
         let evHtml = this.currentEvent
             ? `<div class="font-bold text-white flex items-center gap-2"><span>${this.currentEvent.emoji}</span><span>${this.currentEvent.name}</span></div>`
             : '';
 
-        // Prepara la parte del banner relativa al prossimo evento
         let nextEventHtml = '';
         if (this.round < this.maxRounds) {
-            const ne = this.eventQueue[this.round - 1]; // prossimo evento in coda
+            const ne = this.eventQueue[this.round - 1];
             nextEventHtml = `<div class="next-event-pill"><span class="uppercase font-bold text-[9px] text-slate-400">Prox:</span><span>${ne.emoji}</span><span>${ne.name}</span></div>`;
         } else {
             nextEventHtml = `<div class="next-event-pill"><span>🏁</span><span>Fine Partita</span></div>`;
         }
-
+    
         const combinedHtml = `<div class="combined-event-banner">${evHtml}${nextEventHtml}</div>`;
-
-        // Banner evento su desktop (se presente)
+    
         const deskContainer = document.getElementById('active-event-display');
         if (deskContainer) deskContainer.innerHTML = combinedHtml;
-
-        // Banner evento su mobile (se presente)
+    
         const mobContainer = document.getElementById('mobile-event-banner');
         if (mobContainer) mobContainer.innerHTML = combinedHtml;
-
+    
         // ---------- CARD TECNOLOGIE ----------
         const tCont = document.getElementById('tech-container');
         tCont.innerHTML = '';
-        const human = this.players[0]; // giocatore umano
-
-        /**
-         * GET TECH NOTE
-         * Restituisce una nota contestuale da mostrare sotto il testo principale
-         * della tecnologia, per chiarire i casi ambigui.
-         */
+        // Il giocatore umano locale (per mostrare note dinamiche)
+        const human = this.players.find(p => p.isHuman && p.isLocal) || this.players[0];
+    
         const getTechNote = (t) => {
-            // Tecnologia " +1👷 (Prox) "
             if (t.id === 1) {
-                return human.maxWorkers >= 4
-                    ? 'Hai già 4 lavoratori → +3💰'
-                    : 'Al prossimo turno: +1👷';
+                return human.maxWorkers >= 4 ? 'Hai già 4 lavoratori → +3💰' : 'Al prossimo turno: +1👷';
             }
-            // Tecnologia "Copia Tech"
             if (t.id === 2) {
                 const anyUsed = this.currentTechs.some(x => x.takenBy !== null && x.id !== 2);
-                return anyUsed
-                    ? 'Copia una tecnologia già presa'
-                    : 'Nessuna tech da copiare → +3💰';
+                return anyUsed ? 'Copia una tecnologia già presa' : 'Nessuna tech da copiare → +3💰';
             }
-            // Tecnologia " +5🏆 (1x) "
             if (t.id === 10) {
-                return human.tech10Used
-                    ? 'Già usata in precedenza → +2💰'
-                    : 'Prima volta: +5🏆';
+                return human.tech10Used ? 'Già usata in precedenza → +2💰' : 'Prima volta: +5🏆';
             }
-            // Tecnologia " +1👷 (ORA) "
             if (t.id === 14) {
                 return 'Solo per il turno corrente: +1👷 (max 4, poi torna a 4)';
             }
             return '';
         };
-
-        // Genera le card per ogni tecnologia disponibile nel round
+    
         this.currentTechs.forEach((t, i) => {
             const div = document.createElement('div');
             div.className = `tech-card ${t.takenBy !== null ? 'taken' : ''}`;
-
+    
             if (t.takenBy === null) {
-                // Tecnologia ancora disponibile
                 const note = getTechNote(t);
                 div.innerHTML =
                     `<span class="font-bold block mb-1 text-center">${t.text}</span>` +
                     (note ? `<span class="block text-[9px] text-indigo-200 text-center mt-1">${note}</span>` : '');
-                // Click per assegnare la tecnologia al giocatore umano
                 div.onclick = () => this.attemptClickTech(i);
             } else {
-                // Tecnologia già presa: mostra chi l'ha presa
                 const owner = this.players[t.takenBy];
                 div.innerHTML = `<span class="text-[9px] block text-indigo-200 uppercase tracking-widest text-center">Presa da</span><span class="font-bold text-center block text-white">${owner.name}</span>`;
             }
-
             tCont.appendChild(div);
         });
-
+    
         // ---------- PLANCIA DI GIOCO ----------
         const bCont = document.getElementById('board-container');
         bCont.innerHTML = '';
-
-        // Genera le card per ogni spazio azione
+    
         this.spaces.forEach(s => {
-            // Determina lo stato dello spazio
             const isFull = (s.slots !== 99 && s.slotsOccupied.length >= s.slots);
-            const blocked = (s.id === 2 && this.watchtowerBlocked); // Torre bloccata
-            const eventLocked = this.lockedSpaces.includes(s.id);   // Bloccato da evento
-            const isResidential = s.type === 'blue';                // Spazio residenziale
-
+            const blocked = (s.id === 2 && this.watchtowerBlocked);
+            const eventLocked = this.lockedSpaces.includes(s.id);
+            const isResidential = s.type === 'blue';
+    
             const div = document.createElement('div');
-            // Classi CSS per lo stato
             div.className = `action-space ${isFull || blocked ? 'full' : ''} ${(blocked) ? 'disabled' : ''} ${eventLocked ? 'event-locked' : ''} ${isResidential ? 'residential' : ''}`;
             div.dataset.type = s.type;
-
-            // ---------- SLOT OCCUPATI / DISPONIBILI ----------
+    
             let slotHtml = '';
             if (!isResidential) {
-                // Mostra i pallini dei giocatori che hanno occupato lo spazio
                 s.slotsOccupied.forEach(pid => {
                     slotHtml += `<div class="worker-slot token-p${pid}">${pid === 0 ? '★' : ''}</div>`;
                 });
-                // Slot liberi (se non infiniti)
                 if (s.slots !== 99) {
                     for (let i = 0; i < (s.slots - s.slotsOccupied.length); i++) {
                         slotHtml += `<div class="worker-slot bg-white/20 border-slate-400/20"></div>`;
@@ -156,61 +125,43 @@
                     slotHtml += `<span class="text-xl">∞</span>`;
                 }
             } else {
-                // Per edifici residenziali mostra solo "Privato"
                 slotHtml = '<div class="text-center w-full font-bold opacity-70">Privato</div>';
             }
-
-            // ---------- COSTO DELLO SPAZIO ----------
+    
             let costHtml = '';
             if (s.cost.workerCost > 1) {
                 costHtml += `<span class="res-pill text-red-700 bg-red-100 border border-red-200">2👷</span>`;
             }
 
             let coinCost = s.cost.coin || 0;
-            const isOwner = s.ownerId === 0;
-            // Aggiunge 1 moneta se lo spazio appartiene a un avversario
+            const isOwner = s.ownerId === this.players.find(p => p.isLocal)?.id;
             if (s.ownerId !== undefined && !isOwner && !isResidential) coinCost += 1;
-
-            // Guerra riduce costo monete per gli spazi militari
+    
             if (this.currentEvent?.id === 'war' && s.type === 'mil') {
                 coinCost = Math.max(0, coinCost - 1);
             }
-            if (coinCost > 0) {
-                costHtml += `<span class="res-pill">-${coinCost}💰</span>`;
-            }
-
-            // Costo in mattoni (con inflazione per il Cantiere)
+            if (coinCost > 0) costHtml += `<span class="res-pill">-${coinCost}💰</span>`;
+    
             let brickCost = s.cost.brick || 0;
-            if (s.id === 17 && this.cantiereInflation > 0) {
-                brickCost += this.cantiereInflation;
-            }
+            if (s.id === 17 && this.cantiereInflation > 0) brickCost += this.cantiereInflation;
             if (brickCost > 0) costHtml += `<span class="res-pill">-${brickCost}🧱</span>`;
-
-            // Altri costi
+    
             if (s.cost.wood) costHtml += `<span class="res-pill">-${s.cost.wood}🪵</span>`;
             if (s.cost.cattle) costHtml += `<span class="res-pill">-${s.cost.cattle}🐄</span>`;
             if (s.cost.special && s.id !== 8) costHtml += `<span class="res-pill text-purple-700 font-bold">Spec.</span>`;
-
-            // ---------- BADGE / INDICATORI SPECIALI ----------
+    
             let badgeHtml = '';
-
-            // Badge guerra sulla Caserma
             if (this.currentEvent?.id === 'war' && s.id === 3) {
                 badgeHtml += '<div class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-md border-2 border-white z-10 war-badge">+1⚔️</div>';
             }
-
-            // Badge proprietario per edifici costruiti
             if (s.ownerId !== undefined) {
                 const ownerColor = NS.PLAYER_COLORS[s.ownerId] || '#000';
                 badgeHtml += `<div class="owner-badge" style="background:${ownerColor};" title="Proprietario: ${this.players[s.ownerId].name}">${s.ownerId === 0 ? '★' : ('P' + s.ownerId)}</div>`;
             }
-
-            // Mostra monete accumulate sulla Porta della Città
             if (s.id === 201 && this.accumulatedCoinsPorta > 0) {
                 costHtml += `<span class="res-pill bg-yellow-400 text-black border-yellow-600">+${this.accumulatedCoinsPorta}💰 Qui</span>`;
             }
-
-            // ---------- CONTENUTO DELLA CARD SPAZIO ----------
+    
             div.innerHTML = `${badgeHtml}
                 <div class="flex justify-between items-start border-b border-black/5 pb-1 mb-1 pointer-events-none">
                     <span class="font-bold text-[10px] uppercase leading-tight tracking-tight">${s.name}</span>
@@ -224,27 +175,23 @@
             div.onclick = () => this.attemptClickSpace(s.id);
             bCont.appendChild(div);
         });
-
+    
         // ---------- RIEPILOGO GIOCATORI ----------
         const dCont = document.getElementById('desktop-players-container');
         const mCont = document.getElementById('mobile-opponents-list');
-
-        // Svuota i contenitori (se esistono)
+    
         if (dCont) dCont.innerHTML = '';
         if (mCont) mCont.innerHTML = '';
-
-        // Genera la scheda per ogni giocatore
+    
         this.players.forEach(p => {
             const isActive = (p.id === this.currentPlayerIndex && !this.isGameOver);
-            const isMe = p.id === 0;
+            const isMe = p.isLocal; // usa isLocal per evidenziare il giocatore locale
             const income = 1 + Math.floor(p.cattle / 2) + p.incomeModifier;
-
-            // Icona archetipo (solo per AI)
+    
             const arch = p.archetype
                 ? `<span class="${NS.ARCHETYPES[p.archetype].color} ml-1" title="${NS.ARCHETYPES[p.archetype].name}">${NS.ARCHETYPES[p.archetype].icon}</span>`
                 : '';
-
-            // Contenuto HTML comune per desktop e mobile
+    
             const htmlContent = `
                 <div class="flex justify-between items-center mb-1 pb-1 border-b border-slate-300/30">
                     <span class="font-bold text-xs ${isMe ? 'text-blue-400' : 'text-red-400'} flex items-center">${p.name} ${this.firstPlayerIndex === p.id ? '👑' : ''} ${arch}</span>
@@ -264,47 +211,38 @@
                 </div>
                 ${p.passed ? '<div class="text-red-500 font-bold text-center text-[9px] uppercase mt-1">Passato</div>' : ''}
             `;
-
-            // ---- Scheda desktop ----
+    
             const dCard = document.createElement('div');
             dCard.className = `bg-slate-800 p-2 rounded border-l-2 ${isActive ? 'border-yellow-400 ring-1 ring-yellow-400/20' : 'border-transparent'} ${p.passed ? 'opacity-50' : ''}`;
             dCard.innerHTML = htmlContent;
             if (dCont) dCont.appendChild(dCard);
-
-            // ---- Scheda mobile ----
+    
             const mCard = document.createElement('div');
             mCard.className = `p-2 rounded border ${isMe ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200'} ${isActive ? 'ring-2 ring-yellow-400' : ''}`;
-
-            // Mappa colori per i pallini identificativi dei giocatori
             const dotColor = NS.PLAYER_COLORS[p.id] || '#000';
-
-            // Inserisce il pallino colorato prima del nome
             const htmlWithDot = htmlContent.replace(
                 /<span class="font-bold text-xs .*?">/,
                 `<span class="font-bold text-xs flex items-center"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${dotColor};margin-right:4px;"></span>`
             );
-
-            // Adatta i colori per lo sfondo chiaro mobile
             mCard.innerHTML = htmlWithDot
                 .replace('text-blue-400', 'text-blue-700')
                 .replace('text-red-400', 'text-red-700')
                 .replace(/text-slate-200/g, 'text-slate-800');
             if (mCont) mCont.appendChild(mCard);
         });
-
-        // ---------- STATISTICHE MOBILE (barra fissa) ----------
-        const me = this.players[0];
+    
+        // ---------- STATISTICHE MOBILE ----------
+        const me = this.players.find(p => p.isLocal) || this.players[0];
         const mStats = document.getElementById('mobile-my-stats');
         if (mStats) {
             mStats.innerHTML = `<div class="flex items-center gap-1"><span class="text-lg">👷</span><span class="font-bold">${me.workers}</span></div><div class="flex items-center gap-1"><span class="text-lg">💰</span><span class="font-bold">${me.coin}</span></div><div class="flex items-center gap-1"><span class="text-lg">🪵</span><span class="font-bold">${me.wood}</span></div><div class="flex items-center gap-1"><span class="text-lg">🧱</span><span class="font-bold">${me.brick}</span></div><div class="flex items-center gap-1"><span class="text-lg">💎</span><span class="font-bold">${me.luxury}</span></div><div class="flex items-center gap-1"><span class="text-lg">🐄</span><span class="font-bold">${me.cattle}</span></div>`;
         }
 
         // ---------- PULSANTI PASSA TURNO ----------
-        const canPass = (this.currentPlayerIndex === 0 && !me.passed && !this.isGameOver && !me.extraTurn);
+        const canPass = (this.currentPlayerIndex === me.id && !me.passed && !this.isGameOver);
         const pBtnM = document.getElementById('btn-pass-mobile');
         const pBtnD = document.getElementById('btn-pass-desktop');
-
-        // Abilita/disabilita i pulsanti
+    
         [pBtnM, pBtnD].forEach(btn => {
             if (btn) {
                 btn.disabled = !canPass;
@@ -313,11 +251,10 @@
                     : btn.className + ' opacity-50 grayscale cursor-not-allowed';
             }
         });
-
-        // Crea le icone Lucide (se la libreria è caricata)
+    
         if (window.lucide) lucide.createIcons();
     };
-
+                    
     /**
      * SHOW FLOATING TEXT
      * Mostra un'animazione di testo fluttuante sopra uno spazio per indicare
