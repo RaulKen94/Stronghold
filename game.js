@@ -896,7 +896,8 @@
                         player.infantry -= depositAmount;
                         this.log(`${player.name} deposita ${depositAmount} fanti.`);
                     }
-                    if (this.isHost) this.processStrongholdQueue();
+                    // Avanza la coda su TUTTI i client (non solo host)
+                    this.processStrongholdQueue();
                     break;
                 }
                 case 'build_request':
@@ -911,7 +912,8 @@
                             player.hasResidence = true;
                         }
                         this.applyBuild(player, building);
-                        if (this.isHost) this.processCantiereQueue();
+                        // Avanza la coda su TUTTI i client
+                        this.processCantiereQueue();
                     }
                     break;
                 }
