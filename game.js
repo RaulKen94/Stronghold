@@ -724,7 +724,10 @@
         attemptClickSpace(spaceId) {
             if (this.isGameOver) return;
             const p = this.players[this.currentPlayerIndex];
-            if (!p.isLocal || p.passed) return; // solo giocatore locale può agire
+            if (!p.isLocal || p.passed) {
+                alert(`Turno: ${p.name} | isLocal: ${p.isLocal} | passed: ${p.passed}`);//debug
+                return; // solo giocatore locale può agire
+            }//debug
 
             if (this.isMultiplayer && this.sendMove) {
                 // Invia la mossa al database
