@@ -159,6 +159,7 @@
                         archetype: cfg.archetype || null,
                         isHuman: cfg.isHuman === undefined ? true : cfg.isHuman,
                         isLocal: cfg.isLocal === undefined ? false : cfg.isLocal,
+                        dbPlayerId: cfg.dbPlayerId || null,   // AGGIUNTO
                         coin: startCoins[coinIdx],
                         wood: 0,
                         brick: 0,
