@@ -868,7 +868,6 @@
          */
         applyRemoteMove(move) {
             if (this.isGameOver) return;
-            alert('applyRemoteMove. Tipo: ' + move.move_type + ', PlayerId: ' + move.player_id + ', CurrentPlayerIndex: ' + this.currentPlayerIndex);
             const player = this.players[move.player_id];
             if (!player) return;
 
