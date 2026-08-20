@@ -61,13 +61,13 @@
                 (!s.cost.cattle || p.cattle >= s.cost.cattle)) {
     
                 let score = 5 + this.rng() * 10;
-    
+
                 if (p.archetype === 'GENERAL') {
                     if (s.type === 'mil') score += 15;
                     if (s.id === 7 && stage !== 'EARLY') score += 20;
                     if (s.type === 'mil') score += 30;
                 }
-
+    
                 if (p.archetype === 'MERCHANT') {
                     if (s.id === 14 || s.id === 15 || s.id === 16) score += 15;
                     if (s.reward && s.reward.coin) score += 5;
@@ -87,7 +87,7 @@
                 if (s.id === 201 && this.accumulatedCoinsPorta > 2) score += 25;
                 if (s.id === 8 && p.luxury > 0) score += 20 * p.luxury;
                 if (s.id === 17 && p.hasResidence && stage === 'LATE') score -= 10;
-    
+
                 if (!amIWinning && stage === 'LATE') {
                     if (s.type === 'vp') score += 15;
                 }
@@ -95,7 +95,7 @@
                 opts.push({ type: 'space', id: s.id, score: score });
             }
         });
-
+    
         if (opts.length === 0) {
             this.passTurn();
             return;
@@ -104,23 +104,7 @@
         opts.sort((a, b) => b.score - a.score);
         const best = opts[0];
     
-        if (this.isMultiplayer && this.isHost) {
-            if (best.type === 'tech') {
-                this.sendMove({
-                    player_id: p.id,
-                    move_type: 'tech',
-                    tech_idx: best.idx
-                });
-            } else {
-                this.sendMove({
-                    player_id: p.id,
-                    move_type: 'space',
-                    space_id: best.id
-                });
-            }
-            return;
-        }
-
+        // Esegui la mossa localmente (come in single-player)
         let success = false;
         if (best.type === 'tech') success = this.executeTech(p, best.idx);
         else success = this.executeAction(p, best.id);
