@@ -662,31 +662,31 @@
             const space = this.spaces.find(s => s.id === spaceId);
             if (!space) return;
         
-            // ---- VALIDAZIONE SEMPRE PRIMA ----
             if (this.isMultiplayer && this.sendMove) {
-                if (!this.validateSpaceAction(p, spaceId)) return; // se non valida, non fare nulla
+                // ---- VALIDAZIONE SEMPRE PRIMA ----
+                if (!this.validateSpaceAction(p, spaceId)) return;
         
-                // Ora gestisci i casi speciali (scelta) solo se la mossa è valida
+                // Se lo spazio richiede una scelta speciale e il giocatore è locale,
+                // non inviare la mossa: apri la modale di scelta.
                 if (space.reward && space.reward.special &&
                     p.isHuman &&
                     ['piazza','monastero','taverna','accampamento','gogna'].includes(space.reward.special)) {
-                    // Apre la modale locale; NON invia ancora la mossa
                     this.pendingSpace = space;
                     this.openSpecialModal(space.reward.special, p);
                     return;
                 }
         
-                // Mossa normale valida: invia
+                // Per azioni normali, invia la mossa
                 this.sendMove({
                     player_id: p.id,
                     move_type: 'space',
                     space_id: spaceId
                 });
             } else {
-                // Single-player: esegui direttamente (executeAction farà le sue validazioni)
+                // Single-player: esegui direttamente
                 this.executeAction(p, spaceId);
             }
-        }
+        }                
         
         /**
          * EXECUTE ACTION
@@ -894,6 +894,21 @@
                 case 'tech':
                     this.executeTech(player, move.tech_idx, true);
                     break;
+                case 'copy_tech': {
+                    const originalTech = this.currentTechs[move.tech_idx];
+                    if (!originalTech || originalTech.takenBy !== null) break;
+        
+                    const target = this.currentTechs.find(t => t.id === move.copied_tech_id);
+                    if (target && typeof target.effect === 'function') {
+                        target.effect(player, this);
+                    }
+        
+                    originalTech.takenBy = player.id;
+                    player.techUsed = true;
+                    this.log(`${player.name} copia ${target ? target.text : ''}`);
+                    this.nextTurn();
+                    break;
+                }
                 case 'pass':
                     if (!player.passed) {
                         player.passed = true;
@@ -957,7 +972,7 @@
          * ATTEMPT CLICK TECH
          * Gestisce il click su una tecnologia (solo umano).
          */
-        attemptClickTech(techIdx) {
+         attemptClickTech(techIdx) {
             if (this.isGameOver) return;
             const p = this.players[this.currentPlayerIndex];
             if (!p || !p.isLocal || p.passed) return;
@@ -966,11 +981,11 @@
             const tech = this.currentTechs[techIdx];
             if (!tech) return;
         
-            // ---- VALIDAZIONE SEMPRE PRIMA ----
             if (this.isMultiplayer && this.sendMove) {
-                if (!this.validateTechAction(p, techIdx)) return; // se non valida, non fare nulla
+                // ---- VALIDAZIONE SEMPRE PRIMA ----
+                if (!this.validateTechAction(p, techIdx)) return;
         
-                // Caso speciale Copia Tech con tech copiabili
+                // Caso speciale Copia Tech con tecnologie copiabili
                 if (tech.id === 2) {
                     const used = this.currentTechs.filter(t => t.takenBy !== null && t.id !== 2);
                     if (used.length > 0 && p.isHuman) {
@@ -979,7 +994,7 @@
                         return;
                     }
                 }
-
+        
                 // Mossa tech valida e non richiede scelta: invia
                 this.sendMove({
                     player_id: p.id,
