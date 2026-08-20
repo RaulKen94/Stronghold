@@ -659,15 +659,31 @@
             if (!p || !p.isLocal || p.passed) return;
             if (p.id !== this.currentPlayerIndex) return;
         
+            const space = this.spaces.find(s => s.id === spaceId);
+            if (!space) return;
+        
+            // ---- VALIDAZIONE SEMPRE PRIMA ----
             if (this.isMultiplayer && this.sendMove) {
-                // Non inviare se la mossa non è valida
-                if (!this.validateSpaceAction(p, spaceId)) return;
+                if (!this.validateSpaceAction(p, spaceId)) return; // se non valida, non fare nulla
+        
+                // Ora gestisci i casi speciali (scelta) solo se la mossa è valida
+                if (space.reward && space.reward.special &&
+                    p.isHuman &&
+                    ['piazza','monastero','taverna','accampamento','gogna'].includes(space.reward.special)) {
+                    // Apre la modale locale; NON invia ancora la mossa
+                    this.pendingSpace = space;
+                    this.openSpecialModal(space.reward.special, p);
+                    return;
+                }
+        
+                // Mossa normale valida: invia
                 this.sendMove({
                     player_id: p.id,
                     move_type: 'space',
                     space_id: spaceId
                 });
             } else {
+                // Single-player: esegui direttamente (executeAction farà le sue validazioni)
                 this.executeAction(p, spaceId);
             }
         }
@@ -947,15 +963,31 @@
             if (!p || !p.isLocal || p.passed) return;
             if (p.id !== this.currentPlayerIndex) return;
         
+            const tech = this.currentTechs[techIdx];
+            if (!tech) return;
+        
+            // ---- VALIDAZIONE SEMPRE PRIMA ----
             if (this.isMultiplayer && this.sendMove) {
-                // Non inviare se la mossa non è valida
-                if (!this.validateTechAction(p, techIdx)) return;
+                if (!this.validateTechAction(p, techIdx)) return; // se non valida, non fare nulla
+        
+                // Caso speciale Copia Tech con tech copiabili
+                if (tech.id === 2) {
+                    const used = this.currentTechs.filter(t => t.takenBy !== null && t.id !== 2);
+                    if (used.length > 0 && p.isHuman) {
+                        // Apre la modale di copia (non invia ancora)
+                        this.showCopyModal(used, p, techIdx);
+                        return;
+                    }
+                }
+
+                // Mossa tech valida e non richiede scelta: invia
                 this.sendMove({
                     player_id: p.id,
                     move_type: 'tech',
                     tech_idx: techIdx
                 });
             } else {
+                // Single-player
                 this.executeTech(p, techIdx);
             }
         }
