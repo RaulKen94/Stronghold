@@ -359,6 +359,7 @@
         checkAiTurn() {
             const p = this.players[this.currentPlayerIndex];
             if (p.isHuman || p.passed || this.isGameOver) return;
+            alert('checkAiTurn. Turno corrente: ' + this.players[this.currentPlayerIndex].name + ' (isHuman: ' + this.players[this.currentPlayerIndex].isHuman + ', isHost: ' + this.isHost + ')');
             try {
                 this.aiMove(p);
             } catch (e) {
@@ -607,6 +608,7 @@
          * Gestisce il click su uno spazio della plancia (solo umano).
          */
         attemptClickSpace(spaceId) {
+            alert('attemptClickSpace. Zona: ' + spaceId + ', Turno: ' + this.players[this.currentPlayerIndex].name + ', isLocal: ' + this.players[this.currentPlayerIndex].isLocal + ', passed: ' + this.players[this.currentPlayerIndex].passed);
             if (this.isGameOver) return;
             const p = this.players[this.currentPlayerIndex];
             if (!p.isLocal || p.passed) return;
@@ -814,6 +816,7 @@
          */
         applyRemoteMove(move) {
             if (this.isGameOver) return;
+            alert('applyRemoteMove. Tipo: ' + move.move_type + ', PlayerId: ' + move.player_id + ', CurrentPlayerIndex: ' + this.currentPlayerIndex);
             const player = this.players[move.player_id];
             if (!player) return;
 
