@@ -40,86 +40,59 @@
         // Crea il gioco
         const game = new NS.Game(seed, playerConfig, isHost);
 
-        // ---------- GESTIONE ORDINE MOSSE ----------
-        game.expectedSeq = 1;          // prossima seq da applicare
-        game.moveBuffer = new Map();   // mappa seq -> mossa
-
-        /**
-         * Tenta di applicare le mosse in ordine.
-         */
-        function flushMoves() {
-            while (game.moveBuffer.has(game.expectedSeq)) {
-                const row = game.moveBuffer.get(game.expectedSeq);
-                game.moveBuffer.delete(game.expectedSeq);
-                game.applyRemoteMove(row.move_data);
-                game.expectedSeq++;
-            }
-        }
-
-        /**
-         * Aggiunge una mossa al buffer (arrivata da Realtime o polling).
-         */
-        function pushMove(row) {
-            if (!row || row.seq === undefined) return;
-            if (row.seq < game.expectedSeq) return; // già applicata
-            if (!game.moveBuffer.has(row.seq)) {
-                game.moveBuffer.set(row.seq, row);
-            }
-            flushMoves();
-        }
+        // Set per tenere traccia delle mosse già applicate
+        game.appliedMoveIds = new Set();
 
         // Callback per inviare una mossa
         game.sendMove = async (move) => {
-            alert('sendMove chiamato. Mossa: ' + JSON.stringify(move));
-        
             const player = game.players[move.player_id];
             const dbPlayerId = player ? player.dbPlayerId : null;
-        
+
             try {
-                const { data, error } = await NS.supabase.from('moves').insert([{
+                const { error } = await NS.supabase.from('moves').insert([{
                     room_id: roomId,
-                    player_id: dbPlayerId,
+                    player_id: dbPlayerId,   // UUID per umani, null per AI
                     move_data: move
                 }]);
-        
                 if (error) {
-                    alert('Errore inserimento mossa: ' + error.message);
-                } else {
-                    alert('Mossa inserita correttamente nel database.');
+                    alert('Errore Supabase: ' + error.message);
                 }
             } catch (e) {
-                alert('Eccezione inserimento mossa: ' + e.message);
+                alert('Eccezione invio mossa: ' + e.message);
             }
         };
 
+        // Applica una mossa se non già applicata
+        function applyMove(row) {
+            if (!row || !row.move_data || game.appliedMoveIds.has(row.id)) return;
+            game.appliedMoveIds.add(row.id);
+            game.applyRemoteMove(row.move_data);
+        }
+
         // Sottoscrizione Realtime alle mosse
         NS.subscribeToMoves(roomId, (payload) => {
-            pushMove(payload.new);
+            applyMove(payload.new);
         });
 
-        // Polling di fallback: recupera le mosse mancanti
+        // Polling di fallback: controlla nuove mosse ogni 2 secondi
         const pollInterval = setInterval(async () => {
             try {
-                // Chiedi le mosse con seq maggiore o uguale a expectedSeq
                 const { data, error } = await NS.supabase
                     .from('moves')
                     .select('*')
                     .eq('room_id', roomId)
-                    .gte('seq', game.expectedSeq)
-                    .order('seq', { ascending: true });
+                    .order('created_at', { ascending: true });
 
                 if (error) return;
 
                 if (data && data.length > 0) {
-                    alert('Polling ha trovato ' + data.length + ' nuove mosse');
-                    data.forEach(row => pushMove(row));
+                    data.forEach(row => applyMove(row));
                 }
             } catch (e) {
                 // ignora errori temporanei
             }
         }, 2000);
-        
-        alert('startMultiplayerGame avviato. RoomId: ' + roomId + ', Seed: ' + seed + ', localPlayerId: ' + localPlayerId + ', playersInfo: ' + JSON.stringify(playersInfo));
+
         window.game = game;
 
         document.getElementById('multiplayer-lobby').style.display = 'none';
