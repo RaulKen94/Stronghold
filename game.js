@@ -500,15 +500,6 @@
                     p.stronghold.infantry += putIn;
                     p.infantry -= putIn;
                     this.log(`${p.name} deposita ${putIn} fanti.`);
-        
-                    // Invia la mossa per sincronizzare
-                    if (this.isMultiplayer && this.isHost) {
-                        this.sendMove({
-                            player_id: p.id,
-                            move_type: 'stronghold_deposit',
-                            infantry: putIn
-                        });
-                    }
                     this.processStrongholdQueue();
                 }
             } else {
@@ -548,15 +539,6 @@
             } else {
                 const chosen = this.chooseAIBuild(p);
                 if (chosen) {
-                    if (this.isMultiplayer && this.isHost) {
-                        // Invia la mossa di scelta edificio
-                        this.sendMove({
-                            player_id: p.id,
-                            move_type: 'build_choice',
-                            building_id: chosen.id
-                        });
-                        // Non applica subito: aspetta l'eco della mossa
-                    } else {
                         // Single-player: applica direttamente
                         if (chosen.type === 'blue') {
                             p.luxury--;
