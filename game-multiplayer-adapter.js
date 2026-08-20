@@ -40,9 +40,33 @@
         // Crea il gioco
         const game = new NS.Game(seed, playerConfig, isHost);
 
-        // Inizializza il tracking delle mosse applicate
-        game.appliedSeqSet = new Set();
-        game.lastAppliedSeq = 0;
+        // ---------- GESTIONE ORDINE MOSSE ----------
+        game.expectedSeq = 1;          // prossima seq da applicare
+        game.moveBuffer = new Map();   // mappa seq -> mossa
+
+        /**
+         * Tenta di applicare le mosse in ordine.
+         */
+        function flushMoves() {
+            while (game.moveBuffer.has(game.expectedSeq)) {
+                const row = game.moveBuffer.get(game.expectedSeq);
+                game.moveBuffer.delete(game.expectedSeq);
+                game.applyRemoteMove(row.move_data);
+                game.expectedSeq++;
+            }
+        }
+
+        /**
+         * Aggiunge una mossa al buffer (arrivata da Realtime o polling).
+         */
+        function pushMove(row) {
+            if (!row || row.seq === undefined) return;
+            if (row.seq < game.expectedSeq) return; // già applicata
+            if (!game.moveBuffer.has(row.seq)) {
+                game.moveBuffer.set(row.seq, row);
+            }
+            flushMoves();
+        }
 
         // Callback per inviare una mossa
         game.sendMove = async (move) => {
@@ -52,7 +76,7 @@
             try {
                 const { error } = await NS.supabase.from('moves').insert([{
                     room_id: roomId,
-                    player_id: dbPlayerId,
+                    player_id: dbPlayerId,   // UUID per umani, null per AI
                     move_data: move
                 }]);
                 if (error) {
@@ -63,43 +87,31 @@
             }
         };
 
-        // Funzione per applicare una mossa da un row (con seq)
-        function applyMove(row) {
-            if (!row || !row.seq) return;
-            if (game.appliedSeqSet.has(row.seq)) return;
-
-            game.appliedSeqSet.add(row.seq);
-            game.lastAppliedSeq = Math.max(game.lastAppliedSeq, row.seq);
-
-            game.applyRemoteMove(row.move_data);
-        }
-
         // Sottoscrizione Realtime alle mosse
         NS.subscribeToMoves(roomId, (payload) => {
-            applyMove(payload.new);
+            pushMove(payload.new);
         });
 
-        // Polling di fallback: ogni 2 secondi controlla eventuali mosse mancanti
+        // Polling di fallback: recupera le mosse mancanti
         const pollInterval = setInterval(async () => {
             try {
+                // Chiedi le mosse con seq maggiore o uguale a expectedSeq
                 const { data, error } = await NS.supabase
                     .from('moves')
                     .select('*')
                     .eq('room_id', roomId)
-                    .gt('seq', game.lastAppliedSeq)
+                    .gte('seq', game.expectedSeq)
                     .order('seq', { ascending: true });
 
                 if (error) return;
 
                 if (data && data.length > 0) {
-                    data.forEach(row => applyMove(row));
+                    data.forEach(row => pushMove(row));
                 }
             } catch (e) {
-                // ignora errori di rete temporanei
+                // ignora errori temporanei
             }
         }, 2000);
-
-        // Pulisce l'intervallo quando la partita termina? Non necessario per ora.
 
         window.game = game;
 
