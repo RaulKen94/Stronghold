@@ -129,28 +129,6 @@
         };
 
     /**
-     * AI BUILD
-     * Decide automaticamente quale edificio costruire per l'IA.
-     */
-    NS.Game.prototype.aiBuild = function(p) {
-        if (!p.hasResidence && p.luxury >= 1) {
-            // Costruisce sempre la Residenza se può
-            const b = NS.NEW_BUILDINGS.find(x => x.type === 'blue');
-            p.luxury--;
-            p.hasResidence = true;
-            this.applyBuild(p, b);
-        } else {
-            // Altrimenti sceglie un edificio casuale non ancora costruito
-            const avail = NS.NEW_BUILDINGS.filter(x => x.type !== 'blue' && !this.builtBuildings.includes(x.id));
-            if (avail.length > 0) {
-                const b = avail[Math.floor(this.rng() * avail.length)];
-                this.applyBuild(p, b);
-            }
-        }
-        this.processCantiereQueue();
-    };
-
-    /**
      * APPLY SPECIAL REWARD AI
      * Gestisce gli effetti speciali specifici per l'IA.
      */
