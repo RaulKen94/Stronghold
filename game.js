@@ -914,6 +914,7 @@
         applyRemoteMove(move) {
             if (this.isGameOver) return;
             const player = this.players[move.player_id];
+            alert(`Mossa remota: Tipo=${move.move_type}, Player=${move.player_id}, TurnoCorrente=${this.currentPlayerIndex}`);
             if (!player) return;
 
             switch (move.move_type) {
