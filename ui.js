@@ -430,6 +430,7 @@
                 p.infantry -= val;
                 this.log(`Hai depositato ${val} fanti.`);
                 modal.style.display = 'none';
+                this.recordAction({ player_id: p.id, type: 'stronghold', desc: `Deposita ${val} fanti`, turn: this.currentPlayerIndex });
                 this.processStrongholdQueue();
             }
         };
