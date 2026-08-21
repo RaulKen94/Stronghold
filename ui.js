@@ -505,4 +505,19 @@
         return true;
     };
     
+    /**
+     * SHOW GAME SUMMARY
+     * Mostra il riepilogo della partita (modale avversari)
+     * e aggiorna la history in tempo reale.
+     */
+    NS.showGameSummary = function() {
+        document.getElementById('opponents-modal').style.display = 'flex';
+        if (window.game && window.game.getActionHistory && NS.renderActionHistory) {
+            NS.renderActionHistory(window.game.getActionHistory(), 'mobile-action-history');
+        }
+    };
+    
+    // Esponi globalmente
+    window.showGameSummary = NS.showGameSummary;
+    
 })();
