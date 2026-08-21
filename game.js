@@ -1024,6 +1024,13 @@
                     originalTech.takenBy = player.id;
                     player.techUsed = true;
                     this.log(`${player.name} copia ${target ? target.text : ''}`);
+                    this.recordAction({
+                        player_id: player.id,
+                        type: 'tech',
+                        tech_idx: move.tech_idx,
+                        desc: `Copia Tech: ${target ? target.text : ''}`,
+                        turn: this.currentPlayerIndex
+                    });
                     this.nextTurn();
                     break;
                 }
