@@ -367,7 +367,6 @@
         checkAiTurn() {
             const p = this.players[this.currentPlayerIndex];
             if (p.isHuman || p.passed || this.isGameOver) return;
-            //alert('checkAiTurn. Turno corrente: ' + this.players[this.currentPlayerIndex].name + ' (isHuman: ' + this.players[this.currentPlayerIndex].isHuman + ', isHost: ' + this.isHost + ')');
             try {
                 this.aiMove(p);
             } catch (e) {
@@ -448,7 +447,7 @@
          * PROCESS CANTIERE QUEUE
          * Gestisce le costruzioni del Cantiere.
          */
-         processCantiereQueue() {
+        processCantiereQueue() {
             if (this.cantiereQueue.length === 0) {
                 this.finalizeRound();
                 return;
@@ -521,7 +520,6 @@
             if (b.type === 'blue' && p.luxury < 1) {
                 return false;
             }
-            // eventuali altri costi futuri
             return true;
         }
 
@@ -601,14 +599,12 @@
         confirmBuild(b) {
             const p = this.pendingBuildPlayer || this.players[0];
         
-            // Controlla se il giocatore può costruire l'edificio
             if (!this.validateBuildAction(p, b)) {
                 alert('Non hai le risorse necessarie per costruire questo edificio.');
-                return; // la modale rimane aperta
+                return;
             }
         
             if (this.isMultiplayer && this.sendMove) {
-                // Invia la scelta come mossa
                 this.sendMove({
                     player_id: p.id,
                     move_type: 'build_choice',
@@ -617,7 +613,6 @@
                 document.getElementById('build-list-modal').style.display = 'none';
                 this.pendingBuildPlayer = null;
             } else {
-                // Single-player: applica direttamente
                 if (b.type === 'blue') {
                     p.luxury--;
                     p.hasResidence = true;
@@ -668,7 +663,6 @@
             if (this.lockedSpaces.includes(space.id)) return false;
             if (this.gognaTarget === p.id && (space.type === 'mil' || space.id === 2)) return false;
         
-            // Costi
             let coinCost = space.cost.coin || 0;
             if (this.currentEvent && this.currentEvent.id === 'war' && space.type === 'mil') coinCost = Math.max(0, coinCost - 1);
             let brickCost = space.cost.brick || 0;
@@ -679,7 +673,6 @@
                 (brickCost > 0 && p.brick < brickCost) ||
                 (space.cost.cattle && p.cattle < space.cost.cattle)) return false;
         
-            // Pagamento al proprietario (se edificio avversario)
             if (space.ownerId !== undefined && space.ownerId !== p.id && space.type !== 'blue') {
                 if (p.coin < 1) return false;
             }
@@ -712,11 +705,8 @@
             if (!space) return;
         
             if (this.isMultiplayer && this.sendMove) {
-                // ---- VALIDAZIONE SEMPRE PRIMA ----
                 if (!this.validateSpaceAction(p, spaceId)) return;
         
-                // Se lo spazio richiede una scelta speciale e il giocatore è locale,
-                // non inviare la mossa: apri la modale di scelta.
                 if (space.reward && space.reward.special &&
                     p.isHuman &&
                     ['piazza','monastero','taverna','accampamento','gogna'].includes(space.reward.special)) {
@@ -725,23 +715,21 @@
                     return;
                 }
         
-                // Per azioni normali, invia la mossa
                 this.sendMove({
                     player_id: p.id,
                     move_type: 'space',
                     space_id: spaceId
                 });
             } else {
-                // Single-player: esegui direttamente
                 this.executeAction(p, spaceId);
             }
-        }                
-        
+        }
+
         /**
          * EXECUTE ACTION
          * Esegue l'azione su uno spazio: controlla costi, applica ricompense.
          */
-        executeAction(p, spaceId, isRemote = false, choiceData = null) {
+        executeAction(p, spaceId, isRemote = false, choiceData = null, advanceTurn = true) {
             const space = this.spaces.find(s => s.id === spaceId);
             if (!space || space.type === 'blue') return false;
 
@@ -792,7 +780,7 @@
                     desc: `Palazzo: +${amount * 3} VP`,
                     turn: this.currentPlayerIndex
                 });
-                this.finalizeMove(space, p);
+                this.finalizeMove(space, p, advanceTurn);
                 return true;
             }
 
@@ -803,7 +791,7 @@
                 if (space.reward.luxury) p.luxury++;
                 this.visualizeReward(space.id, 'coin', baseReward);
                 if (space.reward.luxury) this.visualizeReward(space.id, 'luxury', 1);
-                this.finalizeMove(space, p);
+                this.finalizeMove(space, p, advanceTurn);
                 return true;
             }
 
@@ -827,7 +815,7 @@
                 }
             }
 
-            this.finalizeMove(space, p);
+            this.finalizeMove(space, p, advanceTurn);
             return true;
         }
 
@@ -835,7 +823,7 @@
          * APPLY SPECIAL REWARD
          * Gestisce gli effetti speciali delle location.
          */
-         applySpecialReward(type, p, spaceId, choiceData = null) {
+        applySpecialReward(type, p, spaceId, choiceData = null) {
             let historyDesc = '';
         
             if (type === 'piazza') {
@@ -849,7 +837,6 @@
                         historyDesc = 'Piazza: +1 Mattone';
                     }
                 } else if (!p.isHuman) {
-                    // L'IA sceglie casualmente; la descrizione arriva da applySpecialRewardAI
                     historyDesc = this.applySpecialRewardAI(type, p, spaceId);
                 } else {
                     historyDesc = 'Piazza: scelta risorsa';
@@ -973,7 +960,6 @@
                 }
             }
 
-            // Registra l'azione speciale nella history se abbiamo una descrizione
             if (historyDesc) {
                 this.recordAction({
                     player_id: p.id,
@@ -1011,36 +997,70 @@
          * APPLY REMOTE MOVE
          * Applica una mossa ricevuta dal database.
          */
-         applyRemoteMove(move) {
+        applyRemoteMove(move) {
             if (this.isGameOver) return;
             const player = this.players[move.player_id];
             if (!player) return;
 
-            // Controllo del turno SOLO per mosse di turno
             const isTurnBasedMove = ['space', 'tech', 'copy_tech', 'pass'].includes(move.move_type);
-            if (this.isMultiplayer && isTurnBasedMove && move.player_id !== this.currentPlayerIndex) {
-                this.pendingMoves.push(move);
-                return;
+
+            if (this.isMultiplayer && isTurnBasedMove) {
+                const moveRound = move.round !== undefined ? move.round : this.round;
+                const moveTurn = move.turn !== undefined ? move.turn : this.currentPlayerIndex;
+
+                // Mossa passata: applica senza far avanzare il turno
+                if (moveRound < this.round || (moveRound === this.round && moveTurn < this.currentPlayerIndex)) {
+                    if (move.move_type === 'space') {
+                        this.executeAction(player, move.space_id, true, move.choiceData || null, false);
+                    } else if (move.move_type === 'tech') {
+                        this.executeTech(player, move.tech_idx, true, false);
+                    } else if (move.move_type === 'copy_tech') {
+                        const originalTech = this.currentTechs[move.tech_idx];
+                        if (originalTech && originalTech.takenBy === null) {
+                            const target = this.currentTechs.find(t => t.id === move.copied_tech_id);
+                            if (target && typeof target.effect === 'function') target.effect(player, this);
+                            originalTech.takenBy = player.id;
+                            player.techUsed = true;
+                            this.log(`${player.name} copia ${target ? target.text : ''}`);
+                            this.recordAction({
+                                player_id: player.id,
+                                type: 'tech',
+                                tech_idx: move.tech_idx,
+                                desc: `Copia Tech: ${target ? target.text : ''}`,
+                                turn: moveTurn
+                            });
+                        }
+                    }
+                    // 'pass' passato non ha effetti
+                    return;
+                }
+
+                // Mossa futura: accoda
+                if (moveRound > this.round || (moveRound === this.round && moveTurn > this.currentPlayerIndex)) {
+                    this.pendingMoves.push(move);
+                    return;
+                }
+                // Altrimenti è il turno corrente → prosegui
             }
-        
+
             switch (move.move_type) {
                 case 'space':
-                    this.executeAction(player, move.space_id, true, move.choiceData || null);
+                    this.executeAction(player, move.space_id, true, move.choiceData || null, true);
                     break;
-        
+
                 case 'tech':
-                    this.executeTech(player, move.tech_idx, true);
+                    this.executeTech(player, move.tech_idx, true, true);
                     break;
-        
+
                 case 'copy_tech': {
                     const originalTech = this.currentTechs[move.tech_idx];
                     if (!originalTech || originalTech.takenBy !== null) break;
-        
+
                     const target = this.currentTechs.find(t => t.id === move.copied_tech_id);
                     if (target && typeof target.effect === 'function') {
                         target.effect(player, this);
                     }
-        
+
                     originalTech.takenBy = player.id;
                     player.techUsed = true;
                     this.log(`${player.name} copia ${target ? target.text : ''}`);
@@ -1054,7 +1074,7 @@
                     this.nextTurn();
                     break;
                 }
-        
+
                 case 'pass':
                     if (!player.passed) {
                         player.passed = true;
@@ -1068,7 +1088,7 @@
                         this.nextTurn();
                     }
                     break;
-        
+
                 case 'stronghold_deposit': {
                     const depositAmount = move.infantry || 0;
                     if (depositAmount > 0) {
@@ -1082,11 +1102,10 @@
                             turn: this.currentPlayerIndex
                         });
                     }
-                    // Avanza la coda su tutti i client (nessun controllo isHost)
                     this.processStrongholdQueue();
                     break;
                 }
-        
+
                 case 'build_choice': {
                     const building = NS.NEW_BUILDINGS.find(x => x.id === move.building_id);
                     if (building) {
@@ -1096,7 +1115,6 @@
                             player.hasResidence = true;
                         }
                         this.applyBuild(player, building);
-                        // Avanza la coda su tutti i client
                         this.processCantiereQueue();
                     }
                     break;
@@ -1112,7 +1130,11 @@
             let applied = false;
             for (let i = this.pendingMoves.length - 1; i >= 0; i--) {
                 const move = this.pendingMoves[i];
-                if (move.player_id === this.currentPlayerIndex) {
+                if (
+                    move.round === this.round &&
+                    move.turn === this.currentPlayerIndex &&
+                    move.player_id === this.currentPlayerIndex
+                ) {
                     this.pendingMoves.splice(i, 1);
                     this.applyRemoteMove(move);
                     applied = true;
@@ -1127,7 +1149,7 @@
          * FINALIZE MOVE
          * Registra l'occupazione dello spazio e passa il turno.
          */
-        finalizeMove(space, p) {
+        finalizeMove(space, p, advanceTurn = true) {
             space.slotsOccupied.push(p.id);
             space.usage++;
             this.log(`${p.name} usa ${space.name}`);
@@ -1140,7 +1162,9 @@
             if (!space.reward || !space.reward.special) {
                 this.recordAction({ player_id: p.id, type: 'space', space_id: space.id, desc: space.name, turn: this.currentPlayerIndex });
             }
-            this.nextTurn();
+            if (advanceTurn) {
+                this.nextTurn();
+            }
         }
 
         // ===================== TECNOLOGIE =====================
@@ -1149,37 +1173,32 @@
          * ATTEMPT CLICK TECH
          * Gestisce il click su una tecnologia (solo umano).
          */
-         attemptClickTech(techIdx) {
+        attemptClickTech(techIdx) {
             if (this.isGameOver) return;
             const p = this.players[this.currentPlayerIndex];
             if (!p || !p.isLocal || p.passed) return;
             if (p.id !== this.currentPlayerIndex) return;
-        
+
             const tech = this.currentTechs[techIdx];
             if (!tech) return;
-        
+
             if (this.isMultiplayer && this.sendMove) {
-                // ---- VALIDAZIONE SEMPRE PRIMA ----
                 if (!this.validateTechAction(p, techIdx)) return;
-        
-                // Caso speciale Copia Tech con tecnologie copiabili
+
                 if (tech.id === 2) {
                     const used = this.currentTechs.filter(t => t.takenBy !== null && t.id !== 2);
                     if (used.length > 0 && p.isHuman) {
-                        // Apre la modale di copia (non invia ancora)
                         this.showCopyModal(used, p, techIdx);
                         return;
                     }
                 }
-        
-                // Mossa tech valida e non richiede scelta: invia
+
                 this.sendMove({
                     player_id: p.id,
                     move_type: 'tech',
                     tech_idx: techIdx
                 });
             } else {
-                // Single-player
                 this.executeTech(p, techIdx);
             }
         }
@@ -1188,7 +1207,7 @@
          * EXECUTE TECH
          * Assegna una tecnologia al giocatore e ne applica l'effetto.
          */
-        executeTech(p, techIdx, isRemote = false) {
+        executeTech(p, techIdx, isRemote = false, advanceTurn = true) {
             if (p.techUsed) return isRemote ? false : this.flashError("Tech già usata!");
             const tech = this.currentTechs[techIdx];
             if (!tech || tech.takenBy !== null) return isRemote ? false : this.flashError("Già presa!");
@@ -1222,7 +1241,9 @@
             p.techUsed = true;
             this.log(`${p.name} ricerca ${tech.text}`);
             this.recordAction({ player_id: p.id, type: 'tech', tech_idx: techIdx, desc: tech.text, turn: this.currentPlayerIndex });
-            this.nextTurn();
+            if (advanceTurn) {
+                this.nextTurn();
+            }
             return true;
         }
 
@@ -1299,7 +1320,7 @@
             });
             detailHtml += `</tbody></table>`;
             document.getElementById('score-detail-breakdown').innerHTML = detailHtml;
-            
+
             // Renderizza lo storico delle azioni
             if (typeof NS.renderActionHistory === 'function') {
                 NS.renderActionHistory(this.getActionHistory(), 'action-history-list');
