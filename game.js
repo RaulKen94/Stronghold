@@ -871,6 +871,8 @@
                 if (gained.length > 0) {
                     this.log(`${p.name} ottiene rinforzi dal Consiglio.`);
                     historyDesc = `Consiglio: rinforzi (${gained.join(', ')})`;
+                } else {
+                    historyDesc = 'Consiglio: nessun rinforzo';
                 }
             } else if (type === 'monastero') {
                 if (choiceData) {
