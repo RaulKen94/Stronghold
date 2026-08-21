@@ -135,23 +135,37 @@
     NS.Game.prototype.applySpecialRewardAI = function(type, p, spaceId) {
         if (type === 'piazza') {
             // L'IA sceglie casualmente tra legno e mattone
-            if (this.rng() > 0.5) p.wood++;
-            else p.brick++;
+            if (this.rng() > 0.5) {
+                p.wood++;
+                return 'Piazza (AI): +1 Legno';
+            } else {
+                p.brick++;
+                return 'Piazza (AI): +1 Mattone';
+            }
         } else if (type === 'monastero') {
             p.wood++;
+            return 'Monastero (AI): +1 Legno';
         } else if (type === 'taverna') {
             p.infantry++;
             p.vp++;
+            return 'Taverna (AI): +1 Fante +1 VP';
         } else if (type === 'accampamento') {
             if (p.wood > 0) {
                 p.wood--;
                 p.vp++;
                 p.infantry++;
+                return 'Accampamento (AI): 1 Legno → 1 VP +1 Fante';
             }
+            return 'Accampamento (AI): nessuna azione (manca Legno)';
         } else if (type === 'gogna') {
             const target = this.players.find(pl => pl.id !== p.id && pl.id !== spaceId.ownerId);
-            if (target) this.gognaTarget = target.id;
+            if (target) {
+                this.gognaTarget = target.id;
+                return `Gogna (AI): ${target.name}`;
+            }
+            return 'Gogna (AI): nessuna vittima valida';
         }
+        return '';
     };
 
     /**
