@@ -1171,6 +1171,13 @@
                 if (used.length === 0) {
                     if (!isRemote && p.isHuman) alert("Nessuna tech da copiare. +3💰");
                     p.coin += 3;
+                    this.recordAction({
+                        player_id: p.id,
+                        type: 'tech',
+                        tech_idx: techIdx,
+                        desc: 'Copia Tech: nessuna tech, +3💰',
+                        turn: this.currentPlayerIndex
+                    });
                 } else {
                     if (!isRemote && p.isHuman) {
                         return this.showCopyModal(used, p, techIdx);
