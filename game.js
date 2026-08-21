@@ -1092,7 +1092,10 @@
                 const porta = this.spaces.find(s => s.id === 201);
                 if (porta) this.accumulatedCoinsPorta++;
             }
-            this.recordAction({ player_id: p.id, type: 'space', space_id: space.id, desc: space.name, turn: this.currentPlayerIndex });
+            // Non registrare qui se lo spazio è speciale: lo farà applySpecialReward
+            if (!space.reward || !space.reward.special || !['piazza','monastero','taverna','accampamento','gogna'].includes(space.reward.special)) {
+                this.recordAction({ player_id: p.id, type: 'space', space_id: space.id, desc: space.name, turn: this.currentPlayerIndex });
+            }
             this.nextTurn();
         }
 
