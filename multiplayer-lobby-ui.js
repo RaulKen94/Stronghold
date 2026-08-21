@@ -94,6 +94,13 @@
             startBtn.className = 'bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded mt-4';
             startBtn.onclick = async () => {
                 if (!confirm('Vuoi avviare la partita?')) return;
+            
+                // Controllo: serve almeno il numero di umani impostato nella lobby
+                if (playersList.length < currentHumanCount) {
+                    alert(`Servono almeno ${currentHumanCount} giocatori umani nella stanza. Attualmente ce ne sono ${playersList.length}.`);
+                    return;
+                }
+            
                 try {
                     await NS.startRoom(roomId);
                 } catch (e) {
