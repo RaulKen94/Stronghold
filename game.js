@@ -1175,7 +1175,7 @@
             
             // Renderizza lo storico delle azioni
             if (typeof NS.renderActionHistory === 'function') {
-                NS.renderActionHistory(this.getActionHistory());
+                NS.renderActionHistory(this.getActionHistory(), 'action-history-list');
             }
             document.getElementById('end-modal').style.display = 'flex';
         }
