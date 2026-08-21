@@ -70,6 +70,10 @@
             this.pendingBuildPlayer = null;
             // Buffer per mosse remote in attesa (multiplayer)
             this.pendingMoves = [];
+            // Stato risoluzione code (multiplayer)
+            this.resolutionPhase = null;   // 'stronghold' | 'cantiere' | null
+            this.resolutionQueue = [];     // array di { playerId, type }
+            this.resolutionIndex = 0;      // indice corrente
 
             this.initGame();
         }
@@ -226,6 +230,9 @@
             this.gognaTarget = null;
             this.tavernaUsedOptions = [];
             this.marketUsage = 0;
+            this.resolutionPhase = null;
+            this.resolutionQueue = [];
+            this.resolutionIndex = 0;
 
             if (this.round > 1) {
                 const cantiere = this.spaces.find(s => s.id === 17);
@@ -381,10 +388,43 @@
          */
         endRound() {
             const fortSpace = this.spaces.find(s => s.id === 7);
-            this.strongholdQueue = [...fortSpace.slotsOccupied].reverse();
             const cantiereSpace = this.spaces.find(s => s.id === 17);
-            this.cantiereQueue = [...cantiereSpace.slotsOccupied];
+        
+            if (this.isMultiplayer) {
+                // Costruisci la coda di risoluzione unificata
+                this.resolutionQueue = [];
+        
+                // Roccaforte: ordine inverso di occupazione
+                if (fortSpace && fortSpace.slotsOccupied.length > 0) {
+                    const strongholdPlayers = [...fortSpace.slotsOccupied].reverse();
+                    strongholdPlayers.forEach(pid => {
+                        this.resolutionQueue.push({ playerId: pid, type: 'stronghold' });
+                    });
+                }
+        
+                // Cantiere: ordine normale
+                if (cantiereSpace && cantiereSpace.slotsOccupied.length > 0) {
+                    const cantierePlayers = [...cantiereSpace.slotsOccupied];
+                    cantierePlayers.forEach(pid => {
+                        this.resolutionQueue.push({ playerId: pid, type: 'cantiere' });
+                    });
+                }
 
+                if (this.resolutionQueue.length === 0) {
+                    this.finalizeRound();
+                    return;
+                }
+        
+                this.resolutionIndex = 0;
+                this.resolutionPhase = null;
+                this.startNextResolution();
+                return;
+            }
+        
+            // Single‑player: vecchio flusso
+            this.strongholdQueue = [...fortSpace.slotsOccupied].reverse();
+            this.cantiereQueue = [...cantiereSpace.slotsOccupied];
+        
             if (this.strongholdQueue.length > 0) this.processStrongholdQueue();
             else if (this.cantiereQueue.length > 0) this.processCantiereQueue();
             else this.finalizeRound();
@@ -478,6 +518,80 @@
                     this.processCantiereQueue();
                 }
             }
+        }
+
+        /**
+         * START NEXT RESOLUTION
+         * Avvia o continua la risoluzione delle code (Roccaforte/Cantiere).
+         */
+        startNextResolution() {
+            if (this.resolutionIndex >= this.resolutionQueue.length) {
+                // Fine risoluzione
+                this.resolutionQueue = [];
+                this.resolutionPhase = null;
+                this.finalizeRound();
+                return;
+            }
+        
+            const entry = this.resolutionQueue[this.resolutionIndex];
+            const p = this.players[entry.playerId];
+            this.resolutionPhase = entry.type;
+        
+            if (entry.type === 'stronghold') {
+                if (p.infantry > 0 && p.isHuman) {
+                    if (p.isLocal) {
+                        this.renderStrongholdModal(p);
+                    }
+                    // umano remoto: attesa stronghold_deposit
+                    return;
+                } else if (!p.isHuman) {
+                    // AI: deposito automatico
+                    const putIn = this.rng() > 0.2 ? p.infantry : 0;
+                    p.stronghold.infantry += putIn;
+                    p.infantry -= putIn;
+                    this.log(`${p.name} deposita ${putIn} fanti.`);
+                    this.recordAction({
+                        player_id: p.id,
+                        type: 'stronghold',
+                        desc: `Deposita ${putIn} fanti`,
+                        turn: this.currentPlayerIndex
+                    });
+                    this.advanceResolution();
+                } else {
+                    // Umano senza fanteria
+                    this.advanceResolution();
+                }
+            } else if (entry.type === 'cantiere') {
+                if (p.isHuman) {
+                    if (p.isLocal) {
+                        this.openBuildTypeModal(p);
+                    }
+                    // umano remoto: attesa build_choice
+                    return;
+                } else {
+                    // AI: costruzione automatica
+                    const chosen = this.chooseAIBuild(p);
+                    if (chosen) {
+                        if (chosen.type === 'blue') {
+                            p.luxury--;
+                            p.hasResidence = true;
+                        }
+                        this.applyBuild(p, chosen);
+                        this.advanceResolution();
+                    } else {
+                        this.advanceResolution();
+                    }
+                }
+            }
+        }
+        
+        /**
+         * ADVANCE RESOLUTION
+         * Passa al prossimo giocatore nella coda di risoluzione.
+         */
+        advanceResolution() {
+            this.resolutionIndex++;
+            this.startNextResolution();
         }
 
         /**
@@ -997,51 +1111,49 @@
          * APPLY REMOTE MOVE
          * Applica una mossa ricevuta dal database.
          */
-        applyRemoteMove(move) {
+          applyRemoteMove(move) {
             if (this.isGameOver) return;
             const player = this.players[move.player_id];
             if (!player) return;
-
-            const isTurnBasedMove = ['space', 'tech', 'copy_tech', 'pass'].includes(move.move_type);
-
-            if (this.isMultiplayer && isTurnBasedMove) {
-                const moveRound = move.round !== undefined ? move.round : this.round;
-                const moveTurn = move.turn !== undefined ? move.turn : this.currentPlayerIndex;
-
-                // Mossa passata: applica senza far avanzare il turno
-                if (moveRound < this.round || (moveRound === this.round && moveTurn < this.currentPlayerIndex)) {
-                    if (move.move_type === 'space') {
-                        this.executeAction(player, move.space_id, true, move.choiceData || null, false);
-                    } else if (move.move_type === 'tech') {
-                        this.executeTech(player, move.tech_idx, true, false);
-                    } else if (move.move_type === 'copy_tech') {
-                        const originalTech = this.currentTechs[move.tech_idx];
-                        if (originalTech && originalTech.takenBy === null) {
-                            const target = this.currentTechs.find(t => t.id === move.copied_tech_id);
-                            if (target && typeof target.effect === 'function') target.effect(player, this);
-                            originalTech.takenBy = player.id;
-                            player.techUsed = true;
-                            this.log(`${player.name} copia ${target ? target.text : ''}`);
-                            this.recordAction({
-                                player_id: player.id,
-                                type: 'tech',
-                                tech_idx: move.tech_idx,
-                                desc: `Copia Tech: ${target ? target.text : ''}`,
-                                turn: moveTurn
-                            });
-                        }
+        const isResolutionMove = ['stronghold_deposit', 'build_choice'].includes(move.move_type);
+        const isTurnBasedMove = ['space', 'tech', 'copy_tech', 'pass'].includes(move.move_type);
+        
+        if (this.isMultiplayer && isTurnBasedMove && !isResolutionMove) {
+            const moveRound = move.round !== undefined ? move.round : this.round;
+            const moveTurn = move.turn !== undefined ? move.turn : this.currentPlayerIndex;
+        
+            // Mossa passata
+            if (moveRound < this.round || (moveRound === this.round && moveTurn < this.currentPlayerIndex)) {
+                if (move.move_type === 'space') {
+                    this.executeAction(player, move.space_id, true, move.choiceData || null, false);
+                } else if (move.move_type === 'tech') {
+                    this.executeTech(player, move.tech_idx, true, false);
+                } else if (move.move_type === 'copy_tech') {
+                    const originalTech = this.currentTechs[move.tech_idx];
+                    if (originalTech && originalTech.takenBy === null) {
+                        const target = this.currentTechs.find(t => t.id === move.copied_tech_id);
+                        if (target && typeof target.effect === 'function') target.effect(player, this);
+                        originalTech.takenBy = player.id;
+                        player.techUsed = true;
+                        this.log(`${player.name} copia ${target ? target.text : ''}`);
+                        this.recordAction({
+                            player_id: player.id,
+                            type: 'tech',
+                            tech_idx: move.tech_idx,
+                            desc: `Copia Tech: ${target ? target.text : ''}`,
+                            turn: moveTurn
+                        });
                     }
-                    // 'pass' passato non ha effetti
-                    return;
                 }
-
-                // Mossa futura: accoda
-                if (moveRound > this.round || (moveRound === this.round && moveTurn > this.currentPlayerIndex)) {
-                    this.pendingMoves.push(move);
-                    return;
-                }
-                // Altrimenti è il turno corrente → prosegui
+                return;
             }
+        
+            // Mossa futura
+            if (moveRound > this.round || (moveRound === this.round && moveTurn > this.currentPlayerIndex)) {
+                this.pendingMoves.push(move);
+                return;
+            }
+        }
 
             switch (move.move_type) {
                 case 'space':
