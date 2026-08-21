@@ -495,6 +495,13 @@
                     this.currentTechs[idx].takenBy = p.id;
                     p.techUsed = true;
                     this.log(`${p.name} copia ${t.text}`);
+                    this.recordAction({
+                        player_id: p.id,
+                        type: 'tech',
+                        tech_idx: idx,
+                        desc: `Copia Tech: ${t.text}`,
+                        turn: this.currentPlayerIndex
+                    });
                     this.nextTurn();
                 }
             };
