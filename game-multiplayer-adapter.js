@@ -40,6 +40,8 @@
         // Crea il gioco
         const game = new NS.Game(seed, playerConfig, isHost);
 
+        game.pendingMoves = [];
+
         // Set per tenere traccia delle mosse già applicate
         game.appliedMoveIds = new Set();
 
@@ -82,7 +84,18 @@
         function applyMove(row) {
             if (!row || !row.move_data || game.appliedMoveIds.has(row.id)) return;
             game.appliedMoveIds.add(row.id);
-            game.applyRemoteMove(row.move_data);
+        
+            const move = row.move_data;
+            const player = game.players[move.player_id];
+            if (!player) return;
+        
+            // Se la mossa è per il turno corrente, applicala subito
+            if (move.player_id === game.currentPlayerIndex) {
+                game.applyRemoteMove(move);
+            } else {
+                // Altrimenti accodala per quando sarà il turno
+                game.pendingMoves.push(move);
+            }
         }
 
         // Sottoscrizione Realtime alle mosse
