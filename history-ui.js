@@ -1,17 +1,18 @@
 /**
  * HISTORY-UI.JS
- * Mostra graficamente lo storico delle azioni nella modale di fine partita.
+ * Mostra graficamente lo storico delle azioni.
  */
 (function() {
     window.Roccaforte = window.Roccaforte || {};
     var NS = window.Roccaforte;
 
     /**
-     * Renderizza la history nel contenitore dedicato.
+     * Renderizza la history nel contenitore specificato.
      * @param {Array} history - lista delle azioni
+     * @param {string} containerId - ID del contenitore (default: action-history-list)
      */
-    NS.renderActionHistory = function(history) {
-        const container = document.getElementById('action-history-list');
+    NS.renderActionHistory = function(history, containerId = 'action-history-list') {
+        const container = document.getElementById(containerId);
         if (!container) return;
 
         if (!history || history.length === 0) {
@@ -19,7 +20,6 @@
             return;
         }
 
-        // Grafica minimale: elenco puntato
         container.innerHTML = history.map((entry, i) => {
             const player = (typeof entry.player_id === 'number') ? `P${entry.player_id}` : entry.player_id;
             let desc = entry.desc || entry.type;
