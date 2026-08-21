@@ -62,7 +62,7 @@
                 }]).select('id').single();
         
                 if (error) {
-                    alert('Errore inserimento mossa: ' + error.message);
+                    alert('❌ Errore inserimento mossa: ' + error.message);
                     return;
                 }
         
@@ -70,11 +70,12 @@
                     game.appliedMoveIds.add(data.id);
                 }
         
+                alert('✅ Mossa inviata: ' + move.move_type);
                 // Applica subito la mossa sull'host
                 game.applyRemoteMove(move);
         
             } catch (e) {
-                alert('Eccezione inserimento mossa: ' + e.message);
+                alert('❌ Eccezione inserimento mossa: ' + e.message);
             }
         };
 
@@ -87,11 +88,17 @@
             const player = game.players[move.player_id];
             if (!player) return;
         
-            // Se la mossa è per il turno corrente, applicala subito
+            // Le mosse di risoluzione (build_choice, stronghold_deposit) vanno sempre applicate subito
+            if (move.move_type === 'build_choice' || move.move_type === 'stronghold_deposit') {
+                alert('📩 Ricevuta mossa di risoluzione: ' + move.move_type + ' per ' + player.name);
+                game.applyRemoteMove(move);
+                return;
+            }
+        
+            // Per le altre mosse, mantieni il controllo del turno
             if (move.player_id === game.currentPlayerIndex) {
                 game.applyRemoteMove(move);
             } else {
-                // Altrimenti accodala per quando sarà il turno
                 game.pendingMoves.push(move);
             }
         }
