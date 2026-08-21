@@ -1120,45 +1120,45 @@
             if (this.isGameOver) return;
             const player = this.players[move.player_id];
             if (!player) return;
-        const isResolutionMove = ['stronghold_deposit', 'build_choice'].includes(move.move_type);
-        const isTurnBasedMove = ['space', 'tech', 'copy_tech', 'pass'].includes(move.move_type);
-        
-        if (this.isMultiplayer && isTurnBasedMove && !isResolutionMove) {
-            const moveRound = move.round !== undefined ? move.round : this.round;
-            const moveTurn = move.turn !== undefined ? move.turn : this.currentPlayerIndex;
-        
-            // Mossa passata
-            if (moveRound < this.round || (moveRound === this.round && moveTurn < this.currentPlayerIndex)) {
-                if (move.move_type === 'space') {
-                    this.executeAction(player, move.space_id, true, move.choiceData || null, false);
-                } else if (move.move_type === 'tech') {
-                    this.executeTech(player, move.tech_idx, true, false);
-                } else if (move.move_type === 'copy_tech') {
-                    const originalTech = this.currentTechs[move.tech_idx];
-                    if (originalTech && originalTech.takenBy === null) {
-                        const target = this.currentTechs.find(t => t.id === move.copied_tech_id);
-                        if (target && typeof target.effect === 'function') target.effect(player, this);
-                        originalTech.takenBy = player.id;
-                        player.techUsed = true;
-                        this.log(`${player.name} copia ${target ? target.text : ''}`);
-                        this.recordAction({
-                            player_id: player.id,
-                            type: 'tech',
-                            tech_idx: move.tech_idx,
-                            desc: `Copia Tech: ${target ? target.text : ''}`,
-                            turn: moveTurn
-                        });
+            const isResolutionMove = ['stronghold_deposit', 'build_choice'].includes(move.move_type);
+            const isTurnBasedMove = ['space', 'tech', 'copy_tech', 'pass'].includes(move.move_type);
+            
+            if (this.isMultiplayer && isTurnBasedMove && !isResolutionMove) {
+                const moveRound = move.round !== undefined ? move.round : this.round;
+                const moveTurn = move.turn !== undefined ? move.turn : this.currentPlayerIndex;
+            
+                // Mossa passata
+                if (moveRound < this.round || (moveRound === this.round && moveTurn < this.currentPlayerIndex)) {
+                    if (move.move_type === 'space') {
+                        this.executeAction(player, move.space_id, true, move.choiceData || null, false);
+                    } else if (move.move_type === 'tech') {
+                        this.executeTech(player, move.tech_idx, true, false);
+                    } else if (move.move_type === 'copy_tech') {
+                        const originalTech = this.currentTechs[move.tech_idx];
+                        if (originalTech && originalTech.takenBy === null) {
+                            const target = this.currentTechs.find(t => t.id === move.copied_tech_id);
+                            if (target && typeof target.effect === 'function') target.effect(player, this);
+                            originalTech.takenBy = player.id;
+                            player.techUsed = true;
+                            this.log(`${player.name} copia ${target ? target.text : ''}`);
+                            this.recordAction({
+                                player_id: player.id,
+                                type: 'tech',
+                                tech_idx: move.tech_idx,
+                                desc: `Copia Tech: ${target ? target.text : ''}`,
+                                turn: moveTurn
+                            });
+                        }
                     }
+                    return;
                 }
-                return;
-            }
         
-            // Mossa futura
-            if (moveRound > this.round || (moveRound === this.round && moveTurn > this.currentPlayerIndex)) {
-                this.pendingMoves.push(move);
-                return;
+                // Mossa futura
+                if (moveRound > this.round || (moveRound === this.round && moveTurn > this.currentPlayerIndex)) {
+                    this.pendingMoves.push(move);
+                    return;
+                }
             }
-        }
 
             switch (move.move_type) {
                 case 'space':
