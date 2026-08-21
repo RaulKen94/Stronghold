@@ -179,7 +179,6 @@
         if (avail.length > 0) {
             const rand = this.rng();
             const chosen = avail[Math.floor(rand * avail.length)];
-            alert(`[chooseAIBuild] Player: ${p.name} | Rand: ${rand} | Disponibili: [${avail.map(b=>b.id).join(', ')}] | Scelto: ${chosen.id}`);
             return chosen;
         }
         return null;
