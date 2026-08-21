@@ -13,6 +13,9 @@
      */
     NS.Game.prototype.recordAction = function(entry) {
         if (!this.actionHistory) this.actionHistory = [];
+        // Aggiungi il nome del giocatore automaticamente
+        const player = this.players.find(p => p.id === entry.player_id);
+        entry.playerName = player ? player.name : `P${entry.player_id}`;
         this.actionHistory.push(entry);
     };
 
