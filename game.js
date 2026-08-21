@@ -473,13 +473,6 @@
                         p.hasResidence = true;
                     }
                     this.applyBuild(p, chosen);
-                    this.recordAction({
-                        player_id: p.id,
-                        type: 'build',
-                        building_id: chosen.id,
-                        desc: chosen.name,
-                        turn: this.currentPlayerIndex
-                    });
                     this.processCantiereQueue();
                 } else {
                     // Nessun edificio disponibile
@@ -648,7 +641,13 @@
             newSpace.slotsOccupied = [];
             newSpace.usage = 0;
             this.spaces.push(newSpace);
-            this.recordAction({ player_id: p.id, type: 'build', building_id: b.id, desc: b.name, turn: this.currentPlayerIndex });
+            this.recordAction({
+                player_id: p.id,
+                type: 'build',
+                building_id: b.id,
+                desc: b.name,
+                turn: this.currentPlayerIndex
+            });
         }
 
         // ===================== AZIONI SPAZIO =====================
@@ -1016,6 +1015,13 @@
             if (this.isGameOver) return;
             const player = this.players[move.player_id];
             if (!player) return;
+
+            // Controllo del turno SOLO per mosse di turno
+            const isTurnBasedMove = ['space', 'tech', 'copy_tech', 'pass'].includes(move.move_type);
+            if (this.isMultiplayer && isTurnBasedMove && move.player_id !== this.currentPlayerIndex) {
+                this.pendingMoves.push(move);
+                return;
+            }
         
             switch (move.move_type) {
                 case 'space':
@@ -1090,13 +1096,6 @@
                             player.hasResidence = true;
                         }
                         this.applyBuild(player, building);
-                        this.recordAction({
-                            player_id: player.id,
-                            type: 'build',
-                            building_id: building.id,
-                            desc: building.name,
-                            turn: this.currentPlayerIndex
-                        });
                         // Avanza la coda su tutti i client
                         this.processCantiereQueue();
                     }
