@@ -68,6 +68,8 @@
             // Callback per inviare mosse in multiplayer
             this.sendMove = null;
             this.pendingBuildPlayer = null;
+            // Buffer per mosse remote in attesa (multiplayer)
+            this.pendingMoves = [];
 
             this.initGame();
         }
@@ -329,6 +331,7 @@
 
             p.passed = true;
             this.log(`${p.name} passa.`);
+            this.recordAction({ player_id: p.id, type: 'pass', desc: 'Passa', turn: this.currentPlayerIndex });
             this.nextTurn();
         }
 
@@ -347,7 +350,10 @@
                 this.currentPlayerIndex = (this.currentPlayerIndex + 1) % 4;
                 checks++;
             } while (this.players[this.currentPlayerIndex].passed && checks < 5);
-
+        
+            // Applica eventuali mosse remote in coda per questo turno
+            this.flushPendingMoves();
+        
             this.updateUI();
             setTimeout(() => this.checkAiTurn(), 600);
         }
@@ -628,6 +634,7 @@
             newSpace.slotsOccupied = [];
             newSpace.usage = 0;
             this.spaces.push(newSpace);
+            this.recordAction({ player_id: p.id, type: 'build', building_id: b.id, desc: b.name, turn: this.currentPlayerIndex });
         }
 
         // ===================== AZIONI SPAZIO =====================
@@ -981,6 +988,25 @@
         }
 
         /**
+         * FLUSH PENDING MOVES
+         * Applica le mosse remote in coda per il turno corrente.
+         */
+        flushPendingMoves() {
+            let applied = false;
+            for (let i = this.pendingMoves.length - 1; i >= 0; i--) {
+                const move = this.pendingMoves[i];
+                if (move.player_id === this.currentPlayerIndex) {
+                    this.pendingMoves.splice(i, 1);
+                    this.applyRemoteMove(move);
+                    applied = true;
+                }
+            }
+            if (applied) {
+                this.updateUI();
+            }
+        }
+
+        /**
          * FINALIZE MOVE
          * Registra l'occupazione dello spazio e passa il turno.
          */
@@ -993,6 +1019,7 @@
                 const porta = this.spaces.find(s => s.id === 201);
                 if (porta) this.accumulatedCoinsPorta++;
             }
+            this.recordAction({ player_id: p.id, type: 'space', space_id: space.id, desc: space.name, turn: this.currentPlayerIndex });
             this.nextTurn();
         }
 
@@ -1067,6 +1094,7 @@
             tech.takenBy = p.id;
             p.techUsed = true;
             this.log(`${p.name} ricerca ${tech.text}`);
+            this.recordAction({ player_id: p.id, type: 'tech', tech_idx: techIdx, desc: tech.text, turn: this.currentPlayerIndex });
             this.nextTurn();
             return true;
         }
@@ -1144,7 +1172,11 @@
             });
             detailHtml += `</tbody></table>`;
             document.getElementById('score-detail-breakdown').innerHTML = detailHtml;
-
+            
+            // Renderizza lo storico delle azioni
+            if (typeof NS.renderActionHistory === 'function') {
+                NS.renderActionHistory(this.getActionHistory());
+            }
             document.getElementById('end-modal').style.display = 'flex';
         }
     }
