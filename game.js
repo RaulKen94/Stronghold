@@ -401,10 +401,11 @@
                 else this.finalizeRound();
                 return;
             }
-
+        
             const pid = this.strongholdQueue.shift();
             const p = this.players[pid];
-
+        
+            // Arcieri e cavalieri vengono depositati automaticamente
             if (p.archer > 0) {
                 p.stronghold.archer += p.archer;
                 p.archer = 0;
@@ -413,24 +414,28 @@
                 p.stronghold.knight += p.knight;
                 p.knight = 0;
             }
-
+        
+            // Fanteria: scelta per umano locale, attesa per umano remoto, automatica per AI
             if (p.infantry > 0) {
                 if (p.isHuman) {
-                    if (this.isMultiplayer && !p.isLocal) {
-                        if (this.isHost) {
-                            this.sendMove({ player_id: p.id, move_type: 'stronghold_request' });
-                        }
-                        return;
-                    } else {
+                    if (p.isLocal) {
+                        // Il giocatore locale sceglie quanti fanti depositare
                         this.renderStrongholdModal(p);
-                        return;
                     }
+                    // Se è un umano remoto, non facciamo nulla: aspetteremo la sua scelta
+                    return;
                 } else {
+                    // AI: deposito automatico
                     const putIn = this.rng() > 0.2 ? p.infantry : 0;
                     p.stronghold.infantry += putIn;
                     p.infantry -= putIn;
                     this.log(`${p.name} deposita ${putIn} fanti.`);
-                    this.recordAction({ player_id: p.id, type: 'stronghold', desc: `Deposita ${putIn} fanti`, turn: this.currentPlayerIndex });
+                    this.recordAction({
+                        player_id: p.id,
+                        type: 'stronghold',
+                        desc: `Deposita ${putIn} fanti`,
+                        turn: this.currentPlayerIndex
+                    });
                     this.processStrongholdQueue();
                 }
             } else {
@@ -443,26 +448,24 @@
          * PROCESS CANTIERE QUEUE
          * Gestisce le costruzioni del Cantiere.
          */
-        processCantiereQueue() {
+         processCantiereQueue() {
             if (this.cantiereQueue.length === 0) {
                 this.finalizeRound();
                 return;
             }
-
+        
             const pid = this.cantiereQueue.shift();
             const p = this.players[pid];
-
+        
             if (p.isHuman) {
-                if (this.isMultiplayer && !p.isLocal) {
-                    if (this.isHost) {
-                        this.sendMove({ player_id: p.id, move_type: 'build_request' });
-                    }
-                    return;
-                } else {
+                if (p.isLocal) {
+                    // Il giocatore locale sceglie cosa costruire
                     this.openBuildTypeModal(p);
                 }
+                // Se è un umano remoto, restiamo in attesa della sua mossa
+                return;
             } else {
-                alert(`[processCantiereQueue] Player: ${p.name} | Coda: [${this.cantiereQueue.map(id=>id).join(', ')}]`);
+                // AI: costruzione automatica
                 const chosen = this.chooseAIBuild(p);
                 if (chosen) {
                     if (chosen.type === 'blue') {
@@ -470,8 +473,16 @@
                         p.hasResidence = true;
                     }
                     this.applyBuild(p, chosen);
+                    this.recordAction({
+                        player_id: p.id,
+                        type: 'build',
+                        building_id: chosen.id,
+                        desc: chosen.name,
+                        turn: this.currentPlayerIndex
+                    });
                     this.processCantiereQueue();
                 } else {
+                    // Nessun edificio disponibile
                     this.processCantiereQueue();
                 }
             }
@@ -1001,19 +1012,20 @@
          * APPLY REMOTE MOVE
          * Applica una mossa ricevuta dal database.
          */
-        applyRemoteMove(move) {
+         applyRemoteMove(move) {
             if (this.isGameOver) return;
             const player = this.players[move.player_id];
-            alert(`Mossa remota: Tipo=${move.move_type}, Player=${move.player_id}, TurnoCorrente=${this.currentPlayerIndex}`);
             if (!player) return;
-
+        
             switch (move.move_type) {
                 case 'space':
                     this.executeAction(player, move.space_id, true, move.choiceData || null);
                     break;
+        
                 case 'tech':
                     this.executeTech(player, move.tech_idx, true);
                     break;
+        
                 case 'copy_tech': {
                     const originalTech = this.currentTechs[move.tech_idx];
                     if (!originalTech || originalTech.takenBy !== null) break;
@@ -1036,32 +1048,39 @@
                     this.nextTurn();
                     break;
                 }
+        
                 case 'pass':
                     if (!player.passed) {
                         player.passed = true;
                         this.log(`${player.name} passa.`);
-                        this.recordAction({ player_id: player.id, type: 'pass', desc: 'Passa', turn: this.currentPlayerIndex });
+                        this.recordAction({
+                            player_id: player.id,
+                            type: 'pass',
+                            desc: 'Passa',
+                            turn: this.currentPlayerIndex
+                        });
                         this.nextTurn();
                     }
                     break;
-                case 'stronghold_request':
-                    if (player.isLocal) this.renderStrongholdModal(player);
-                    break;
+        
                 case 'stronghold_deposit': {
                     const depositAmount = move.infantry || 0;
                     if (depositAmount > 0) {
                         player.stronghold.infantry += depositAmount;
                         player.infantry -= depositAmount;
                         this.log(`${player.name} deposita ${depositAmount} fanti.`);
-                        this.recordAction({ player_id: player.id, type: 'stronghold', desc: `Deposita ${depositAmount} fanti`, turn: this.currentPlayerIndex });
+                        this.recordAction({
+                            player_id: player.id,
+                            type: 'stronghold',
+                            desc: `Deposita ${depositAmount} fanti`,
+                            turn: this.currentPlayerIndex
+                        });
                     }
-                    // Avanza la coda su TUTTI i client (non solo host)
+                    // Avanza la coda su tutti i client (nessun controllo isHost)
                     this.processStrongholdQueue();
                     break;
                 }
-                case 'build_request':
-                    if (player.isLocal) this.openBuildTypeModal(player);
-                    break;
+        
                 case 'build_choice': {
                     const building = NS.NEW_BUILDINGS.find(x => x.id === move.building_id);
                     if (building) {
@@ -1071,7 +1090,14 @@
                             player.hasResidence = true;
                         }
                         this.applyBuild(player, building);
-                        // Avanza la coda su TUTTI i client
+                        this.recordAction({
+                            player_id: player.id,
+                            type: 'build',
+                            building_id: building.id,
+                            desc: building.name,
+                            turn: this.currentPlayerIndex
+                        });
+                        // Avanza la coda su tutti i client
                         this.processCantiereQueue();
                     }
                     break;
