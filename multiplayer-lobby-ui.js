@@ -87,8 +87,7 @@
             window.showMainMenu();
         };
         lobbyDiv.appendChild(backBtn);
-         
-        alert(`playersList.length=${playersList.length} | currentHumanCount=${currentHumanCount}`);
+        
         if (isHost) {
             const startBtn = document.createElement('button');
             startBtn.textContent = 'Avvia partita';
