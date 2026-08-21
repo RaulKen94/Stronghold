@@ -89,7 +89,6 @@
         
             // Le mosse di risoluzione (build_choice, stronghold_deposit) vanno sempre applicate subito
             if (move.move_type === 'build_choice' || move.move_type === 'stronghold_deposit') {
-                //alert('📩 Ricevuta mossa di risoluzione: ' + move.move_type + ' per ' + player.name);
                 game.applyRemoteMove(move);
                 return;
             }
