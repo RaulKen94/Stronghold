@@ -428,6 +428,7 @@
                     p.stronghold.infantry += putIn;
                     p.infantry -= putIn;
                     this.log(`${p.name} deposita ${putIn} fanti.`);
+                    this.recordAction({ player_id: p.id, type: 'stronghold', desc: `Deposita ${putIn} fanti`, turn: this.currentPlayerIndex });
                     this.processStrongholdQueue();
                 }
             } else {
@@ -963,6 +964,7 @@
                         player.stronghold.infantry += depositAmount;
                         player.infantry -= depositAmount;
                         this.log(`${player.name} deposita ${depositAmount} fanti.`);
+                        this.recordAction({ player_id: player.id, type: 'stronghold', desc: `Deposita ${depositAmount} fanti`, turn: this.currentPlayerIndex });
                     }
                     // Avanza la coda su TUTTI i client (non solo host)
                     this.processStrongholdQueue();
