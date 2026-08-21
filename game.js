@@ -323,12 +323,14 @@
             if (this.isGameOver) return;
             const p = this.players[this.currentPlayerIndex];
             if (p.passed) return;
-
-            if (this.isMultiplayer && this.sendMove) {
+        
+            if (this.isMultiplayer && this.sendMove && p.isHuman) {
+                // Solo gli umani inviano la mossa "pass" al database
                 this.sendMove({ player_id: p.id, move_type: 'pass' });
                 return;
             }
-
+        
+            // Pass locale (single‑player o AI in multiplayer)
             p.passed = true;
             this.log(`${p.name} passa.`);
             this.recordAction({ player_id: p.id, type: 'pass', desc: 'Passa', turn: this.currentPlayerIndex });
