@@ -950,6 +950,7 @@
                     if (!player.passed) {
                         player.passed = true;
                         this.log(`${player.name} passa.`);
+                        this.recordAction({ player_id: player.id, type: 'pass', desc: 'Passa', turn: this.currentPlayerIndex });
                         this.nextTurn();
                     }
                     break;
