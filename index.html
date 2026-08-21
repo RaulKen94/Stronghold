@@ -198,6 +198,11 @@
             <!-- Nuova tabella di dettaglio -->
             <div id="score-detail-breakdown" class="text-sm overflow-x-auto mb-6 rounded-lg border border-slate-200 shadow-md"></div>
 
+            <div class="mt-4 text-left">
+                <h4 class="font-bold text-xs text-slate-700 mb-2 uppercase tracking-wide">📜 Storico Azioni</h4>
+                <div id="action-history-list" class="max-h-48 overflow-y-auto border border-slate-200 rounded p-2 bg-white text-left"></div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left mb-6">
                 <div>
                     <h4 class="font-bold text-xs text-slate-700 mb-2 uppercase tracking-wide">📊 Analisi Utilizzo</h4>
@@ -361,6 +366,8 @@
     <script src="multiplayer-network.js"></script>
     <script src="multiplayer-lobby-ui.js"></script>
     <script src="game-multiplayer-adapter.js"></script>
+    <script src="history.js"></script>
+    <script src="history-ui.js"></script>
     <script src="main.js"></script>
 </body>
 </html>
