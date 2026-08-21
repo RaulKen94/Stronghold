@@ -13,7 +13,9 @@
      */
     NS.Game.prototype.recordAction = function(entry) {
         if (!this.actionHistory) this.actionHistory = [];
-        // Aggiungi il nome del giocatore automaticamente
+        // Aggiungi automaticamente round, turno e nome giocatore se non presenti
+        entry.round = entry.round !== undefined ? entry.round : this.round;
+        entry.turn = entry.turn !== undefined ? entry.turn : this.currentPlayerIndex;
         const player = this.players.find(p => p.id === entry.player_id);
         entry.playerName = player ? player.name : `P${entry.player_id}`;
         this.actionHistory.push(entry);
