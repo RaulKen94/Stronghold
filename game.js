@@ -774,6 +774,12 @@
                 p.luxury = 0;
                 p.vp += (amount * 3);
                 this.showFloatingText(space.id, `+${amount*3}🏆`, 'yellow');
+                this.recordAction({
+                    player_id: p.id,
+                    type: 'special',
+                    desc: `Palazzo: +${amount * 3} VP`,
+                    turn: this.currentPlayerIndex
+                });
                 this.finalizeMove(space, p);
                 return true;
             }
@@ -847,6 +853,8 @@
                     this.accumulatedCoinsPorta = 0;
                     this.log(`${p.name} raccoglie ${amt}💰 dalla Porta.`);
                     historyDesc = `Porta: +${amt} Monete`;
+                } else {
+                    historyDesc = 'Porta: nessuna moneta accumulata';
                 }
             } else if (type === 'consiglio') {
                 let gained = [];
@@ -1093,7 +1101,7 @@
                 if (porta) this.accumulatedCoinsPorta++;
             }
             // Non registrare qui se lo spazio è speciale: lo farà applySpecialReward
-            if (!space.reward || !space.reward.special || !['piazza','monastero','taverna','accampamento','gogna'].includes(space.reward.special)) {
+            if (!space.reward || !space.reward.special) {
                 this.recordAction({ player_id: p.id, type: 'space', space_id: space.id, desc: space.name, turn: this.currentPlayerIndex });
             }
             this.nextTurn();
