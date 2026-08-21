@@ -47,32 +47,30 @@
 
         // Callback per inviare una mossa
         game.sendMove = async (move) => {
+            // Aggiungi round e turno correnti alla mossa
+            move.round = game.round;
+            move.turn = game.currentPlayerIndex;
+        
             const player = game.players[move.player_id];
             const dbPlayerId = player ? player.dbPlayerId : null;
         
             try {
-                // Inserisci e ottieni l'ID della riga creata
-                const { data, error } = await NS.supabase
-                    .from('moves')
-                    .insert([{
-                        room_id: roomId,
-                        player_id: dbPlayerId,
-                        move_data: move
-                    }])
-                    .select('id')
-                    .single();
+                const { data, error } = await NS.supabase.from('moves').insert([{
+                    room_id: roomId,
+                    player_id: dbPlayerId,
+                    move_data: move
+                }]).select('id').single();
         
                 if (error) {
                     alert('Errore inserimento mossa: ' + error.message);
                     return;
                 }
         
-                // Aggiungi l'ID al set delle mosse già applicate
                 if (data && data.id) {
                     game.appliedMoveIds.add(data.id);
                 }
         
-                // Applica subito la mossa sull'host (per aggiornare la grafica)
+                // Applica subito la mossa sull'host
                 game.applyRemoteMove(move);
         
             } catch (e) {
