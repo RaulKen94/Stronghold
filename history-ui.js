@@ -21,12 +21,13 @@
         }
 
         container.innerHTML = history.map((entry, i) => {
-            const playerName = entry.playerName || (typeof entry.player_id === 'number' ? `P${entry.player_id}` : entry.player_id);
-            let desc = entry.desc || entry.type;
+            const playerName = entry.playerName || `P${entry.player_id}`;
+            const desc = entry.desc || entry.type;
+            const roundLabel = `R${entry.round}`;
             return `<div class="flex justify-between text-xs py-0.5 border-b border-slate-200">
                 <span class="font-mono text-slate-500">#${i+1}</span>
                 <span class="flex-1 px-2">${playerName}: ${desc}</span>
-                <span class="text-slate-400">turn ${entry.turn}</span>
+                <span class="text-slate-400">${roundLabel} T${entry.turn}</span>
             </div>`;
         }).join('');
     };
