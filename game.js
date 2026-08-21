@@ -328,6 +328,7 @@
          */
         passTurn() {
             if (this.isGameOver) return;
+            if (this.resolutionPhase) return; // non si può passare durante la risoluzione
             const p = this.players[this.currentPlayerIndex];
             if (p.passed) return;
         
@@ -350,6 +351,7 @@
          */
         nextTurn() {
             if (this.isGameOver) return;
+            if (this.resolutionPhase) return; // la risoluzione gestisce il proprio avanzamento
             if (this.players.every(p => p.passed)) {
                 this.endRound();
                 return;
@@ -372,6 +374,7 @@
          * Se il giocatore corrente è un'AI, esegue la sua mossa.
          */
         checkAiTurn() {
+            if (this.resolutionPhase) return;
             const p = this.players[this.currentPlayerIndex];
             if (p.isHuman || p.passed || this.isGameOver) return;
             try {
@@ -1214,10 +1217,11 @@
                             turn: this.currentPlayerIndex
                         });
                     }
-                    this.processStrongholdQueue();
+                    // Avanza la risoluzione su tutti i client
+                    this.advanceResolution();
                     break;
                 }
-
+                
                 case 'build_choice': {
                     const building = NS.NEW_BUILDINGS.find(x => x.id === move.building_id);
                     if (building) {
@@ -1227,7 +1231,8 @@
                             player.hasResidence = true;
                         }
                         this.applyBuild(player, building);
-                        this.processCantiereQueue();
+                        // Avanza la risoluzione su tutti i client
+                        this.advanceResolution();
                     }
                     break;
                 }
@@ -1239,6 +1244,7 @@
          * Applica le mosse remote in coda per il turno corrente.
          */
         flushPendingMoves() {
+            if (this.resolutionPhase) return;
             let applied = false;
             for (let i = this.pendingMoves.length - 1; i >= 0; i--) {
                 const move = this.pendingMoves[i];
