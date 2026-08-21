@@ -528,7 +528,7 @@
          * Avvia o continua la risoluzione delle code (Roccaforte/Cantiere).
          */
         startNextResolution() {
-            alert('▶️ startNextResolution | index=' + this.resolutionIndex + ' | queue=' + JSON.stringify(this.resolutionQueue));
+            //alert('▶️ startNextResolution | index=' + this.resolutionIndex + ' | queue=' + JSON.stringify(this.resolutionQueue));
             if (this.resolutionIndex >= this.resolutionQueue.length) {
                 // Fine risoluzione
                 this.resolutionQueue = [];
@@ -539,7 +539,7 @@
         
             const entry = this.resolutionQueue[this.resolutionIndex];
             const p = this.players[entry.playerId];
-            alert('👤 Prossimo giocatore: ' + p.name + ' | type=' + entry.type + ' | isLocal=' + p.isLocal);
+            //alert('👤 Prossimo giocatore: ' + p.name + ' | type=' + entry.type + ' | isLocal=' + p.isLocal);
             this.resolutionPhase = entry.type;
         
             if (entry.type === 'stronghold') {
