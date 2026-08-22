@@ -979,6 +979,22 @@
             if (typeof NS.renderActionHistory === 'function') {
                 NS.renderActionHistory(this.getActionHistory(), 'action-history-list');
             }
+        
+            // Gestione visibilità pulsanti fine partita
+            const btnNewGame = document.getElementById('btn-new-game');
+            const btnReturnLobby = document.getElementById('btn-return-lobby');
+            
+            if (btnNewGame && btnReturnLobby) {
+                if (this.isMultiplayer) {
+                    btnNewGame.style.display = 'none';
+                    btnReturnLobby.style.display = 'flex';
+                } else {
+                    btnNewGame.style.display = 'flex';
+                    btnReturnLobby.style.display = 'none';
+                }
+            }
+            
+            if (window.lucide) lucide.createIcons();
             document.getElementById('end-modal').style.display = 'flex';
         }
     }
