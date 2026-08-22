@@ -530,6 +530,9 @@
 
             let workerCost = space.cost.workerCost || 1;
             if (p.workers < workerCost) return isRemote ? false : this.flashError("Lavoratori insufficienti!");
+            if (space.id === 206 && p.wood < 1 && p.cattle < 1) {
+                return isRemote ? false : this.flashError("Ti serve almeno 1 Legno o 1 Bestiame per usare l'Accampamento");
+            }
             if (space.slots !== 99 && space.slotsOccupied.length >= space.slots) return isRemote ? false : this.flashError("Spazio pieno!");
             if (space.uniquePlayer && space.slotsOccupied.includes(p.id)) return isRemote ? false : this.flashError("Sei già qui!");
             if (space.id === 2 && this.watchtowerBlocked) return isRemote ? false : this.flashError("Bloccato dalla Tech!");
