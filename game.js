@@ -916,8 +916,17 @@
             if ((coinCost > 0 && p.coin < coinCost) ||
                 (space.cost.wood && p.wood < space.cost.wood) ||
                 (brickCost > 0 && p.brick < brickCost) ||
-                (space.cost.cattle && p.cattle < space.cost.cattle))
-                return isRemote ? false : this.flashError(`Risorse insufficienti! Cantiere: ${brickCost}🧱`);
+                (space.cost.cattle && p.cattle < space.cost.cattle)) {
+            
+                let missing = [];
+                if (coinCost > 0 && p.coin < coinCost) missing.push(`${coinCost} monete`);
+                if (space.cost.wood && p.wood < space.cost.wood) missing.push(`${space.cost.wood} legno`);
+                if (brickCost > 0 && p.brick < brickCost) missing.push(`${brickCost} mattoni`);
+                if (space.cost.cattle && p.cattle < space.cost.cattle) missing.push(`${space.cost.cattle} bestiame`);
+            
+                if (isRemote) return false;
+                return this.flashError(`Risorse insufficienti! Mancano: ${missing.join(', ')}`);
+            }
 
             p.workers -= workerCost;
             if (coinCost > 0) p.coin -= coinCost;
