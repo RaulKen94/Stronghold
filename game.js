@@ -123,6 +123,10 @@
          * Crea i giocatori, genera la coda eventi, prepara il primo round.
          */
         initGame() {
+            if (typeof NS.clearGameUI === 'function') {
+                NS.clearGameUI();
+            }
+            
             // Genera 8 eventi casuali in base alle probabilità
             for (let i = 0; i < 8; i++) {
                 let r = this.rng();
