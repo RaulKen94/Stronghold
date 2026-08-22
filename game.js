@@ -1161,14 +1161,15 @@
             if (this.isGameOver) return;
             const player = this.players[move.player_id];
             if (!player) return;
+        
             const isResolutionMove = ['stronghold_deposit', 'build_choice'].includes(move.move_type);
             const isTurnBasedMove = ['space', 'tech', 'copy_tech', 'pass'].includes(move.move_type);
-            
+        
             if (this.isMultiplayer && isTurnBasedMove && !isResolutionMove) {
                 const moveRound = move.round !== undefined ? move.round : this.round;
                 const moveTurn = move.turn !== undefined ? move.turn : this.currentPlayerIndex;
-            
-                // Mossa passata
+        
+                // Mossa passata: applica senza far avanzare il turno
                 if (moveRound < this.round || (moveRound === this.round && moveTurn < this.currentPlayerIndex)) {
                     if (move.move_type === 'space') {
                         this.executeAction(player, move.space_id, true, move.choiceData || null, false);
@@ -1193,32 +1194,34 @@
                     }
                     return;
                 }
-        
-                // Mossa futura
+
+                // Mossa futura: accoda (con controllo unicità)
                 if (moveRound > this.round || (moveRound === this.round && moveTurn > this.currentPlayerIndex)) {
-                    this.pendingMoves.push(move);
+                    if (!this.pendingMoves.some(m => m.client_move_id === move.client_move_id)) {
+                        this.pendingMoves.push(move);
+                    }
                     return;
                 }
             }
-
+        
             switch (move.move_type) {
                 case 'space':
                     this.executeAction(player, move.space_id, true, move.choiceData || null, true);
                     break;
-
+        
                 case 'tech':
                     this.executeTech(player, move.tech_idx, true, true);
                     break;
-
+        
                 case 'copy_tech': {
                     const originalTech = this.currentTechs[move.tech_idx];
                     if (!originalTech || originalTech.takenBy !== null) break;
-
+        
                     const target = this.currentTechs.find(t => t.id === move.copied_tech_id);
                     if (target && typeof target.effect === 'function') {
                         target.effect(player, this);
                     }
-
+        
                     originalTech.takenBy = player.id;
                     player.techUsed = true;
                     this.log(`${player.name} copia ${target ? target.text : ''}`);
@@ -1232,7 +1235,7 @@
                     this.nextTurn();
                     break;
                 }
-
+        
                 case 'pass':
                     if (!player.passed) {
                         player.passed = true;
@@ -1246,14 +1249,24 @@
                         this.nextTurn();
                     }
                     break;
-
+        
                 case 'stronghold_deposit': {
+                    // GUARDIA CONTESTUALE: la mossa deve corrispondere all'elemento corrente della coda
+                    const currentEntry = this.resolutionQueue[this.resolutionIndex];
+                    const isExpected = currentEntry &&
+                                       currentEntry.type === 'stronghold' &&
+                                       currentEntry.playerId === move.player_id;
+                    if (!isExpected) {
+                        // Mossa duplicata o fuori contesto: ignora
+                        break;
+                    }
+        
                     const depositAmount = move.infantry || 0;
                     if (depositAmount > 0) {
                         player.stronghold.infantry += depositAmount;
                         player.infantry -= depositAmount;
                     }
-                
+        
                     const auto = this.pendingStrongholdAuto || { archer: 0, knight: 0 };
                     const desc = this.getStrongholdDescription(auto, depositAmount);
                     this.log(`${player.name}: ${desc}`);
@@ -1263,14 +1276,24 @@
                         desc,
                         turn: this.currentPlayerIndex
                     });
-                
+        
                     // Pulisci il supporto e avanza la coda
                     this.pendingStrongholdAuto = { archer: 0, knight: 0 };
                     this.advanceResolution();
                     break;
                 }
-                
+        
                 case 'build_choice': {
+                    // GUARDIA CONTESTUALE: la mossa deve corrispondere all'elemento corrente della coda
+                    const currentEntry = this.resolutionQueue[this.resolutionIndex];
+                    const isExpected = currentEntry &&
+                                       currentEntry.type === 'cantiere' &&
+                                       currentEntry.playerId === move.player_id;
+                    if (!isExpected) {
+                        // Mossa duplicata o fuori contesto: ignora
+                        break;
+                    }
+        
                     const building = NS.NEW_BUILDINGS.find(x => x.id === move.building_id);
                     if (building) {
                         if (building.type === 'blue') {
