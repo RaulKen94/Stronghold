@@ -214,9 +214,18 @@
                     <ul id="event-history-list" class="text-xs bg-white p-2 rounded border border-slate-200 h-40 overflow-y-auto text-left"></ul>
                 </div>
             </div>
-            <button onclick="game.resetGame()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-lg transition transform hover:scale-[1.02]">
+            
+            <!-- Bottone Nuova Partita (id aggiunto) -->
+            <button id="btn-new-game" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-lg transition transform hover:scale-[1.02]">
                 <i data-lucide="refresh-cw" class="w-5 h-5"></i> Nuova Partita
             </button>
+            
+            <!-- Bottone Torna alla lobby (solo multiplayer, nascosto di default) -->
+            <button id="btn-return-lobby" style="display:none;" onclick="document.getElementById('end-modal').style.display='none'; openMultiplayerModal();" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-lg transition transform hover:scale-[1.02]">
+                <i data-lucide="users" class="w-5 h-5"></i> Torna alla lobby
+            </button>
+            
+            <!-- Bottone Torna al menu principale (invariato) -->
             <button onclick="showMainMenu()" class="w-full bg-slate-600 hover:bg-slate-500 text-white font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm mt-2 transition">
                 🏠 Torna al menu principale
             </button>
