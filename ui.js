@@ -527,5 +527,34 @@
     
     // Esponi globalmente
     window.showGameSummary = NS.showGameSummary;
+
+    /**
+     * CLEAR GAME UI
+     * Pulisce tutti i contenitori DOM legati a log, history e modale finale.
+     * Viene chiamata all'avvio di una nuova partita (single e multiplayer).
+     */
+    NS.clearGameUI = function() {
+        const ids = [
+            'game-log',
+            'mobile-log-view',
+            'action-history-list',
+            'mobile-action-history',
+            'score-breakdown',
+            'score-detail-breakdown',
+            'spaces-stats',
+            'event-history-list'
+        ];
+    
+        ids.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = '';
+        });
+    
+        // Renderizza history vuote nei contenitori dedicati
+        if (typeof NS.renderActionHistory === 'function') {
+            NS.renderActionHistory([], 'action-history-list');
+            NS.renderActionHistory([], 'mobile-action-history');
+        }
+    };
     
 })();
