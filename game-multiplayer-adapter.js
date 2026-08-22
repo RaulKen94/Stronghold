@@ -11,6 +11,27 @@
      * Avvia una partita multiplayer.
      */
     NS.startMultiplayerGame = async function(roomId, seed, localPlayerId, playersInfo, humanCount) {
+        // Recupera il codice stanza
+        const { data: roomData, error: roomError } = await NS.supabase
+            .from('rooms')
+            .select('code')
+            .eq('id', roomId)
+            .single();
+        if (roomError) throw roomError;
+
+        const localPlayer = playersInfo.find(p => p.id === localPlayerId);
+        const playerName = localPlayer ? localPlayer.player_name : 'Giocatore';
+        const isHost = localPlayer ? localPlayer.is_host : false;
+
+        // Salva i dati della lobby per permettere il ritorno alla stessa stanza
+        NS.currentLobbyData = {
+            roomId,
+            roomCode: roomData.code,
+            playerName,
+            isHost,
+            playerId: localPlayerId
+        };
+
         // Ordina i giocatori umani per joined_at
         const sortedHumanPlayers = [...playersInfo].sort((a, b) => new Date(a.joined_at) - new Date(b.joined_at));
 
@@ -20,7 +41,7 @@
             isHuman: true,
             isLocal: p.id === localPlayerId,
             archetype: null,
-            dbPlayerId: p.id          // UUID reale del giocatore
+            dbPlayerId: p.id
         }));
 
         // Completa con AI fino a 4
@@ -35,29 +56,20 @@
             });
         }
 
-        const isHost = playersInfo.some(p => p.id === localPlayerId && p.is_host);
-
         // Crea il gioco
         const game = new NS.Game(seed, playerConfig, isHost);
 
         game.pendingMoves = [];
-
-        // Set per tenere traccia delle mosse già applicate
         game.appliedMoveIds = new Set();
 
         // Callback per inviare una mossa
         game.sendMove = async (move) => {
-            // ---- FIX BUG #1: genera ID lato client e aggiungilo al set PRIMA dell'insert
             const clientMoveId = (typeof crypto !== 'undefined' && crypto.randomUUID)
                 ? crypto.randomUUID()
                 : Date.now() + '-' + Math.random();
 
             game.appliedMoveIds.add(clientMoveId);
-
-            // Aggiungi l'ID anche nel payload per eventuali controlli di unicità
             move.client_move_id = clientMoveId;
-
-            // Aggiungi round e turno correnti alla mossa
             move.round = game.round;
             move.turn = game.currentPlayerIndex;
 
@@ -66,24 +78,21 @@
 
             try {
                 const { data, error } = await NS.supabase.from('moves').insert([{
-                    id: clientMoveId,      // usa il nostro ID generato, non quello del DB
+                    id: clientMoveId,
                     room_id: roomId,
                     player_id: dbPlayerId,
                     move_data: move
                 }]).select('id').single();
 
                 if (error) {
-                    alert('❌ Errore inserimento mossa: ' + error.message);
-                    // Se fallisce, rimuovi l'ID dal set per consentire un retry
+                    alert('Errore inserimento mossa: ' + error.message);
                     game.appliedMoveIds.delete(clientMoveId);
                     return;
                 }
 
-                // Applica subito la mossa sull'host
                 game.applyRemoteMove(move);
-
             } catch (e) {
-                alert('❌ Eccezione inserimento mossa: ' + e.message);
+                alert('Eccezione inserimento mossa: ' + e.message);
                 game.appliedMoveIds.delete(clientMoveId);
             }
         };
@@ -97,29 +106,26 @@
             const player = game.players[move.player_id];
             if (!player) return;
 
-            // Le mosse di risoluzione (build_choice, stronghold_deposit) vanno sempre applicate subito
             if (move.move_type === 'build_choice' || move.move_type === 'stronghold_deposit') {
                 game.applyRemoteMove(move);
                 return;
             }
 
-            // Per le altre mosse, mantieni il controllo del turno
             if (move.player_id === game.currentPlayerIndex) {
                 game.applyRemoteMove(move);
             } else {
-                // ---- FIX BUG #2: controllo unicità prima di accodare
                 if (!game.pendingMoves.some(m => m.client_move_id === move.client_move_id)) {
                     game.pendingMoves.push(move);
                 }
             }
         }
 
-        // Sottoscrizione Realtime alle mosse
+        // Sottoscrizione Realtime
         NS.subscribeToMoves(roomId, (payload) => {
             applyMove(payload.new);
         });
 
-        // Polling di fallback: controlla nuove mosse ogni 2 secondi
+        // Polling di fallback
         const pollInterval = setInterval(async () => {
             try {
                 const { data, error } = await NS.supabase
@@ -145,6 +151,28 @@
     };
 
     /**
+     * TORNA ALLA LOBBY DELLA STESSA STANZA
+     */
+    NS.returnToLobby = function() {
+        const data = NS.currentLobbyData;
+        if (!data) return;
+
+        const endModal = document.getElementById('end-modal');
+        if (endModal) endModal.style.display = 'none';
+
+        // Se il giocatore è host, riporta la stanza in waiting
+        const resetPromise = data.isHost
+            ? NS.resetRoomToWaiting(data.roomId)
+            : Promise.resolve();
+
+        resetPromise.then(() => {
+            NS.showLobby(data.roomId, data.roomCode, data.playerName, data.isHost, data.playerId);
+        }).catch(e => {
+            alert('Errore nel tornare alla lobby: ' + e.message);
+        });
+    };
+
+    /**
      * Sottoscrive alle mosse di una stanza.
      */
     NS.subscribeToMoves = function(roomId, callback) {
@@ -159,4 +187,7 @@
             )
             .subscribe();
     };
+
+    // Esponi globalmente la funzione per l'uso nell'HTML
+    window.returnToLobby = NS.returnToLobby;
 })();
