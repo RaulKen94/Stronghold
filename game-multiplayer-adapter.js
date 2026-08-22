@@ -44,6 +44,11 @@
         stopPolling();
         removeActiveChannel();
 
+        // Pulisce log, history e modale finale precedenti
+        if (typeof NS.clearGameUI === 'function') {
+            NS.clearGameUI();
+        }
+
         // Recupera il codice stanza
         const { data: roomData, error: roomError } = await NS.supabase
             .from('rooms')
