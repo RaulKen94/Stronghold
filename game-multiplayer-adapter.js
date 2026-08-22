@@ -47,34 +47,44 @@
 
         // Callback per inviare una mossa
         game.sendMove = async (move) => {
+            // ---- FIX BUG #1: genera ID lato client e aggiungilo al set PRIMA dell'insert
+            const clientMoveId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : Date.now() + '-' + Math.random();
+
+            game.appliedMoveIds.add(clientMoveId);
+
+            // Aggiungi l'ID anche nel payload per eventuali controlli di unicità
+            move.client_move_id = clientMoveId;
+
             // Aggiungi round e turno correnti alla mossa
             move.round = game.round;
             move.turn = game.currentPlayerIndex;
-        
+
             const player = game.players[move.player_id];
             const dbPlayerId = player ? player.dbPlayerId : null;
-        
+
             try {
                 const { data, error } = await NS.supabase.from('moves').insert([{
+                    id: clientMoveId,      // usa il nostro ID generato, non quello del DB
                     room_id: roomId,
                     player_id: dbPlayerId,
                     move_data: move
                 }]).select('id').single();
-        
+
                 if (error) {
                     alert('❌ Errore inserimento mossa: ' + error.message);
+                    // Se fallisce, rimuovi l'ID dal set per consentire un retry
+                    game.appliedMoveIds.delete(clientMoveId);
                     return;
                 }
-        
-                if (data && data.id) {
-                    game.appliedMoveIds.add(data.id);
-                }
-        
+
                 // Applica subito la mossa sull'host
                 game.applyRemoteMove(move);
-        
+
             } catch (e) {
                 alert('❌ Eccezione inserimento mossa: ' + e.message);
+                game.appliedMoveIds.delete(clientMoveId);
             }
         };
 
@@ -82,22 +92,25 @@
         function applyMove(row) {
             if (!row || !row.move_data || game.appliedMoveIds.has(row.id)) return;
             game.appliedMoveIds.add(row.id);
-        
+
             const move = row.move_data;
             const player = game.players[move.player_id];
             if (!player) return;
-        
+
             // Le mosse di risoluzione (build_choice, stronghold_deposit) vanno sempre applicate subito
             if (move.move_type === 'build_choice' || move.move_type === 'stronghold_deposit') {
                 game.applyRemoteMove(move);
                 return;
             }
-        
+
             // Per le altre mosse, mantieni il controllo del turno
             if (move.player_id === game.currentPlayerIndex) {
                 game.applyRemoteMove(move);
             } else {
-                game.pendingMoves.push(move);
+                // ---- FIX BUG #2: controllo unicità prima di accodare
+                if (!game.pendingMoves.some(m => m.client_move_id === move.client_move_id)) {
+                    game.pendingMoves.push(move);
+                }
             }
         }
 
