@@ -529,7 +529,6 @@
          */
         startNextResolution() {
             if (this.resolutionIndex >= this.resolutionQueue.length) {
-                // Fine risoluzione
                 this.resolutionQueue = [];
                 this.resolutionPhase = null;
                 this.finalizeRound();
@@ -541,6 +540,31 @@
             this.resolutionPhase = entry.type;
         
             if (entry.type === 'stronghold') {
+                // ---- DEPOSITO AUTOMATICO DI ARCIERI E CAVALIERI ----
+                let autoDepositDesc = '';
+                if (p.archer > 0) {
+                    p.stronghold.archer += p.archer;
+                    autoDepositDesc += `${p.archer} arcieri `;
+                    p.archer = 0;
+                }
+                if (p.knight > 0) {
+                    p.stronghold.knight += p.knight;
+                    if (autoDepositDesc) autoDepositDesc += 'e ';
+                    autoDepositDesc += `${p.knight} cavalieri `;
+                    p.knight = 0;
+                }
+                if (autoDepositDesc) {
+                    const desc = `Roccaforte: deposita ${autoDepositDesc.trim()}`;
+                    this.log(`${p.name}: ${desc}`);
+                    this.recordAction({
+                        player_id: p.id,
+                        type: 'stronghold',
+                        desc,
+                        turn: this.currentPlayerIndex
+                    });
+                }
+        
+                // ---- GESTIONE FANTERIA ----
                 if (p.infantry > 0 && p.isHuman) {
                     if (p.isLocal) {
                         this.renderStrongholdModal(p);
@@ -548,20 +572,37 @@
                     // umano remoto: attesa stronghold_deposit
                     return;
                 } else if (!p.isHuman) {
-                    // AI: deposito automatico
+                    // AI: deposito fanteria
                     const putIn = this.rng() > 0.2 ? p.infantry : 0;
-                    p.stronghold.infantry += putIn;
-                    p.infantry -= putIn;
-                    this.log(`${p.name} deposita ${putIn} fanti.`);
-                    this.recordAction({
-                        player_id: p.id,
-                        type: 'stronghold',
-                        desc: `Deposita ${putIn} fanti`,
-                        turn: this.currentPlayerIndex
-                    });
+                    if (putIn > 0) {
+                        p.stronghold.infantry += putIn;
+                        p.infantry -= putIn;
+                        this.log(`${p.name} deposita ${putIn} fanti.`);
+                        this.recordAction({
+                            player_id: p.id,
+                            type: 'stronghold',
+                            desc: `Deposita ${putIn} fanti`,
+                            turn: this.currentPlayerIndex
+                        });
+                    } else if (autoDepositDesc) {
+                        this.recordAction({
+                            player_id: p.id,
+                            type: 'stronghold',
+                            desc: 'Roccaforte: nessun fante da depositare',
+                            turn: this.currentPlayerIndex
+                        });
+                    }
                     this.advanceResolution();
                 } else {
                     // Umano senza fanteria
+                    if (!autoDepositDesc) {
+                        this.recordAction({
+                            player_id: p.id,
+                            type: 'stronghold',
+                            desc: 'Roccaforte: nessun deposito',
+                            turn: this.currentPlayerIndex
+                        });
+                    }
                     this.advanceResolution();
                 }
             } else if (entry.type === 'cantiere') {
@@ -569,10 +610,8 @@
                     if (p.isLocal) {
                         this.openBuildTypeModal(p);
                     }
-                    // umano remoto: attesa build_choice
                     return;
                 } else {
-                    // AI: costruzione automatica
                     const chosen = this.chooseAIBuild(p);
                     if (chosen) {
                         if (chosen.type === 'blue') {
