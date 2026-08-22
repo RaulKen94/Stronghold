@@ -7,18 +7,42 @@
     var NS = window.Roccaforte;
     if (!NS.supabase) return;
 
-    // Intervallo di polling globale per poterlo fermare/riavviare
+    // Riferimenti globali per gestire il ciclo di vita di canali e polling
     let pollInterval = null;
+    let activeMovesChannel = null;
+
+    /**
+     * Ferma eventuale polling attivo.
+     */
+    function stopPolling() {
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+    }
+
+    /**
+     * Ferma e rimuove eventuale canale Realtime attivo.
+     */
+    function removeActiveChannel() {
+        if (activeMovesChannel) {
+            try {
+                activeMovesChannel.unsubscribe();
+                activeMovesChannel.removeChannel();
+            } catch (e) {
+                console.warn('Errore rimozione canale Realtime:', e);
+            }
+            activeMovesChannel = null;
+        }
+    }
 
     /**
      * Avvia una partita multiplayer.
      */
     NS.startMultiplayerGame = async function(roomId, seed, localPlayerId, playersInfo, humanCount) {
-        // Ferma eventuale polling attivo dalla partita precedente
-        if (pollInterval) {
-            clearInterval(pollInterval);
-            pollInterval = null;
-        }
+        // Ferma polling e canale Realtime precedenti (se esistenti)
+        stopPolling();
+        removeActiveChannel();
 
         // Recupera il codice stanza
         const { data: roomData, error: roomError } = await NS.supabase
@@ -129,8 +153,8 @@
             }
         }
 
-        // Sottoscrizione Realtime
-        NS.subscribeToMoves(roomId, (payload) => {
+        // Sottoscrizione Realtime (salvata per poterla rimuovere in futuro)
+        activeMovesChannel = NS.subscribeToMoves(roomId, (payload) => {
             applyMove(payload.new);
         });
 
@@ -166,11 +190,9 @@
         const data = NS.currentLobbyData;
         if (!data) return;
 
-        // Ferma il polling attivo
-        if (pollInterval) {
-            clearInterval(pollInterval);
-            pollInterval = null;
-        }
+        // Ferma polling e canale Realtime attivi
+        stopPolling();
+        removeActiveChannel();
 
         const endModal = document.getElementById('end-modal');
         if (endModal) endModal.style.display = 'none';
