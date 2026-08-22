@@ -70,6 +70,8 @@
             this.pendingBuildPlayer = null;
             // Buffer per mosse remote in attesa (multiplayer)
             this.pendingMoves = [];
+            // Supporto per la descrizione unica del deposito Stronghold
+            this.pendingStrongholdAuto = { archer: 0, knight: 0 };
             // Stato risoluzione code (multiplayer)
             this.resolutionPhase = null;   // 'stronghold' | 'cantiere' | null
             this.resolutionQueue = [];     // array di { playerId, type }
@@ -524,10 +526,25 @@
         }
 
         /**
+         * GET STRONGHOLD DESCRIPTION
+         * Restituisce la descrizione unica del deposito in Roccaforte.
+         * @param {object} auto - arcieri e cavalieri depositati automaticamente
+         * @param {number} infantry - fanti depositati (0 se nessuno)
+         * @returns {string}
+         */
+        getStrongholdDescription(auto, infantry) {
+            const parts = [];
+            if (auto.archer > 0) parts.push(`${auto.archer} arcieri`);
+            if (auto.knight > 0) parts.push(`${auto.knight} cavalieri`);
+            if (infantry > 0) parts.push(`${infantry} fanti`);
+            return parts.length > 0 ? 'Roccaforte: deposita ' + parts.join(', ') : 'Roccaforte: nessun deposito';
+        }
+
+        /**
          * START NEXT RESOLUTION
          * Avvia o continua la risoluzione delle code (Roccaforte/Cantiere).
          */
-        startNextResolution() {
+         startNextResolution() {
             if (this.resolutionIndex >= this.resolutionQueue.length) {
                 this.resolutionQueue = [];
                 this.resolutionPhase = null;
@@ -540,21 +557,36 @@
             this.resolutionPhase = entry.type;
         
             if (entry.type === 'stronghold') {
-                // ---- DEPOSITO AUTOMATICO DI ARCIERI E CAVALIERI ----
-                let autoDepositDesc = '';
+                // Inizializza il deposito automatico per questo giocatore
+                this.pendingStrongholdAuto = { archer: 0, knight: 0 };
+        
+                // Deposito automatico di arcieri e cavalieri (non registra ancora)
                 if (p.archer > 0) {
+                    this.pendingStrongholdAuto.archer = p.archer;
                     p.stronghold.archer += p.archer;
-                    autoDepositDesc += `${p.archer} arcieri `;
                     p.archer = 0;
                 }
                 if (p.knight > 0) {
+                    this.pendingStrongholdAuto.knight = p.knight;
                     p.stronghold.knight += p.knight;
-                    if (autoDepositDesc) autoDepositDesc += 'e ';
-                    autoDepositDesc += `${p.knight} cavalieri `;
                     p.knight = 0;
                 }
-                if (autoDepositDesc) {
-                    const desc = `Roccaforte: deposita ${autoDepositDesc.trim()}`;
+        
+                // Gestione fanteria
+                if (p.infantry > 0 && p.isHuman) {
+                    if (p.isLocal) {
+                        this.renderStrongholdModal(p);
+                    }
+                    // Umano remoto: aspetta stronghold_deposit
+                    return;
+                } else if (!p.isHuman) {
+                    // AI: deposita anche i fanti (sempre automatico)
+                    const putIn = this.rng() > 0.2 ? p.infantry : 0;
+                    if (putIn > 0) {
+                        p.stronghold.infantry += putIn;
+                        p.infantry -= putIn;
+                    }
+                    const desc = this.getStrongholdDescription(this.pendingStrongholdAuto, putIn);
                     this.log(`${p.name}: ${desc}`);
                     this.recordAction({
                         player_id: p.id,
@@ -562,47 +594,19 @@
                         desc,
                         turn: this.currentPlayerIndex
                     });
-                }
-        
-                // ---- GESTIONE FANTERIA ----
-                if (p.infantry > 0 && p.isHuman) {
-                    if (p.isLocal) {
-                        this.renderStrongholdModal(p);
-                    }
-                    // umano remoto: attesa stronghold_deposit
-                    return;
-                } else if (!p.isHuman) {
-                    // AI: deposito fanteria
-                    const putIn = this.rng() > 0.2 ? p.infantry : 0;
-                    if (putIn > 0) {
-                        p.stronghold.infantry += putIn;
-                        p.infantry -= putIn;
-                        this.log(`${p.name} deposita ${putIn} fanti.`);
-                        this.recordAction({
-                            player_id: p.id,
-                            type: 'stronghold',
-                            desc: `Deposita ${putIn} fanti`,
-                            turn: this.currentPlayerIndex
-                        });
-                    } else if (autoDepositDesc) {
-                        this.recordAction({
-                            player_id: p.id,
-                            type: 'stronghold',
-                            desc: 'Roccaforte: nessun fante da depositare',
-                            turn: this.currentPlayerIndex
-                        });
-                    }
+                    this.pendingStrongholdAuto = { archer: 0, knight: 0 };
                     this.advanceResolution();
                 } else {
-                    // Umano senza fanteria
-                    if (!autoDepositDesc) {
-                        this.recordAction({
-                            player_id: p.id,
-                            type: 'stronghold',
-                            desc: 'Roccaforte: nessun deposito',
-                            turn: this.currentPlayerIndex
-                        });
-                    }
+                    // Umano senza fanteria: registra comunque il deposito automatico
+                    const desc = this.getStrongholdDescription(this.pendingStrongholdAuto, 0);
+                    this.log(`${p.name}: ${desc}`);
+                    this.recordAction({
+                        player_id: p.id,
+                        type: 'stronghold',
+                        desc,
+                        turn: this.currentPlayerIndex
+                    });
+                    this.pendingStrongholdAuto = { archer: 0, knight: 0 };
                     this.advanceResolution();
                 }
             } else if (entry.type === 'cantiere') {
@@ -1248,15 +1252,20 @@
                     if (depositAmount > 0) {
                         player.stronghold.infantry += depositAmount;
                         player.infantry -= depositAmount;
-                        this.log(`${player.name} deposita ${depositAmount} fanti.`);
-                        this.recordAction({
-                            player_id: player.id,
-                            type: 'stronghold',
-                            desc: `Deposita ${depositAmount} fanti`,
-                            turn: this.currentPlayerIndex
-                        });
                     }
-                    // Avanza la risoluzione su tutti i client
+                
+                    const auto = this.pendingStrongholdAuto || { archer: 0, knight: 0 };
+                    const desc = this.getStrongholdDescription(auto, depositAmount);
+                    this.log(`${player.name}: ${desc}`);
+                    this.recordAction({
+                        player_id: player.id,
+                        type: 'stronghold',
+                        desc,
+                        turn: this.currentPlayerIndex
+                    });
+                
+                    // Pulisci il supporto e avanza la coda
+                    this.pendingStrongholdAuto = { archer: 0, knight: 0 };
                     this.advanceResolution();
                     break;
                 }
