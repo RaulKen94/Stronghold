@@ -67,6 +67,7 @@
             this.resolutionPhase = null;   // 'stronghold' | 'cantiere' | null
             this.resolutionQueue = [];     // array di { playerId, type }
             this.resolutionIndex = 0;      // indice corrente
+            this.actionHistory = [];       // reset history
 
             this.initGame();
         }
