@@ -7,10 +7,19 @@
     var NS = window.Roccaforte;
     if (!NS.supabase) return;
 
+    // Intervallo di polling globale per poterlo fermare/riavviare
+    let pollInterval = null;
+
     /**
      * Avvia una partita multiplayer.
      */
     NS.startMultiplayerGame = async function(roomId, seed, localPlayerId, playersInfo, humanCount) {
+        // Ferma eventuale polling attivo dalla partita precedente
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
+
         // Recupera il codice stanza
         const { data: roomData, error: roomError } = await NS.supabase
             .from('rooms')
@@ -126,7 +135,7 @@
         });
 
         // Polling di fallback
-        const pollInterval = setInterval(async () => {
+        pollInterval = setInterval(async () => {
             try {
                 const { data, error } = await NS.supabase
                     .from('moves')
@@ -156,6 +165,12 @@
     NS.returnToLobby = function() {
         const data = NS.currentLobbyData;
         if (!data) return;
+
+        // Ferma il polling attivo
+        if (pollInterval) {
+            clearInterval(pollInterval);
+            pollInterval = null;
+        }
 
         const endModal = document.getElementById('end-modal');
         if (endModal) endModal.style.display = 'none';
