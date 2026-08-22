@@ -452,6 +452,7 @@
         
             let workerCost = space.cost.workerCost || 1;
             if (p.workers < workerCost) return false;
+            if (space.id === 206 && p.wood < 1 && p.cattle < 1) return false;
             if (space.slots !== 99 && space.slotsOccupied.length >= space.slots) return false;
             if (space.uniquePlayer && space.slotsOccupied.includes(p.id)) return false;
             if (space.id === 2 && this.watchtowerBlocked) return false;
