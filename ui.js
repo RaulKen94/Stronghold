@@ -341,9 +341,29 @@
                 }
             });
         } else if (type === 'accampamento') {
-            this.createChoiceBtn(opts, "Paga 1🪵 -> 1🏆 1⚔️", () => { this.sendChoice({ option: 'wood' }); });
-            this.createChoiceBtn(opts, "Paga 1🐄 -> 1🏹", () => { this.sendChoice({ option: 'cattle' }); });
-            this.createChoiceBtn(opts, "Paga 1🪵 1🐄 3💰 -> 2🏆 2⚔️ 1🏹", () => { this.sendChoice({ option: 'all' }); });
+            this.createChoiceBtn(opts, "Paga 1🪵 -> 1🏆 1⚔️", () => {
+                if (p.wood < 1) {
+                    alert("Manca Legno");
+                    return;
+                }
+                this.sendChoice({ option: 'wood' });
+            });
+        
+            this.createChoiceBtn(opts, "Paga 1🐄 -> 1🏹", () => {
+                if (p.cattle < 1) {
+                    alert("Manca Bestiame");
+                    return;
+                }
+                this.sendChoice({ option: 'cattle' });
+            });
+        
+            this.createChoiceBtn(opts, "Paga 1🪵 1🐄 3💰 -> 2🏆 2⚔️ 1🏹", () => {
+                if (p.wood < 1 || p.cattle < 1 || p.coin < 3) {
+                    alert("Risorse insufficienti per questa opzione");
+                    return;
+                }
+                this.sendChoice({ option: 'all' });
+            });
         } else if (type === 'gogna') {
             document.getElementById('choice-modal').style.display = 'none';
             const gModal = document.getElementById('gogna-modal');
