@@ -246,9 +246,9 @@
         [pBtnM, pBtnD].forEach(btn => {
             if (btn) {
                 btn.disabled = !canPass;
-                btn.className = canPass
-                    ? btn.className.replace('opacity-50 grayscale cursor-not-allowed', '')
-                    : btn.className + ' opacity-50 grayscale cursor-not-allowed';
+                btn.classList.toggle('opacity-50', !canPass);
+                btn.classList.toggle('grayscale', !canPass);
+                btn.classList.toggle('cursor-not-allowed', !canPass);
             }
         });
     
