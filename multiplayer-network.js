@@ -36,7 +36,6 @@
             roomData = data;
         } while (roomData);
 
-        // Inserisci la stanza con human_count di default 2
         const { data: newRoom, error: roomError } = await NS.supabase
             .from('rooms')
             .insert([{ code, status: 'waiting', human_count: 2 }])
@@ -44,18 +43,16 @@
             .single();
         if (roomError) throw roomError;
         const roomId = newRoom.id;
-    
-        // Inserisci il giocatore host
+
         const { data: playerData, error: playerInsertError } = await NS.supabase
             .from('players')
             .insert([{ room_id: roomId, player_name: playerName, is_host: true }])
             .select()
             .single();
         if (playerInsertError) throw playerInsertError;
-    
+
         return { roomId, code, playerId: playerData.id };
     };
-    
 
     /**
      * Aggiunge un giocatore a una stanza esistente tramite codice.
@@ -68,22 +65,21 @@
             .single();
         if (roomError) throw new Error('Stanza non trovata');
         if (roomData.status !== 'waiting') throw new Error('La stanza non è in attesa');
-    
-        // Controlla numero giocatori umani già presenti
+
         const { data: players, error: playersError } = await NS.supabase
             .from('players')
             .select('*')
             .eq('room_id', roomData.id);
         if (playersError) throw playersError;
         if (players.length >= roomData.human_count) throw new Error('Stanza piena (limite giocatori umani raggiunto)');
-    
+
         const { data: playerData, error: insertError } = await NS.supabase
             .from('players')
             .insert([{ room_id: roomData.id, player_name: playerName, is_host: false }])
             .select()
             .single();
         if (insertError) throw insertError;
-    
+
         return { roomId: roomData.id, code: roomData.code, playerId: playerData.id };
     };
 
@@ -101,11 +97,6 @@
 
     /**
      * Sottoscrive ai cambiamenti in tempo reale di una stanza.
-     * @param {string} roomId - ID della stanza
-     * @param {function} onPlayerJoined - callback quando un giocatore si unisce
-     * @param {function} onMoveInserted - callback quando viene inserita una mossa
-     * @param {function} onRoomStatusChanged - callback quando cambia lo stato della stanza
-     * @returns {function} - funzione per annullare la sottoscrizione
      */
     NS.subscribeToRoom = function(roomId, onPlayerJoined, onMoveInserted, onRoomStatusChanged) {
         const playersChannel = NS.supabase
@@ -130,14 +121,13 @@
             )
             .subscribe();
 
-        // Nuovo canale per i cambiamenti alla stanza
         const roomChannel = NS.supabase
             .channel('room-status-changes')
             .on(
                 'postgres_changes',
                 { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
                 (payload) => {
-                   if (onRoomStatusChanged) onRoomStatusChanged(payload.new);
+                    if (onRoomStatusChanged) onRoomStatusChanged(payload.new);
                 }
             )
             .subscribe();
@@ -150,8 +140,8 @@
     };
 
     /**
-    * UPDATE ROOM HUMAN COUNT
-    */
+     * UPDATE ROOM HUMAN COUNT
+     */
     NS.updateRoomHumanCount = async function(roomId, count) {
         if (count < 2 || count > 4) throw new Error('Numero non valido (min 2, max 4)');
         const { error } = await NS.supabase
@@ -160,10 +150,22 @@
             .eq('id', roomId);
         if (error) throw error;
     };
-    
+
     /**
-     * Avvia la partita generando un seed casuale e salvandolo nella stanza.
-     * @param {string} roomId - ID della stanza
+     * RESET ROOM TO WAITING
+     * Riporta la stanza in stato 'waiting' per ripartire con una nuova partita.
+     */
+    NS.resetRoomToWaiting = async function(roomId) {
+        const { error } = await NS.supabase
+            .from('rooms')
+            .update({ status: 'waiting' })
+            .eq('id', roomId);
+        if (error) throw error;
+    };
+
+    /**
+     * AVVIA LA PARTITA
+     * Elimina le vecchie mosse, genera un nuovo seed e imposta lo stato 'playing'.
      */
     NS.startRoom = async function(roomId) {
         // Elimina le vecchie mosse della stanza per evitare residui
@@ -172,16 +174,15 @@
             .delete()
             .eq('room_id', roomId);
         if (deleteMovesError) throw deleteMovesError;
-    
+
         const seed = Math.floor(Math.random() * 1000000);
-    
+
         const { error } = await NS.supabase
             .from('rooms')
             .update({ status: 'playing', game_seed: seed })
             .eq('id', roomId);
         if (error) throw error;
-    
+
         return seed;
     };
-
 })();
