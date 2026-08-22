@@ -111,6 +111,14 @@
             this.gognaTarget = null;
             this.tavernaUsedOptions = [];
             this.actionHistory = [];
+            // Reset stato multiplayer temporaneo
+            this.sendMove = null;               // verrà reimpostato dall'adapter in multiplayer
+            this.pendingBuildPlayer = null;
+            this.pendingMoves = [];
+            this.pendingStrongholdAuto = { archer: 0, knight: 0 };
+            this.resolutionPhase = null;
+            this.resolutionQueue = [];
+            this.resolutionIndex = 0;
 
             const el = document.getElementById('game-log');
             if (el) el.innerHTML = '';
