@@ -110,6 +110,7 @@
             this.marketUsage = 0;
             this.gognaTarget = null;
             this.tavernaUsedOptions = [];
+            this.actionHistory = [];
 
             const el = document.getElementById('game-log');
             if (el) el.innerHTML = '';
