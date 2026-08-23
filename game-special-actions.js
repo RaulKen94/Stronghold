@@ -45,6 +45,9 @@
                 historyDesc = 'Porta: nessuna moneta accumulata';
             }
         } else if (type === 'consiglio') {
+            p.vp += 1;
+            if (p.isHuman) this.showFloatingText(spaceId, '+1🏆', 'yellow');
+        
             let gained = [];
             ['knight', 'archer', 'infantry'].forEach(unit => {
                 let maxOthers = 0;
@@ -56,11 +59,12 @@
                     gained.push(unit);
                 }
             });
+        
             if (gained.length > 0) {
                 this.log(`${p.name} ottiene rinforzi dal Consiglio.`);
-                historyDesc = `Consiglio: rinforzi (${gained.join(', ')})`;
+                historyDesc = `Consiglio: rinforzi (${gained.join(', ')}) + 1 VP`;
             } else {
-                historyDesc = 'Consiglio: nessun rinforzo';
+                historyDesc = 'Consiglio: nessun rinforzo. +1 VP';
             }
         } else if (type === 'monastero') {
             if (choiceData) {
