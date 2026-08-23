@@ -188,6 +188,8 @@
             const isActive = (p.id === this.currentPlayerIndex && !this.isGameOver);
             const isMe = p.isLocal;
             const income = 1 + Math.floor(p.cattle / 2) + p.incomeModifier;
+            // Recupera il colore associato alla sedia (Seat 0, 1, 2, 3)
+            const playerColor = (NS.PLAYER_COLORS && NS.PLAYER_COLORS[p.id]) ? NS.PLAYER_COLORS[p.id] : '#3b82f6';
     
             const arch = p.archetype
                 ? `<span class="${NS.ARCHETYPES[p.archetype].color} ml-1" title="${NS.ARCHETYPES[p.archetype].name}">${NS.ARCHETYPES[p.archetype].icon}</span>`
@@ -195,7 +197,7 @@
     
             const htmlContent = `
                 <div class="flex justify-between items-center mb-1 pb-1 border-b border-slate-300/30">
-                    <span class="font-bold text-xs ${isMe ? 'text-blue-400' : 'text-red-400'} flex items-center">${p.name} ${this.firstPlayerIndex === p.id ? '👑' : ''} ${arch}</span>
+                    <span class="font-bold text-xs flex items-center" style="color: ${playerColor};">${p.name} ${this.firstPlayerIndex === p.id ? '👑' : ''} ${arch}</span>
                     <div class="flex gap-2">
                          <span class="text-[9px] text-slate-400 flex items-center gap-0.5" title="Income">+${income}💰/rnd</span>
                          <span class="text-[9px] bg-slate-700 text-white px-1.5 rounded">🏆${p.vp}</span>
@@ -220,15 +222,11 @@
     
             const mCard = document.createElement('div');
             mCard.className = `p-2 rounded border ${isMe ? 'bg-blue-50 border-blue-200' : 'bg-white border-slate-200'} ${isActive ? 'ring-2 ring-yellow-400' : ''}`;
-            const dotColor = NS.PLAYER_COLORS[p.id] || '#000';
             const htmlWithDot = htmlContent.replace(
-                /<span class="font-bold text-xs .*?">/,
-                `<span class="font-bold text-xs flex items-center"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${dotColor};margin-right:4px;"></span>`
+                /<span class="font-bold text-xs flex items-center" style=".*?">/,
+                `<span class="font-bold text-xs flex items-center" style="color: ${playerColor};"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${playerColor};margin-right:4px;"></span>`
             );
-            mCard.innerHTML = htmlWithDot
-                .replace('text-blue-400', 'text-blue-700')
-                .replace('text-red-400', 'text-red-700')
-                .replace(/text-slate-200/g, 'text-slate-800');
+            mCard.innerHTML = htmlWithDot.replace(/text-slate-200/g, 'text-slate-800');
             if (mCont) mCont.appendChild(mCard);
         });
     
