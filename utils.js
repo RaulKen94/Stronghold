@@ -23,20 +23,21 @@
     };
 
     /**
+     * OPEN RULES MODAL
      * Carica dinamicamente il file rules.html dentro la modale info ed effettua lo switch di visualizzazione.
      */
-    function openRulesModal() {
+    NS.openRulesModal = function() {
         const modal = document.getElementById('info-modal');
         const container = document.getElementById('rules-container');
-    
+
         if (!modal || !container) return;
-    
+
         // Se le regole sono già state caricate precedentemente, apre direttamente la modale
         if (container.dataset.loaded === "true") {
             modal.style.display = 'flex';
             return;
         }
-    
+
         // Altrimenti effettua il fetch asincrono di rules.html
         fetch('rules.html')
             .then(response => {
@@ -56,6 +57,9 @@
                 container.innerHTML = '<p class="text-red-500 font-bold p-4">Errore durante il caricamento della guida.</p>';
                 modal.style.display = 'flex';
             });
-    }
-    
+    };
+
+    // Esposizione a livello globale per consentire la chiamata diretta onclick="openRulesModal()"
+    window.openRulesModal = NS.openRulesModal;
+
 })();
