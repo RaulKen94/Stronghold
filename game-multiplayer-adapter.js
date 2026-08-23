@@ -73,8 +73,8 @@
         // Ordina i giocatori umani per joined_at
         const sortedHumanPlayers = [...playersInfo].sort((a, b) => new Date(a.joined_at) - new Date(b.joined_at));
 
-        // Costruisce la configurazione dei giocatori
-        const playerConfig = sortedHumanPlayers.map(p => ({
+        // Costruisce la configurazione dei giocatori umani
+        const humanPlayers = sortedHumanPlayers.map(p => ({
             name: p.player_name,
             isHuman: true,
             isLocal: p.id === localPlayerId,
@@ -82,10 +82,11 @@
             dbPlayerId: p.id
         }));
 
-        // Completa con AI fino a 4
+        // Completa con AI fino a 4 giocatori
         const aiArchetypes = ['GENERAL', 'MERCHANT', 'ARCHITECT'];
-        for (let i = playerConfig.length; i < 4; i++) {
-            playerConfig.push({
+        const fullPlayerConfig = [...humanPlayers];
+        for (let i = fullPlayerConfig.length; i < 4; i++) {
+            fullPlayerConfig.push({
                 name: `PC ${i + 1}`,
                 isHuman: false,
                 isLocal: false,
@@ -94,7 +95,16 @@
             });
         }
 
-        // Crea il gioco
+        // RANDOMIZZAZIONE DETERMINISTICA DELLE SEDIE (Seat 0, 1, 2, 3)
+        // Utilizza lo stesso seed condiviso per garantire che tutti i client vedano le stesse sedie
+        const seatRng = NS.mulberry32(seed);
+        const playerConfig = [...fullPlayerConfig];
+        for (let i = playerConfig.length - 1; i > 0; i--) {
+            const j = Math.floor(seatRng() * (i + 1));
+            [playerConfig[i], playerConfig[j]] = [playerConfig[j], playerConfig[i]];
+        }
+
+        // Crea il gioco con la disposizione casuale delle sedie
         const game = new NS.Game(seed, playerConfig, isHost);
 
         game.pendingMoves = [];
