@@ -124,7 +124,6 @@
      * Aggiunge l'edificio alla lista e crea un nuovo spazio nella plancia.
      */
     NS.Game.prototype.applyBuild = function(p, b) {
-        this.log(`${p.name} costruisce: ${b.name}`);
         if (b.type !== 'blue') this.builtBuildings.push(b.id);
         if (b.onBuild) b.onBuild(p);
         const newSpace = JSON.parse(JSON.stringify(b));
