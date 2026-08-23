@@ -1,12 +1,14 @@
 /**
  * ======================================================
- * AI.JS - v1.5.0
+ * AI.JS - v1.5.2
  * ======================================================
  * Gestione avanzata dell'Intelligenza Artificiale (Eurogame AI):
  * - Gestione iniziativa e Primo Giocatore (Punto 2: min R5, max R6-7)
  * - Fasi di gioco bilanciate EARLY/MID/LATE (Punto 3: no cantiere monomaniaco)
  * - Prevenzione degli sprechi di risorse in LATE game (Punto 4)
  * - Pianificazione tattica truppe e Roccaforte con conoscenza limitata eventi R+1 (Punto 6)
+ * - Simulazione matematica per il deposito fanti basata su maggioranze (7 VP)
+ *   e punti unità sia dentro che fuori dalla Fortezza.
  * ======================================================
  */
 
@@ -19,70 +21,83 @@
 
     /**
      * CHOOSE AI STRONGHOLD DEPOSIT
-     * Decide quanti fanti depositare nella Roccaforte considerando:
-     * - Evento del round successivo (solo R e R+1)
-     * - Doppia maggioranza fanti (confronto fanti dentro e fanti fuori di tutti i giocatori)
+     * Calcola il numero di fanti k da depositare simulando il punteggio totale netto
+     * sia dentro che fuori dalla Fortezza (maggioranze da 7 VP e conversioni unità).
      */
     NS.Game.prototype.chooseAIStrongholdDeposit = function(p) {
         if (!p.infantry || p.infantry <= 0) return 0;
 
-        // Conoscenza limitata: solo evento attuale (R) e round successivo (R+1)
-        const nextRoundIdx = this.round; // indice per R+1 (nella coda 0-indexed)
-        const nextEvent = (nextRoundIdx < this.maxRounds && this.eventQueue) ? this.eventQueue[nextRoundIdx] : null;
-        const isNuvoleNext = nextEvent && nextEvent.id === 'nuvole';
+        const archersInHand = p.archer || 0;
+        const knightsInHand = p.knight || 0;
+        const opponents = this.players.filter(pl => pl.id !== p.id);
 
-        // Se al prossimo round ci sono Nuvole Dappertutto (rischio blocco Roccaforte al R7), deposita tutto
-        if (isNuvoleNext) {
-            return p.infantry;
-        }
+        let bestK = 0;
+        let maxNetVP = -999;
 
-        // Analisi della concorrenza sui fanti degli avversari
-        let maxInsideOpponent = 0;
-        let maxOutsideOpponent = 0;
+        // Simulazione per ogni possibile quantità k di fanti versati (da 0 a p.infantry)
+        for (let k = 0; k <= p.infantry; k++) {
+            // Stato DENTRO simulato (Arcieri e Cavalieri in mano passano automaticamente dentro)
+            const simInfantryInside = (p.stronghold.infantry || 0) + k;
+            const simArchersInside = (p.stronghold.archer || 0) + archersInHand;
+            const simKnightsInside = (p.stronghold.knight || 0) + knightsInHand;
 
-        this.players.forEach(pl => {
-            if (pl.id !== p.id) {
-                if (pl.stronghold.infantry > maxInsideOpponent) {
-                    maxInsideOpponent = pl.stronghold.infantry;
-                }
-                if (pl.infantry > maxOutsideOpponent) {
-                    maxOutsideOpponent = pl.infantry;
-                }
+            // Stato FUORI simulato (Residuo in mano)
+            const simInfantryOutside = p.infantry - k;
+            const simArchersOutside = 0; // Passati dentro
+            const simKnightsOutside = 0; // Passati dentro
+
+            // ----------------------------------------------------
+            // 1. CALCOLO PUNTEGGIO DENTRO LA FORTEZZA
+            // ----------------------------------------------------
+            let infInsideRank = 1;
+            let archInsideRank = 1;
+            let kniInsideRank = 1;
+
+            opponents.forEach(opp => {
+                if ((opp.stronghold.infantry || 0) >= simInfantryInside) infInsideRank++;
+                if ((opp.stronghold.archer || 0) >= simArchersInside) archInsideRank++;
+                if ((opp.stronghold.knight || 0) >= simKnightsInside) kniInsideRank++;
+            });
+
+            // Maggioranze dentro (7 VP al 1° posto, 0 altrimenti)
+            let vpInsideMaj = 0;
+            if (infInsideRank === 1) vpInsideMaj += 7;
+            if (archInsideRank === 1) vpInsideMaj += 7;
+            if (kniInsideRank === 1) vpInsideMaj += 7;
+
+            // Punti Unità dentro (1 VP ogni 3 Fanti, 1 VP ogni 2 Arcieri, 1 VP per Cavaliere)
+            const vpInsideUnits = Math.floor(simInfantryInside / 3) + 
+                                  Math.floor(simArchersInside / 2) + 
+                                  simKnightsInside;
+
+            // ----------------------------------------------------
+            // 2. CALCOLO PUNTEGGIO FUORI DALLA FORTEZZA
+            // ----------------------------------------------------
+            // Maggioranza Fanti Fuori (7 VP al 1° posto, 0 altrimenti)
+            let infOutsideRank = 1;
+            opponents.forEach(opp => {
+                if ((opp.infantry || 0) >= simInfantryOutside) infOutsideRank++;
+            });
+
+            let vpOutsideMaj = 0;
+            if (infOutsideRank === 1) vpOutsideMaj += 7;
+
+            // Punti Unità fuori (1 VP ogni 2 unità tra Fanti ed Arcieri, 1 VP per Cavaliere)
+            const vpOutsideUnits = Math.floor((simInfantryOutside + simArchersOutside) / 2) + 
+                                   simKnightsOutside;
+
+            // ----------------------------------------------------
+            // 3. SALDO NETTO E SCELTA DELL'OTTIMO
+            // ----------------------------------------------------
+            const totalVP = vpInsideMaj + vpInsideUnits + vpOutsideMaj + vpOutsideUnits;
+
+            if (totalVP > maxNetVP) {
+                maxNetVP = totalVP;
+                bestK = k;
             }
-        });
-
-        const currentInside = p.stronghold.infantry;
-
-        // In LATE Game (Round 6-7)
-        if (this.round >= 6) {
-            // Calcola quanti fanti servono per superare il miglior avversario nella Roccaforte
-            const neededForInsideLead = Math.max(0, (maxInsideOpponent + 1) - currentInside);
-
-            if (neededForInsideLead <= p.infantry && neededForInsideLead > 0) {
-                // Se possiamo conquistare il 1° posto dentro con una parte dei fanti, versiamo esattamente quelli
-                return neededForInsideLead;
-            } else if (neededForInsideLead === 0) {
-                // Siamo già primi dentro
-                if (this.round >= this.maxRounds) {
-                    return p.infantry; // Al Round 7 finale, deposita tutto per garantire punti
-                }
-                // Al Round 6 manteniamo un piccolo margine (+1) e teniamo il resto fuori
-                const safetyBuffer = (currentInside - maxInsideOpponent);
-                if (safetyBuffer < 2 && p.infantry > 0) return 1;
-                return 0; // Conserva i fanti fuori per lottare sulla maggioranza esterna
-            } else {
-                // Non riusciamo a superare il primo, deposita tutto se è il round finale
-                if (this.round >= this.maxRounds) return p.infantry;
-                return Math.ceil(p.infantry / 2);
-            }
         }
 
-        // In EARLY / MID Game (Round 1-5): deposito bilanciato
-        const neededToLead = Math.max(0, (maxInsideOpponent + 1) - currentInside);
-        if (neededToLead > 0 && neededToLead <= p.infantry) {
-            return neededToLead;
-        }
-        return Math.floor(p.infantry / 2);
+        return bestK;
     };
 
     /**
@@ -105,7 +120,7 @@
         });
         const amIWinning = (leaderId === p.id);
 
-        // Controllo evento imminente (R+1)
+        // Controllo evento imminente (R+1 - conoscenza limitata)
         const nextRoundIdx = this.round;
         const nextEvent = (nextRoundIdx < this.maxRounds && this.eventQueue) ? this.eventQueue[nextRoundIdx] : null;
         const isNuvoleNext = nextEvent && nextEvent.id === 'nuvole';
@@ -118,14 +133,12 @@
             this.currentTechs.forEach((t, i) => {
                 if (t.takenBy === null) {
                     let techScore = 10;
-                    // Early Game / Lavoratori
                     if (t.id === 1 && (stage === 'EARLY' || p.maxWorkers < 4)) techScore += 50;
-                    else if (t.id === 1 && stage === 'LATE') techScore = 0; // Lavoratori svalutati in LATE
+                    else if (t.id === 1 && stage === 'LATE') techScore = 0;
                     
-                    // Iniziativa / Primo giocatore (Punto 2)
                     if (t.id === 18 || (t.text && t.text.includes('👑'))) {
-                        if (this.round === 5) techScore += 8; // Importanza minima al R5
-                        if (stage === 'LATE') techScore += 28; // Importanza alta al R6-7
+                        if (this.round === 5) techScore += 8;
+                        if (stage === 'LATE') techScore += 28;
                     }
 
                     opts.push({ type: 'tech', idx: i, score: techScore });
@@ -157,50 +170,45 @@
     
                 let score = 5 + this.rng() * 10;
 
-                // ----- PUNTO 2: VALUTAZIONE INIZIATIVA (PRIMO GIOCATORE 👑) -----
-                if (s.id === 201 || s.id === 18) { // Porta della Città o Primo Giocatore
-                    if (this.round === 5) score += 6; // Importanza minima al Round 5
-                    if (stage === 'LATE') score += 30; // Importanza alta al Round 6 e 7
+                // Iniziativa / Primo Giocatore
+                if (s.id === 201 || s.id === 18) {
+                    if (this.round === 5) score += 6;
+                    if (stage === 'LATE') score += 30;
                 }
 
-                // ----- PUNTO 3: BILANCIAMENTO FASI (EARLY / MID / LATE) -----
+                // Fasi di gioco bilanciate
                 if (stage === 'EARLY') {
-                    // Sviluppo lavoratori e rendita
-                    if (s.id === 12) score += 30; // +1👷
+                    if (s.id === 12) score += 30;
                     if (s.reward && (s.reward.cattle || s.reward.coin)) score += 10;
                 } else if (stage === 'MID') {
-                    // Crescita bilanciata (senza priorità ossessiva al Cantiere)
                     if (s.reward && (s.reward.wood || s.reward.brick)) score += 8;
                 } else if (stage === 'LATE') {
-                    // Massimizzazione conversioni in Punti Vittoria
                     if (s.type === 'vp') score += 25;
-                    if (s.id === 8 && p.luxury > 0) score += 25 * p.luxury; // Palazzo
-                    if (s.type === 'mil') score += 20; // Reclutamento truppe per Roccaforte
-                    
-                    // Svalutazione crescita a lungo termine
-                    if (s.id === 12) score -= 20; // Non servono nuovi lavoratori in LATE
+                    if (s.id === 8 && p.luxury > 0) score += 25 * p.luxury;
+                    if (s.type === 'mil') score += 20;
+                    if (s.id === 12) score -= 20;
                 }
 
-                // ----- PUNTO 4: PREVENZIONE SPRECHI RISORSE -----
+                // Prevenzione spreco risorse
                 if (stage === 'LATE') {
                     const hasTimeToBuild = (this.round < this.maxRounds) || (p.workers > 1);
                     if (s.reward && (s.reward.wood || s.reward.brick) && !s.reward.vp) {
                         if (!hasTimeToBuild || (p.hasResidence && p.brick < 3)) {
-                            score -= 15; // Svaluta risorse inutilizzabili a fine partita
+                            score -= 15;
                         }
                     }
                 }
 
-                // ----- PUNTO 6: ANTEPRIMA EVENTI R+1 (NUVOLE / CARESTIA) -----
+                // Eventi R+1
                 if (isNuvoleNext && stage === 'LATE') {
                     if (s.type === 'mil') score += 35;
                     if (s.id === 8) score += 30;
                 }
                 if (isCarestiaNext) {
-                    if (s.id === 14 || s.id === 15) score -= 10; // Mercati a rischio blocco
+                    if (s.id === 14 || s.id === 15) score -= 10;
                 }
 
-                // ----- ARCHETIPI -----
+                // Archetipi
                 if (p.archetype === 'GENERAL') {
                     if (s.type === 'mil') score += 15;
                     if (s.id === 7 && stage !== 'EARLY') score += 15;
@@ -234,7 +242,6 @@
         opts.sort((a, b) => b.score - a.score);
         const best = opts[0];
     
-        // Esegui la mossa localmente
         let success = false;
         if (best.type === 'tech') success = this.executeTech(p, best.idx);
         else success = this.executeAction(p, best.id);
