@@ -21,4 +21,41 @@
             return ((t ^ t >>> 14) >>> 0) / 4294967296;
         };
     };
+
+    /**
+     * Carica dinamicamente il file rules.html dentro la modale info ed effettua lo switch di visualizzazione.
+     */
+    function openRulesModal() {
+        const modal = document.getElementById('info-modal');
+        const container = document.getElementById('rules-container');
+    
+        if (!modal || !container) return;
+    
+        // Se le regole sono già state caricate precedentemente, apre direttamente la modale
+        if (container.dataset.loaded === "true") {
+            modal.style.display = 'flex';
+            return;
+        }
+    
+        // Altrimenti effettua il fetch asincrono di rules.html
+        fetch('rules.html')
+            .then(response => {
+                if (!response.ok) throw new Error('Impossibile caricare rules.html');
+                return response.text();
+            })
+            .then(html => {
+                container.innerHTML = html;
+                container.dataset.loaded = "true";
+                if (window.lucide) {
+                    lucide.createIcons();
+                }
+                modal.style.display = 'flex';
+            })
+            .catch(err => {
+                console.error('Errore nel caricamento delle regole:', err);
+                container.innerHTML = '<p class="text-red-500 font-bold p-4">Errore durante il caricamento della guida.</p>';
+                modal.style.display = 'flex';
+            });
+    }
+    
 })();
