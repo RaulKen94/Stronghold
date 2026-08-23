@@ -1,4 +1,4 @@
-<!-- rules.html - v1.4.0 -->
+<!-- rules.html - v1.5.0 -->
 <h4 class="font-bold mb-3 uppercase text-slate-500 tracking-wide">Eventi</h4>
 <div class="space-y-2 mb-6">
     <div class="bg-red-50 p-2.5 rounded border border-red-200"><strong>💀 Carestia:</strong> Perdi 2 Monete e 2 Bestiame (o Legno/Mattone). 3 Luoghi bloccati.</div>
@@ -53,6 +53,49 @@
         </div>
     </div>
 
+    <!-- SEZIONE EDIFICI BASE -->
+    <div class="pb-4 border-b border-slate-200">
+        <p class="font-bold text-xl text-slate-800 mb-3">Edifici Base</p>
+        <p class="mb-3">Gli edifici base sono disponibili sulla plancia di gioco fin dall'inizio della partita (Round 1) e si dividono in 4 tipologie principali (una 5ª tipologia, i 🔵 Residenziali Blu, appartiene agli edifici avanzati ed è dettagliata nella sezione successiva):</p>
+
+        <div class="space-y-4">
+            <div>
+                <p class="font-bold text-slate-900 mb-1.5">🟢 Produttivi (Verdi)</p>
+                <p class="text-xs text-slate-600 mb-1">Forniscono e generano risorse primarie per la gestione del regno:</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>Piazza, Falegnameria, Genio Civile, Porcile, Mercato, Fattoria, Campi, Pensione.</li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="font-bold text-slate-900 mb-1.5">🟡 Amministrativi (Gialli)</p>
+                <p class="text-xs text-slate-600 mb-1">Permettono conversioni avanzate, gestione del prestigio e costruzione di nuovi edifici:</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>Palazzo, Sartoria, Cantiere.</li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="font-bold text-slate-900 mb-1.5">🔴 Militari (Rossi)</p>
+                <p class="text-xs text-slate-600 mb-1">Consentono il reclutamento di truppe per l'esercito personale:</p>
+                <ul class="list-disc pl-5 space-y-1">
+                    <li>Caserma, Poligono, Scuderia.</li>
+                </ul>
+            </div>
+
+            <div>
+                <p class="font-bold text-slate-900 mb-1.5">🟣 Speciali (Viola)</p>
+                <p class="text-xs text-slate-600 mb-2">Offrono meccaniche di gioco uniche, bonus di turno e gestione strategica delle risorse:</p>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><strong>Torre di Guardia</strong>: Fa ottenere il segnalino 1° Giocatore (👑) per il round successivo.</li>
+                    <li><strong>Roccaforte</strong>: Fornisce +1🏆 immediato e consente di depositare truppe nella Roccaforte (come indicato nella sezione del calcolo dei punti vittoria). Il primo giocatore che vi posiziona un lavoratore sceglierà quante truppe depositare per ultimo, ossia dopo che tutti i giocatori arrivati dopo di lui sulla Roccaforte avranno effettuato tale scelta.</li>
+                    <li><strong>Porta della Città</strong>: Ottieni +1 Fante (⚔️) e raccogli tutte le monete accumulate su questo spazio. Si accumula 1 moneta ogni 3 spazi azione utilizzati nel gioco da qualsiasi giocatore (escludendo l'uso delle tecnologie e dello spazio stesso della Porta della Città).</li>
+                    <li><strong>Municipio</strong>: Fa ottenere lavoratori (👷) in più in modo permanente per i round successivi.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <!-- SEZIONE EDIFICI AVANZATI -->
     <div class="pb-4 border-b border-slate-200">
         <p class="font-bold text-xl text-slate-800 mb-3">Edifici Avanzati</p>
@@ -71,10 +114,20 @@
             <div>
                 <p class="font-bold text-slate-900 mb-1.5">🟡 Amministrativi (Gialli)</p>
                 <ul class="list-disc pl-5 space-y-2">
-                    <li><strong>Sala Consiglio</strong> (Costo: Gratis | 1 Slot): +1🏆. Se hai meno truppe in Roccaforte rispetto al leader, guadagni truppe extra (effetto Catch-up).</li>
+                    <li><strong>Sala Consiglio</strong> (Costo: Gratis | 1 Slot): +1🏆. Attiva l'effetto Catch-up sulle truppe.</li>
+                    <div class="bg-amber-50/70 p-3 rounded-lg border border-amber-200 text-xs text-slate-700 my-2">
+                        <p class="font-bold text-amber-900 mb-1">Effetto Catch-up:</p>
+                        <p>Per ognuno dei tre tipi di unità vengono confrontate le truppe dentro la tua Roccaforte con le truppe dentro la Roccaforte di ogni avversario. Se tu hai meno unità, guadagni 1 unità di quella tipologia nella tua riserva personale. In pratica:</p>
+                        <ul class="list-disc pl-5 space-y-0.5 mt-1.5">
+                            <li>Se sei indietro in fanteria rispetto al leader di fanteria, ottieni 1 Fante ⚔️</li>
+                            <li>Se sei indietro in arcieri, ottieni 1 Arciere 🏹</li>
+                            <li>Se sei indietro in cavalieri, ottieni 1 Cavaliere 🐴</li>
+                        </ul>
+                        <p class="mt-1.5 font-semibold text-amber-900">Ottieni comunque 1 🏆.</p>
+                    </div>
                     <li><strong>Cattedrale</strong> (Costo: 1💰 | 1 Slot): Fornisce +2🏆 immediati al momento della costruzione, e +2🏆 ogni volta che viene attivata via azione (pagando 1💰).</li>
                     <li><strong>Accampamento</strong> (Costo: Gratis | 2 Slot): Permette di scambiare risorse per truppe (1🪵 ➔ 1🏆+1⚔️ | 1🐄 ➔ 1🏹 | 1🪵+1🐄+3💰 ➔ 2🏆+2⚔️+1🏹).</li>
-                    <li><strong>Gogna</strong> (Costo: Gratis | 1 Slot): +1🏆. Blocca l'accesso a un luogo o edificio per un avversario a scelta.</li>
+                    <li><strong>Gogna</strong> (Costo: Gratis | 1 Slot): +1🏆. Blocca l'accesso agli edifici militari (rossi) e alla Torre di Guardia per un avversario a scelta per tutto il round corrente.</li>
                 </ul>
             </div>
 
