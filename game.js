@@ -924,9 +924,10 @@
             let html = `<table class="score-table w-full text-center border-collapse">
                 <thead><tr class="text-slate-600 bg-slate-200"><th>#</th><th>Gioc</th><th>Ris</th><th>Fuori</th><th>Dentro</th><th>Dettagli</th><th>TOT</th></tr></thead><tbody>`;
             scores.forEach((s, i) => {
+                const pColor = (NS.PLAYER_COLORS && NS.PLAYER_COLORS[s.p.id]) ? NS.PLAYER_COLORS[s.p.id] : '#3b82f6';
                 html += `<tr class="${i===0 ? 'bg-yellow-50' : ''}">
                     <td class="font-bold text-slate-500">${i+1}</td>
-                    <td class="font-bold text-left ${s.p.id===0?'text-blue-600':'text-red-600'}">${s.p.name}</td>
+                    <td class="font-bold text-left" style="color: ${pColor};">${s.p.name}</td>
                     <td class="text-xs text-left">${s.p.coin}💰 ${s.p.wood}🪵 ${s.p.brick}🧱<br>${s.p.luxury}💎 ${s.p.cattle}🐄</td>
                     <td class="text-xs">${s.p.infantry}⚔️ ${s.p.archer}🏹 ${s.p.knight}🐴</td>
                     <td class="text-xs bg-slate-100 font-bold text-slate-700">${s.p.stronghold.infantry}⚔️ ${s.p.stronghold.archer}🏹 ${s.p.stronghold.knight}🐴</td>
@@ -961,8 +962,9 @@
                 <tbody>`;
 
             scores.forEach(s => {
+                const pColor = (NS.PLAYER_COLORS && NS.PLAYER_COLORS[s.p.id]) ? NS.PLAYER_COLORS[s.p.id] : '#3b82f6';
                 detailHtml += `<tr>
-                    <td class="font-bold text-left ${s.p.id===0?'text-blue-600':'text-red-600'}">${s.p.name}</td>
+                    <td class="font-bold text-left" style="color: ${pColor};">${s.p.name}</td>
                     <td>${s.baseVp}</td><td>${s.baseFirst}</td><td>${s.baseResidence}</td>
                     <td>${s.resBase}</td><td>${s.resCattle}</td><td>${s.resLuxury}</td>
                     <td>${s.fortBInf}</td><td>${s.fortBArc}</td><td>${s.fortBKni}</td>
