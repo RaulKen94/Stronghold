@@ -39,7 +39,6 @@
             if (amt > 0) {
                 p.coin += amt;
                 this.accumulatedCoinsPorta = 0;
-                this.log(`${p.name} raccoglie ${amt}💰 dalla Porta.`);
                 historyDesc = `Porta: +${amt} Monete`;
             } else {
                 historyDesc = 'Porta: nessuna moneta accumulata';
@@ -61,7 +60,6 @@
             });
         
             if (gained.length > 0) {
-                this.log(`${p.name} ottiene rinforzi dal Consiglio.`);
                 historyDesc = `Consiglio: rinforzi (${gained.join(', ')}) + 1 VP`;
             } else {
                 historyDesc = 'Consiglio: nessun rinforzo. +1 VP';
