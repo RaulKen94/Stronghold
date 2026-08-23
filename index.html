@@ -225,6 +225,10 @@
             <button onclick="showMainMenu()" class="w-full bg-slate-600 hover:bg-slate-500 text-white font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm mt-2 transition">
                 🏠 Torna al menu principale
             </button>
+
+            <button id="btn-export-results" onclick="exportGameResults()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-xl shadow-lg flex items-center justify-center gap-2 text-base mb-3 transition transform hover:scale-[1.01]">
+                📑 Esporta risultato
+            </button>
         </div>
     </div>
 
@@ -259,6 +263,7 @@
     <script src="game-multiplayer-adapter.js"></script>
     <script src="history.js"></script>
     <script src="history-ui.js"></script>
+    <script src="export.js"></script>
     <script src="main.js"></script>
 </body>
 </html>
