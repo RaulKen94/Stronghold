@@ -1,13 +1,13 @@
 /**
  * ======================================================
- * UI.JS - v1.4.2
+ * UI.JS - v1.4.3
  * ======================================================
  * Questo file contiene tutti i metodi di interfaccia utente.
  * Le funzioni vengono aggiunte al prototype della classe Game
  * (che è definita in game.js) e servono per:
  *    - aggiornare la plancia e i contenitori informativi
  *    - mostrare modali per scelte speciali
- *    - visualizzare animazioni di ricompensa (staggered tramite contatore sincrono)
+ *    - visualizzare animazioni di ricompensa (staggered 400ms)
  *    - gestire il log delle azioni
  *    - mostrare la modale di copia tecnologia
  * ======================================================
@@ -257,7 +257,7 @@
      * SHOW FLOATING TEXT
      * Mostra un'animazione di testo fluttuante sopra uno spazio per indicare
      * visivamente una ricompensa ottenuta.
-     * Utilizza un contatore sincrono per calcolare il ritardo progressivo in modo esatto.
+     * Utilizza un contatore sincrono per calcolare il ritardo progressivo (400ms tra le risorse).
      */
     NS.Game.prototype.showFloatingText = function(spaceId, text, colorType) {
         const target = document.querySelector(`.action-space[data-space-id="${spaceId}"]`);
@@ -273,7 +273,7 @@
 
         const currentIndex = this._floatCounters[spaceId];
         this._floatCounters[spaceId]++;
-        const delayMs = currentIndex * 250;
+        const delayMs = currentIndex * 400; // 400ms di ritardo progressivo tra le risorse
 
         setTimeout(() => {
             const floatEl = document.createElement('div');
@@ -299,7 +299,7 @@
             if (this._floatCounters && this._floatCounters[spaceId] > 0) {
                 this._floatCounters[spaceId]--;
             }
-        }, delayMs + 1300);
+        }, delayMs + 1600);
     };
 
     /**
