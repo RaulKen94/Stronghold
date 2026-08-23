@@ -1,14 +1,17 @@
 /**
  * ======================================================
- * AI.JS - v1.5.2
+ * AI.JS - v1.5.3
  * ======================================================
  * Gestione avanzata dell'Intelligenza Artificiale (Eurogame AI):
- * - Gestione iniziativa e Primo Giocatore (Punto 2: min R5, max R6-7)
- * - Fasi di gioco bilanciate EARLY/MID/LATE (Punto 3: no cantiere monomaniaco)
+ * - Gestione avanzata iniziativa e Primo Giocatore (Punto 2: min R5, max R6-7)
+ * - Fasi di gioco bilanciate EARLY/MID/LATE (Punto 3: crescita senza ossessione Cantiere)
  * - Prevenzione degli sprechi di risorse in LATE game (Punto 4)
  * - Pianificazione tattica truppe e Roccaforte con conoscenza limitata eventi R+1 (Punto 6)
  * - Simulazione matematica per il deposito fanti basata su maggioranze (7 VP)
  *   e punti unità sia dentro che fuori dalla Fortezza.
+ * - Gerarchia di urgenza Nuvole Dappertutto (R6-7): Roccaforte > Accampamento > Taverna/Militari.
+ * - Piano B dinamico se la Roccaforte è inaccessibile (ottimizzazione Fanti Fuori per i 7 VP
+ *   comparata a Palazzo e Punti Vittoria diretti).
  * ======================================================
  */
 
@@ -120,12 +123,16 @@
         });
         const amIWinning = (leaderId === p.id);
 
-        // Controllo evento imminente (R+1 - conoscenza limitata)
-        const nextRoundIdx = this.round;
+        // Controllo eventi attuali e imminenti (R e R+1 - conoscenza limitata)
+        const isNuvoleCurrent = (this.currentEvent?.id === 'nuvole');
+        const nextRoundIdx = this.round; // Indice per R+1 nella coda
         const nextEvent = (nextRoundIdx < this.maxRounds && this.eventQueue) ? this.eventQueue[nextRoundIdx] : null;
         const isNuvoleNext = nextEvent && nextEvent.id === 'nuvole';
         const isCarestiaNext = nextEvent && nextEvent.id === 'famine';
-    
+
+        const isNuvoleActiveOrImminent = (stage === 'LATE') && (isNuvoleCurrent || isNuvoleNext);
+        const isStrongholdBlocked = this.watchtowerBlocked || this.lockedSpaces.includes(2);
+
         let opts = [];
 
         // 1. VALUTAZIONE TECNOLOGIE
@@ -136,6 +143,7 @@
                     if (t.id === 1 && (stage === 'EARLY' || p.maxWorkers < 4)) techScore += 50;
                     else if (t.id === 1 && stage === 'LATE') techScore = 0;
                     
+                    // Iniziativa / Primo Giocatore (Punto 2)
                     if (t.id === 18 || (t.text && t.text.includes('👑'))) {
                         if (this.round === 5) techScore += 8;
                         if (stage === 'LATE') techScore += 28;
@@ -170,13 +178,13 @@
     
                 let score = 5 + this.rng() * 10;
 
-                // Iniziativa / Primo Giocatore
+                // Iniziativa / Primo Giocatore (Punto 2)
                 if (s.id === 201 || s.id === 18) {
                     if (this.round === 5) score += 6;
                     if (stage === 'LATE') score += 30;
                 }
 
-                // Fasi di gioco bilanciate
+                // Fasi di gioco bilanciate (Punto 3)
                 if (stage === 'EARLY') {
                     if (s.id === 12) score += 30;
                     if (s.reward && (s.reward.cattle || s.reward.coin)) score += 10;
@@ -184,12 +192,12 @@
                     if (s.reward && (s.reward.wood || s.reward.brick)) score += 8;
                 } else if (stage === 'LATE') {
                     if (s.type === 'vp') score += 25;
-                    if (s.id === 8 && p.luxury > 0) score += 25 * p.luxury;
+                    if (s.id === 8 && p.luxury > 0) score += 25 * p.luxury; // Palazzo
                     if (s.type === 'mil') score += 20;
                     if (s.id === 12) score -= 20;
                 }
 
-                // Prevenzione spreco risorse
+                // Prevenzione spreco risorse (Punto 4)
                 if (stage === 'LATE') {
                     const hasTimeToBuild = (this.round < this.maxRounds) || (p.workers > 1);
                     if (s.reward && (s.reward.wood || s.reward.brick) && !s.reward.vp) {
@@ -199,11 +207,41 @@
                     }
                 }
 
-                // Eventi R+1
-                if (isNuvoleNext && stage === 'LATE') {
-                    if (s.type === 'mil') score += 35;
-                    if (s.id === 8) score += 30;
+                // ----- GERARCHIA D'URGENZA E PIANO B (Punto 6) -----
+                if (isNuvoleActiveOrImminent) {
+                    if (!isStrongholdBlocked && (s.id === 2 || s.name?.includes('Roccaforte'))) {
+                        // MASSIMA PRIORITÀ ASSOLUTA: Entrare per primi in Roccaforte
+                        score += 60;
+                    } else if (s.id === 7 || s.name?.includes('Accampamento')) {
+                        // Prima Battuta: Accampamento (conversione immediata risorse/truppe/VP)
+                        score += 42;
+                    } else if (s.id === 13 || s.name?.includes('Taverna')) {
+                        // Seconda Battuta: Taverna
+                        score += 32;
+                    } else if (s.type === 'mil') {
+                        // Edifici Militari generici
+                        score += 26;
+                    }
                 }
+
+                // PIANO B: Se la Roccaforte è bloccata o inaccessibile
+                if (stage === 'LATE' && isStrongholdBlocked) {
+                    // Valuta se reclutare truppe per la maggioranza Fanti FUORI (+7 VP)
+                    if (s.type === 'mil') {
+                        let maxOpponentOutsideInfantry = 0;
+                        this.players.forEach(pl => {
+                            if (pl.id !== p.id && pl.infantry > maxOpponentOutsideInfantry) {
+                                maxOpponentOutsideInfantry = pl.infantry;
+                            }
+                        });
+                        // Se siamo vicini a soffiare la maggioranza esterna, spingi sulle truppe
+                        if (p.infantry + 1 >= maxOpponentOutsideInfantry) {
+                            score += 30;
+                        }
+                    }
+                }
+
+                // Carestia imminente
                 if (isCarestiaNext) {
                     if (s.id === 14 || s.id === 15) score -= 10;
                 }
