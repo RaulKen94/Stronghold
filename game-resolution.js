@@ -1,7 +1,9 @@
 /**
- * GAME-RESOLUTION.JS
+ * ======================================================
+ * GAME-RESOLUTION.JS - v1.1.0
+ * ======================================================
  * Gestione della risoluzione di fine round:
- * depositi in Roccaforte, costruzioni al Cantiere e avanzamento della coda.
+ * depositi in Roccaforte (con AI tattica v1.5.0), costruzioni al Cantiere e avanzamento della coda.
  */
 (function() {
     window.Roccaforte = window.Roccaforte || {};
@@ -44,7 +46,7 @@
             p.knight = 0;
         }
 
-        // Fanteria: scelta per umano locale, attesa per umano remoto, automatica per AI
+        // Fanteria: scelta per umano locale, attesa per umano remoto, automatica/tattica per AI
         if (p.infantry > 0) {
             if (p.isHuman) {
                 if (p.isLocal) {
@@ -54,8 +56,11 @@
                 // Se è un umano remoto, non facciamo nulla: aspetteremo la sua scelta
                 return;
             } else {
-                // AI: deposito automatico
-                const putIn = this.rng() > 0.2 ? p.infantry : 0;
+                // AI: deposito tattico (confronto doppia maggioranza e anteprima eventi)
+                const putIn = (typeof this.chooseAIStrongholdDeposit === 'function') 
+                    ? this.chooseAIStrongholdDeposit(p) 
+                    : (this.rng() > 0.2 ? p.infantry : 0);
+
                 p.stronghold.infantry += putIn;
                 p.infantry -= putIn;
                 this.recordAction({
@@ -148,8 +153,11 @@
                 // Umano remoto: aspetta stronghold_deposit
                 return;
             } else if (!p.isHuman) {
-                // AI: deposita anche i fanti (sempre automatico)
-                const putIn = this.rng() > 0.2 ? p.infantry : 0;
+                // AI: deposita fanti usando la logica tattica
+                const putIn = (typeof this.chooseAIStrongholdDeposit === 'function') 
+                    ? this.chooseAIStrongholdDeposit(p) 
+                    : (this.rng() > 0.2 ? p.infantry : 0);
+
                 if (putIn > 0) {
                     p.stronghold.infantry += putIn;
                     p.infantry -= putIn;
