@@ -1,5 +1,5 @@
 /**
- * EXPORT.JS - v1.0.1
+ * EXPORT.JS - v1.0.2
  * Gestisce l'esportazione dei risultati di fine partita in formato Excel (TSV).
  */
 (function() {
@@ -51,13 +51,18 @@
         const history = game.getActionHistory ? game.getActionHistory() : [];
         const eventHist = game.eventHistory || [];
 
-        // Helper per formattare le celle per evitare che Excel le interpreti come formule o date (es. 2-0-0 -> Anno 2000)
+        // Mappa le azioni mantenendo l'indice progressivo globale dell'Action History (#1, #2, #3...)
+        const historyWithActionNum = history.map((act, index) => ({
+            ...act,
+            globalActionNumber: index + 1
+        }));
+
+        // Helper per formattare le celle ed evitare errori formula (+3) o conversioni data (7-0-0 -> 2000)
         const formatTextCell = (str) => {
             if (str === null || str === undefined) return "";
             let val = String(str).trim();
             if (!val) return "";
-            // Se inizia con +, -, = o contiene trattini tra cifre (es. 2-0-0), aggiunge l'apice ' per forzare il formato Testo in Excel
-            if (val.startsWith('+') || val.startsWith('=') || val.startsWith('-') || /^\d+(-\d+)+$/.test(val)) {
+            if (val.startsWith('+') || val.startsWith('=') || val.startsWith('-') || /^\d+-\d+/.test(val)) {
                 return "'" + val;
             }
             return val;
@@ -92,8 +97,8 @@
             }
 
             // 2. RIGHE AZIONI DEL ROUND
-            const roundActions = history.filter(a => a.round === r);
-            roundActions.forEach((act, actIdx) => {
+            const roundActions = historyWithActionNum.filter(a => a.round === r);
+            roundActions.forEach((act) => {
                 let rowType = 'Normale';
                 if (act.type === 'stronghold') {
                     rowType = 'Fortezza';
@@ -101,38 +106,40 @@
                     rowType = 'Cantiere';
                 }
 
-                // Determinazione del nome del giocatore
+                // Determinazione robusta del nome del giocatore
                 let pName = act.playerName;
-                if (!pName && game.players && act.player_id !== undefined && game.players[act.player_id]) {
-                    pName = game.players[act.player_id].name;
+                if (!pName && game.players && act.player_id !== undefined) {
+                    const foundP = game.players.find(p => p.id === act.player_id) || game.players[act.player_id];
+                    if (foundP) pName = foundP.name;
                 }
                 if (!pName) {
                     pName = act.player_id !== undefined ? `P${act.player_id + 1}` : 'Giocatore';
                 }
 
-                // Rimuove eventuali emoji dal nome giocatore per mantenere i dati puliti
-                pName = String(pName).replace(/[\u1F600-\u1F64F\u1F300-\u1F5FF\u1F680-\u1F6FF\u2600-\u26FF\u2700-\u27BF]/g, '').trim();
+                // Pulizia del nome mantenendo testo valido
+                let cleanPlayerName = String(pName).replace(/[\u1F600-\u1F64F\u1F300-\u1F5FF\u1F680-\u1F6FF\u2600-\u26FF\u2700-\u27BF]/g, '').trim();
+                if (!cleanPlayerName) cleanPlayerName = String(pName).trim() || 'Giocatore';
 
                 // Descrizione dell'azione
                 let rawDesc = act.desc || act.type || '';
 
                 rows.push([
-                    movCounter++,               // 1. Nr. Movimento
-                    r,                          // 2. Nr. Round
-                    actIdx + 1,                 // 3. Nr. Azione
-                    rowType,                    // 4. Tipo riga
-                    pName,                      // 5. Giocatore
-                    formatTextCell(rawDesc),    // 6. Descrizione
-                    "",                         // 7. Posizione in classifica
-                    "",                         // 8. Giocatore in classifica
-                    "",                         // 9. Risorse
-                    "",                         // 10. Truppe fuori
-                    "",                         // 11. Truppe dentro
-                    "",                         // 12. Dettagli
-                    "",                         // 13. Totale Punteggio
-                    roomCode,                   // 14. Codice Lobby
-                    exportedBy,                 // 15. Esportato da
-                    exportTimestamp             // 16. Data e Ora esportazione
+                    movCounter++,                   // 1. Nr. Movimento
+                    r,                              // 2. Nr. Round
+                    act.globalActionNumber,         // 3. Nr. Azione (progressivo globale della history)
+                    rowType,                        // 4. Tipo riga
+                    cleanPlayerName,                // 5. Giocatore
+                    formatTextCell(rawDesc),        // 6. Descrizione
+                    "",                             // 7. Posizione in classifica
+                    "",                             // 8. Giocatore in classifica
+                    "",                             // 9. Risorse
+                    "",                             // 10. Truppe fuori
+                    "",                             // 11. Truppe dentro
+                    "",                             // 12. Dettagli
+                    "",                             // 13. Totale Punteggio
+                    roomCode,                       // 14. Codice Lobby
+                    exportedBy,                     // 15. Esportato da
+                    exportTimestamp                 // 16. Data e Ora esportazione
                 ].join('\t'));
             });
         }
