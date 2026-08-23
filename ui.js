@@ -1,13 +1,13 @@
 /**
  * ======================================================
- * UI.JS - v1.4.0
+ * UI.JS - v1.4.1
  * ======================================================
  * Questo file contiene tutti i metodi di interfaccia utente.
  * Le funzioni vengono aggiunte al prototype della classe Game
  * (che è definita in game.js) e servono per:
  *    - aggiornare la plancia e i contenitori informativi
  *    - mostrare modali per scelte speciali
- *    - visualizzare animazioni di ricompensa (immuni ai re-render)
+ *    - visualizzare animazioni di ricompensa (immuni ai re-render e staggered)
  *    - gestire il log delle azioni
  *    - mostrare la modale di copia tecnologia
  * ======================================================
@@ -257,7 +257,7 @@
      * SHOW FLOATING TEXT
      * Mostra un'animazione di testo fluttuante sopra uno spazio per indicare
      * visivamente una ricompensa ottenuta.
-     * Utilizza un posizionamento fisso su document.body per evitare distruzioni durante l'updateUI.
+     * Gestisce il ritardo progressivo (staggering) per ricompense multiple sulla stessa casella.
      */
     NS.Game.prototype.showFloatingText = function(spaceId, text, colorType) {
         const target = document.querySelector(`.action-space[data-space-id="${spaceId}"]`);
@@ -267,21 +267,28 @@
         const rect = target.getBoundingClientRect();
         if (rect.width === 0 || rect.height === 0) return;
 
-        const floatEl = document.createElement('div');
-        floatEl.className = `floating-text float-${colorType}`;
-        floatEl.innerText = text;
-        
-        // Posizionamento fisso al centro superiore della casella
-        floatEl.style.position = 'fixed';
-        floatEl.style.left = `${rect.left + (rect.width / 2)}px`;
-        floatEl.style.top = `${rect.top + (rect.height / 4)}px`;
-        floatEl.style.zIndex = '9999';
-        floatEl.style.pointerEvents = 'none';
+        // Calcola quante animazioni sono già attive per questa specifica casella
+        const existingCount = document.querySelectorAll(`.floating-text[data-space-id="${spaceId}"]`).length;
+        const delayMs = existingCount * 220; // 220ms di offset per ciascun elemento precedente
 
-        document.body.appendChild(floatEl);
+        setTimeout(() => {
+            const floatEl = document.createElement('div');
+            floatEl.className = `floating-text float-${colorType}`;
+            floatEl.dataset.spaceId = spaceId;
+            floatEl.innerText = text;
+            
+            // Posizionamento fisso al centro superiore della casella
+            floatEl.style.position = 'fixed';
+            floatEl.style.left = `${rect.left + (rect.width / 2)}px`;
+            floatEl.style.top = `${rect.top + (rect.height / 4)}px`;
+            floatEl.style.zIndex = '9999';
+            floatEl.style.pointerEvents = 'none';
 
-        // Rimuove l'elemento dal DOM dopo 1.2 secondi
-        setTimeout(() => floatEl.remove(), 1200);
+            document.body.appendChild(floatEl);
+
+            // Rimuove l'elemento dal DOM dopo 1.2 secondi
+            setTimeout(() => floatEl.remove(), 1200);
+        }, delayMs);
     };
 
     /**
