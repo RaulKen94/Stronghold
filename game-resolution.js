@@ -58,7 +58,6 @@
                 const putIn = this.rng() > 0.2 ? p.infantry : 0;
                 p.stronghold.infantry += putIn;
                 p.infantry -= putIn;
-                this.log(`${p.name} deposita ${putIn} fanti.`);
                 this.recordAction({
                     player_id: p.id,
                     type: 'stronghold',
@@ -68,7 +67,6 @@
                 this.processStrongholdQueue();
             }
         } else {
-            this.log(`${p.name} processato in Roccaforte.`);
             this.processStrongholdQueue();
         }
     };
@@ -157,7 +155,6 @@
                     p.infantry -= putIn;
                 }
                 const desc = this.getStrongholdDescription(this.pendingStrongholdAuto, putIn);
-                this.log(`${p.name}: ${desc}`);
                 this.recordAction({
                     player_id: p.id,
                     type: 'stronghold',
@@ -169,7 +166,6 @@
             } else {
                 // Umano senza fanteria: registra comunque il deposito automatico
                 const desc = this.getStrongholdDescription(this.pendingStrongholdAuto, 0);
-                this.log(`${p.name}: ${desc}`);
                 this.recordAction({
                     player_id: p.id,
                     type: 'stronghold',
