@@ -1,13 +1,13 @@
 /**
  * ======================================================
- * UI.JS - v1.4.3
+ * UI.JS - v1.4.4
  * ======================================================
  * Questo file contiene tutti i metodi di interfaccia utente.
  * Le funzioni vengono aggiunte al prototype della classe Game
  * (che è definita in game.js) e servono per:
  *    - aggiornare la plancia e i contenitori informativi
  *    - mostrare modali per scelte speciali
- *    - visualizzare animazioni di ricompensa (staggered 400ms)
+ *    - visualizzare animazioni di ricompensa (solo per il giocatore locale)
  *    - gestire il log delle azioni
  *    - mostrare la modale di copia tecnologia
  * ======================================================
@@ -257,9 +257,13 @@
      * SHOW FLOATING TEXT
      * Mostra un'animazione di testo fluttuante sopra uno spazio per indicare
      * visivamente una ricompensa ottenuta.
-     * Utilizza un contatore sincrono per calcolare il ritardo progressivo (400ms tra le risorse).
+     * Si attiva ESCLUSIVAMENTE se la mossa è compiuta dal giocatore locale ("io").
      */
     NS.Game.prototype.showFloatingText = function(spaceId, text, colorType) {
+        // Verifica che il turno corrente appartenga al giocatore locale
+        const currPlayer = this.players ? this.players[this.currentPlayerIndex] : null;
+        if (!currPlayer || !currPlayer.isLocal) return;
+
         const target = document.querySelector(`.action-space[data-space-id="${spaceId}"]`);
         if (!target) return;
 
