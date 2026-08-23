@@ -94,13 +94,14 @@ h1, h2, h3, .fantasy-font { font-family: 'Cinzel', serif; }
 }
 
 @keyframes floatUp {
-    0% { opacity: 1; transform: translateY(0) scale(1); }
-    100% { opacity: 0; transform: translateY(-40px) scale(1.2); }
+    0% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+    100% { opacity: 0; transform: translate(-50%, -40px) scale(1.2); }
 }
 .floating-text {
     position: absolute; font-weight: 900; font-size: 1.2rem; pointer-events: none;
     animation: floatUp 1.2s ease-out forwards; z-index: 100;
     text-shadow: 0 2px 0 #000, 0 0 5px rgba(0,0,0,0.5);
+    white-space: nowrap;
 }
 .float-green { color: #4ade80; }
 .float-yellow { color: #facc15; }
@@ -133,10 +134,10 @@ h1, h2, h3, .fantasy-font { font-family: 'Cinzel', serif; }
 .score-table th { background: #cbd5e1; padding: 8px; font-size: 0.75rem; text-transform: uppercase; }
 .score-table td { border-bottom: 1px solid #e2e8f0; padding: 6px; font-size: 0.85rem; }
 
-/* #START - Colori medievali per le aree della tabella dettaglio */
+/* Colori medievali per le aree della tabella dettaglio */
 .th-ambra {
-    background-color: #fef3c7; /* ambra chiaro */
-    color: #92400e;            /* marrone scuro */
+    background-color: #fef3c7;
+    color: #92400e;
     border: 1px solid #d1d5db;
     padding: 8px;
     text-align: center;
@@ -144,15 +145,14 @@ h1, h2, h3, .fantasy-font { font-family: 'Cinzel', serif; }
 }
 
 .th-pietra {
-    background-color: #e7e5e4; /* pietra chiaro */
-    color: #44403c;            /* grigio scuro */
+    background-color: #e7e5e4;
+    color: #44403c;
     border: 1px solid #d1d5db;
     padding: 8px;
     text-align: center;
     font-size: 0.75rem;
 }
 
-/* Stile per la prima colonna "Gioc" */
 .th-gioc {
     background-color: #e2e8f0;
     color: #334155;
@@ -161,11 +161,9 @@ h1, h2, h3, .fantasy-font { font-family: 'Cinzel', serif; }
     text-align: center;
     font-size: 0.75rem;
 }
-/* #END - Colori medievali per le aree della tabella dettaglio */
 
-/* #START - Menu principale */
 #main-menu {
-    display: none; /* verrà impostato a flex da showMainMenu() */
+    display: none;
 }
 
 .menu-button {
@@ -175,7 +173,6 @@ h1, h2, h3, .fantasy-font { font-family: 'Cinzel', serif; }
 .menu-button:active {
     transform: translateY(2px);
 }
-/* #END - Menu principale */
 
 .res-pill { display: inline-flex; align-items: center; gap: 2px; background: rgba(255,255,255,0.4); padding: 1px 6px; border-radius: 6px; margin-right: 2px; font-weight: bold; font-size: 0.75rem; border: 1px solid rgba(0,0,0,0.05); }
 
