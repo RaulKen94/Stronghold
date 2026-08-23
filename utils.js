@@ -39,7 +39,7 @@
         }
 
         // Altrimenti effettua il fetch asincrono di rules.html
-        fetch('rules.html')
+        fetch('HTML/rules.html')
             .then(response => {
                 if (!response.ok) throw new Error('Impossibile caricare rules.html');
                 return response.text();
