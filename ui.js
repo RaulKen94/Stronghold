@@ -1,15 +1,15 @@
 /**
  * ======================================================
- * UI.JS
+ * UI.JS - v1.3.0
  * ======================================================
  * Questo file contiene tutti i metodi di interfaccia utente.
  * Le funzioni vengono aggiunte al prototype della classe Game
  * (che è definita in game.js) e servono per:
- *   - aggiornare la plancia e i contenitori informativi
- *   - mostrare modali per scelte speciali
- *   - visualizzare animazioni di ricompensa
- *   - gestire il log delle azioni
- *   - mostrare la modale di copia tecnologia
+ *    - aggiornare la plancia e i contenitori informativi
+ *    - mostrare modali per scelte speciali
+ *    - visualizzare animazioni di ricompensa
+ *    - gestire il log delle azioni
+ *    - mostrare la modale di copia tecnologia
  * ======================================================
  */
 
@@ -111,6 +111,7 @@
             const div = document.createElement('div');
             div.className = `action-space ${isFull || blocked ? 'full' : ''} ${(blocked) ? 'disabled' : ''} ${eventLocked ? 'event-locked' : ''} ${isResidential ? 'residential' : ''}`;
             div.dataset.type = s.type;
+            div.dataset.spaceId = s.id; // Identificatore unico per le animazioni
     
             let slotHtml = '';
             if (!isResidential) {
@@ -185,7 +186,7 @@
     
         this.players.forEach(p => {
             const isActive = (p.id === this.currentPlayerIndex && !this.isGameOver);
-            const isMe = p.isLocal; // usa isLocal per evidenziare il giocatore locale
+            const isMe = p.isLocal;
             const income = 1 + Math.floor(p.cattle / 2) + p.incomeModifier;
     
             const arch = p.archetype
@@ -261,21 +262,16 @@
      * visivamente una ricompensa ottenuta.
      */
     NS.Game.prototype.showFloatingText = function(spaceId, text, colorType) {
-        const els = document.querySelectorAll('.action-space');
-        let target = null;
-
-        // Cerca lo spazio corretto tramite l'ID nel contenuto HTML
-        els.forEach(el => {
-            if (el.innerHTML.includes(`#${spaceId}<`)) target = el;
-        });
+        // Cerca lo spazio tramite data-space-id per una ricerca esatta e affidabile
+        const target = document.querySelector(`.action-space[data-space-id="${spaceId}"]`);
         if (!target) return;
 
         const floatEl = document.createElement('div');
         floatEl.className = `floating-text float-${colorType}`;
         floatEl.innerText = text;
-        target.appendChild(floatEl);
         floatEl.style.left = '50%';
         floatEl.style.top = '20%';
+        target.appendChild(floatEl);
 
         // Rimuove l'elemento dopo 1.2 secondi
         setTimeout(() => floatEl.remove(), 1200);
@@ -508,7 +504,6 @@
                         tech_idx: idx,
                         copied_tech_id: t.id
                     });
-                    // Non applicare effetti qui: la mossa verrà applicata da applyRemoteMove su tutti i client.
                 } else {
                     // Single-player: applica subito
                     t.effect(p, this);
