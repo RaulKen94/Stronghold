@@ -214,7 +214,6 @@
         const tokenClaimer = this.players.find(p => p.getIndicator);
         if (tokenClaimer) {
             this.firstPlayerIndex = tokenClaimer.id;
-            this.log(`${tokenClaimer.name} 1° Giocatore.`);
         }
 
         this.spaces.forEach(s => {
