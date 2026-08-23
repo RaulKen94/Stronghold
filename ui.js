@@ -444,7 +444,6 @@
                 // Single-player: applica direttamente
                 p.stronghold.infantry += val;
                 p.infantry -= val;
-                this.log(`Hai depositato ${val} fanti.`);
                 modal.style.display = 'none';
                 this.recordAction({ player_id: p.id, type: 'stronghold', desc: `Deposita ${val} fanti`, turn: this.currentPlayerIndex });
                 this.processStrongholdQueue();
@@ -509,7 +508,6 @@
                     t.effect(p, this);
                     this.currentTechs[idx].takenBy = p.id;
                     p.techUsed = true;
-                    this.log(`${p.name} copia ${t.text}`);
                     this.recordAction({
                         player_id: p.id,
                         type: 'tech',
