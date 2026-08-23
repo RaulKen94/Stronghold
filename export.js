@@ -1,5 +1,5 @@
 /**
- * EXPORT.JS - v1.0.0
+ * EXPORT.JS - v1.0.1
  * Gestisce l'esportazione dei risultati di fine partita in formato Excel (TSV).
  */
 (function() {
@@ -51,6 +51,18 @@
         const history = game.getActionHistory ? game.getActionHistory() : [];
         const eventHist = game.eventHistory || [];
 
+        // Helper per formattare le celle per evitare che Excel le interpreti come formule o date (es. 2-0-0 -> Anno 2000)
+        const formatTextCell = (str) => {
+            if (str === null || str === undefined) return "";
+            let val = String(str).trim();
+            if (!val) return "";
+            // Se inizia con +, -, = o contiene trattini tra cifre (es. 2-0-0), aggiunge l'apice ' per forzare il formato Testo in Excel
+            if (val.startsWith('+') || val.startsWith('=') || val.startsWith('-') || /^\d+(-\d+)+$/.test(val)) {
+                return "'" + val;
+            }
+            return val;
+        };
+
         // Generazione cronologica round per round
         for (let r = 1; r <= maxRound; r++) {
             // 1. RIGA EVENTO (Inizio Round)
@@ -60,22 +72,22 @@
                 const evtDesc = evtName + (evtObj.details ? `. ${evtObj.details}` : '');
                 
                 rows.push([
-                    movCounter++,      // 1. Nr. Movimento
-                    r,                 // 2. Nr. Round
-                    "",                // 3. Nr. Azione
-                    "Evento",          // 4. Tipo riga
-                    "",                // 5. Giocatore
-                    evtDesc,           // 6. Descrizione
-                    "",                // 7. Posizione in classifica
-                    "",                // 8. Giocatore in classifica
-                    "",                // 9. Risorse
-                    "",                // 10. Truppe fuori
-                    "",                // 11. Truppe dentro
-                    "",                // 12. Dettagli
-                    "",                // 13. Totale Punteggio
-                    roomCode,          // 14. Codice Lobby
-                    exportedBy,        // 15. Esportato da
-                    exportTimestamp    // 16. Data e Ora esportazione
+                    movCounter++,               // 1. Nr. Movimento
+                    r,                          // 2. Nr. Round
+                    "",                         // 3. Nr. Azione
+                    "Evento",                   // 4. Tipo riga
+                    "",                         // 5. Giocatore
+                    formatTextCell(evtDesc),    // 6. Descrizione
+                    "",                         // 7. Posizione in classifica
+                    "",                         // 8. Giocatore in classifica
+                    "",                         // 9. Risorse
+                    "",                         // 10. Truppe fuori
+                    "",                         // 11. Truppe dentro
+                    "",                         // 12. Dettagli
+                    "",                         // 13. Totale Punteggio
+                    roomCode,                   // 14. Codice Lobby
+                    exportedBy,                 // 15. Esportato da
+                    exportTimestamp             // 16. Data e Ora esportazione
                 ].join('\t'));
             }
 
@@ -89,40 +101,38 @@
                     rowType = 'Cantiere';
                 }
 
-                const defaultPName = act.playerName || (game.players[act.player_id] ? game.players[act.player_id].name : `P${act.player_id}`);
-                const rawDesc = act.desc || act.type || '';
-                const fullMsg = act.playerName ? `${act.playerName}: ${rawDesc}` : `${defaultPName}: ${rawDesc}`;
-
-                let extractedPlayer = defaultPName;
-                let extractedDesc = rawDesc;
-
-                // Parsing basato sul primo ":" da sinistra
-                if (fullMsg.includes(':')) {
-                    const colonIndex = fullMsg.indexOf(':');
-                    extractedPlayer = fullMsg.substring(0, colonIndex).trim();
-                    extractedDesc = fullMsg.substring(colonIndex + 1).trim();
+                // Determinazione del nome del giocatore
+                let pName = act.playerName;
+                if (!pName && game.players && act.player_id !== undefined && game.players[act.player_id]) {
+                    pName = game.players[act.player_id].name;
+                }
+                if (!pName) {
+                    pName = act.player_id !== undefined ? `P${act.player_id + 1}` : 'Giocatore';
                 }
 
-                // Rimuove eventuali emoji dal nome del giocatore per pulizia dati
-                extractedPlayer = extractedPlayer.replace(/[\u1F600-\u1F64F\u1F300-\u1F5FF\u1F680-\u1F6FF\u2600-\u26FF\u2700-\u27BF]/g, '').trim();
+                // Rimuove eventuali emoji dal nome giocatore per mantenere i dati puliti
+                pName = String(pName).replace(/[\u1F600-\u1F64F\u1F300-\u1F5FF\u1F680-\u1F6FF\u2600-\u26FF\u2700-\u27BF]/g, '').trim();
+
+                // Descrizione dell'azione
+                let rawDesc = act.desc || act.type || '';
 
                 rows.push([
-                    movCounter++,      // 1. Nr. Movimento
-                    r,                 // 2. Nr. Round
-                    actIdx + 1,        // 3. Nr. Azione
-                    rowType,           // 4. Tipo riga
-                    extractedPlayer,   // 5. Giocatore
-                    extractedDesc,     // 6. Descrizione
-                    "",                // 7. Posizione in classifica
-                    "",                // 8. Giocatore in classifica
-                    "",                // 9. Risorse
-                    "",                // 10. Truppe fuori
-                    "",                // 11. Truppe dentro
-                    "",                // 12. Dettagli
-                    "",                // 13. Totale Punteggio
-                    roomCode,          // 14. Codice Lobby
-                    exportedBy,        // 15. Esportato da
-                    exportTimestamp    // 16. Data e Ora esportazione
+                    movCounter++,               // 1. Nr. Movimento
+                    r,                          // 2. Nr. Round
+                    actIdx + 1,                 // 3. Nr. Azione
+                    rowType,                    // 4. Tipo riga
+                    pName,                      // 5. Giocatore
+                    formatTextCell(rawDesc),    // 6. Descrizione
+                    "",                         // 7. Posizione in classifica
+                    "",                         // 8. Giocatore in classifica
+                    "",                         // 9. Risorse
+                    "",                         // 10. Truppe fuori
+                    "",                         // 11. Truppe dentro
+                    "",                         // 12. Dettagli
+                    "",                         // 13. Totale Punteggio
+                    roomCode,                   // 14. Codice Lobby
+                    exportedBy,                 // 15. Esportato da
+                    exportTimestamp             // 16. Data e Ora esportazione
                 ].join('\t'));
             });
         }
@@ -135,10 +145,10 @@
 
         scores.forEach((s, idx) => {
             const p = s.p;
-            const resStr = `${p.coin}-${p.wood}-${p.brick}-${p.luxury}-${p.cattle}`;
-            const outTroops = `${p.infantry}-${p.archer}-${p.knight}`;
-            const inTroops = `${p.stronghold.infantry}-${p.stronghold.archer}-${p.stronghold.knight}`;
-            const detailsStr = `${s.baseVp}-${s.baseFirst}-${s.baseResidence}-${s.res}-${s.fortBase}-${s.fortMaj}-${s.outMaj}-${s.troopOut}`;
+            const resStr = formatTextCell(`${p.coin}-${p.wood}-${p.brick}-${p.luxury}-${p.cattle}`);
+            const outTroops = formatTextCell(`${p.infantry}-${p.archer}-${p.knight}`);
+            const inTroops = formatTextCell(`${p.stronghold.infantry}-${p.stronghold.archer}-${p.stronghold.knight}`);
+            const detailsStr = formatTextCell(`${s.baseVp}-${s.baseFirst}-${s.baseResidence}-${s.res}-${s.fortBase}-${s.fortMaj}-${s.outMaj}-${s.troopOut}`);
 
             rows.push([
                 movCounter++,          // 1. Nr. Movimento
