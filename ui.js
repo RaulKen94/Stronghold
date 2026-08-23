@@ -1,13 +1,13 @@
 /**
  * ======================================================
- * UI.JS - v1.3.0
+ * UI.JS - v1.4.0
  * ======================================================
  * Questo file contiene tutti i metodi di interfaccia utente.
  * Le funzioni vengono aggiunte al prototype della classe Game
  * (che è definita in game.js) e servono per:
  *    - aggiornare la plancia e i contenitori informativi
  *    - mostrare modali per scelte speciali
- *    - visualizzare animazioni di ricompensa
+ *    - visualizzare animazioni di ricompensa (immuni ai re-render)
  *    - gestire il log delle azioni
  *    - mostrare la modale di copia tecnologia
  * ======================================================
@@ -109,7 +109,7 @@
             const isResidential = s.type === 'blue';
     
             const div = document.createElement('div');
-            div.className = `action-space ${isFull || blocked ? 'full' : ''} ${(blocked) ? 'disabled' : ''} ${eventLocked ? 'event-locked' : ''} ${isResidential ? 'residential' : ''}`;
+            div.className = `action-space relative ${isFull || blocked ? 'full' : ''} ${(blocked) ? 'disabled' : ''} ${eventLocked ? 'event-locked' : ''} ${isResidential ? 'residential' : ''}`;
             div.dataset.type = s.type;
             div.dataset.spaceId = s.id; // Identificatore unico per le animazioni
     
@@ -188,7 +188,6 @@
             const isActive = (p.id === this.currentPlayerIndex && !this.isGameOver);
             const isMe = p.isLocal;
             const income = 1 + Math.floor(p.cattle / 2) + p.incomeModifier;
-            // Recupera il colore associato alla sedia (Seat 0, 1, 2, 3)
             const playerColor = (NS.PLAYER_COLORS && NS.PLAYER_COLORS[p.id]) ? NS.PLAYER_COLORS[p.id] : '#3b82f6';
     
             const arch = p.archetype
@@ -258,20 +257,30 @@
      * SHOW FLOATING TEXT
      * Mostra un'animazione di testo fluttuante sopra uno spazio per indicare
      * visivamente una ricompensa ottenuta.
+     * Utilizza un posizionamento fisso su document.body per evitare distruzioni durante l'updateUI.
      */
     NS.Game.prototype.showFloatingText = function(spaceId, text, colorType) {
-        // Cerca lo spazio tramite data-space-id per una ricerca esatta e affidabile
         const target = document.querySelector(`.action-space[data-space-id="${spaceId}"]`);
         if (!target) return;
+
+        // Recupera la posizione esatta della casella sullo schermo
+        const rect = target.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
 
         const floatEl = document.createElement('div');
         floatEl.className = `floating-text float-${colorType}`;
         floatEl.innerText = text;
-        floatEl.style.left = '50%';
-        floatEl.style.top = '20%';
-        target.appendChild(floatEl);
+        
+        // Posizionamento fisso al centro superiore della casella
+        floatEl.style.position = 'fixed';
+        floatEl.style.left = `${rect.left + (rect.width / 2)}px`;
+        floatEl.style.top = `${rect.top + (rect.height / 4)}px`;
+        floatEl.style.zIndex = '9999';
+        floatEl.style.pointerEvents = 'none';
 
-        // Rimuove l'elemento dopo 1.2 secondi
+        document.body.appendChild(floatEl);
+
+        // Rimuove l'elemento dal DOM dopo 1.2 secondi
         setTimeout(() => floatEl.remove(), 1200);
     };
 
