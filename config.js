@@ -25,7 +25,7 @@
     };
 
     NS.BASE_SPACES = [
-        { id: 2, name: "Torre Guardia", type: 'special', cost: {}, reward: { firstPlayer: true }, slots: 1, short: "Prendi 1°" },
+        { id: 2, name: "Torre di Guardia", type: 'special', cost: {}, reward: { firstPlayer: true }, slots: 1, short: "Prendi 1°" },
         { id: 7, name: "Roccaforte", type: 'special', cost: { coin: 1 }, reward: { special: 'roccaforte', vp: 1 }, slots: 4, uniquePlayer: true, short: "1💰 ➔ +1🏆. Deposita 🏰" },
         { id: 201, name: "Porta della Città", type: 'special', cost: {}, reward: { special: 'porta', infantry: 1 }, slots: 1, short: "Prendi monete qui +1⚔️" },
         { id: 12, name: "Municipio", type: 'special', cost: { workerCost: 2, coin: 1 }, reward: { newWorker: 1 }, slots: 3, short: "1💰 2👷 ➔ +1👷 (Futuro)" },
