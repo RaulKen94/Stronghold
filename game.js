@@ -316,10 +316,8 @@
                     if (cattleLost === 0) {
                         if (p.wood > 0) {
                             p.wood--;
-                            this.log(`${p.name} perde 1 Legno.`);
                         } else if (p.brick > 0) {
                             p.brick--;
-                            this.log(`${p.name} perde 1 Mattone.`);
                         }
                     }
                 });
@@ -347,7 +345,6 @@
         
             // Pass locale (single‑player o AI in multiplayer)
             p.passed = true;
-            this.log(`${p.name} passa.`);
             this.recordAction({ player_id: p.id, type: 'pass', desc: 'Passa', turn: this.currentPlayerIndex });
             this.nextTurn();
         }
@@ -656,7 +653,6 @@
                             if (target && typeof target.effect === 'function') target.effect(player, this);
                             originalTech.takenBy = player.id;
                             player.techUsed = true;
-                            this.log(`${player.name} copia ${target ? target.text : ''}`);
                             this.recordAction({
                                 player_id: player.id,
                                 type: 'tech',
@@ -698,7 +694,6 @@
         
                     originalTech.takenBy = player.id;
                     player.techUsed = true;
-                    this.log(`${player.name} copia ${target ? target.text : ''}`);
                     this.recordAction({
                         player_id: player.id,
                         type: 'tech',
@@ -713,7 +708,6 @@
                 case 'pass':
                     if (!player.passed) {
                         player.passed = true;
-                        this.log(`${player.name} passa.`);
                         this.recordAction({
                             player_id: player.id,
                             type: 'pass',
@@ -743,7 +737,6 @@
         
                     const auto = this.pendingStrongholdAuto || { archer: 0, knight: 0 };
                     const desc = this.getStrongholdDescription(auto, depositAmount);
-                    this.log(`${player.name}: ${desc}`);
                     this.recordAction({
                         player_id: player.id,
                         type: 'stronghold',
@@ -815,7 +808,6 @@
         finalizeMove(space, p, advanceTurn = true) {
             space.slotsOccupied.push(p.id);
             space.usage++;
-            this.log(`${p.name} usa ${space.name}`);
             this.globalMoveCounter++;
             if (this.globalMoveCounter % 3 === 0 && space.id !== 201) {
                 const porta = this.spaces.find(s => s.id === 201);
@@ -893,7 +885,6 @@
                     } else {
                         const target = used[Math.floor(this.rng() * used.length)];
                         target.effect(p, this);
-                        this.log(`${p.name} copia (AI) ${target.text}`);
                     }
                 }
             } else {
@@ -902,7 +893,6 @@
 
             tech.takenBy = p.id;
             p.techUsed = true;
-            this.log(`${p.name} ricerca ${tech.text}`);
             this.recordAction({ player_id: p.id, type: 'tech', tech_idx: techIdx, desc: tech.text, turn: this.currentPlayerIndex });
             if (advanceTurn) {
                 this.nextTurn();
