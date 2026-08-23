@@ -53,7 +53,7 @@
             <div id="turn-indicator" class="px-3 py-1 rounded-full font-bold text-[10px] bg-blue-600 border border-blue-400 text-white shadow-lg transition-transform">
                 Tocca a te!
             </div>
-            <button onclick="document.getElementById('info-modal').style.display='flex'" class="bg-slate-700 hover:bg-slate-600 p-1.5 rounded-full text-white transition">
+            <button onclick="openRulesModal()" class="bg-slate-700 hover:bg-slate-600 p-1.5 rounded-full text-white transition">
                 <i data-lucide="info" class="w-4 h-4"></i>
             </button>
         </div>
@@ -73,7 +73,7 @@
                 <div id="tech-container" class="flex overflow-x-auto gap-10px padding-10px" style="padding:10px; gap:10px;"></div>
             </div>
 
-            <!-- Plancia di gioco (con padding in basso per non essere coperta dalla barra fissa) -->
+            <!-- Plancia di gioco -->
             <div class="flex-1 overflow-y-auto relative pb-24">
                 <div id="board-container" class="game-board"></div>
             </div>
@@ -196,7 +196,6 @@
             <h2 class="text-3xl font-bold mb-4 fantasy-font text-slate-800">Partita Terminata 🏆</h2>
             <div id="score-breakdown" class="text-sm overflow-x-auto mb-6 rounded-lg border border-slate-200 shadow-md"></div>
         
-            <!-- Nuova tabella di dettaglio -->
             <div id="score-detail-breakdown" class="text-sm overflow-x-auto mb-6 rounded-lg border border-slate-200 shadow-md"></div>
 
             <div class="mt-4 text-left">
@@ -215,17 +214,14 @@
                 </div>
             </div>
             
-            <!-- Bottone Nuova Partita (id aggiunto) -->
             <button id="btn-new-game" onclick="game.resetGame()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-lg transition transform hover:scale-[1.02]">
                 <i data-lucide="refresh-cw" class="w-5 h-5"></i> Nuova Partita
             </button>
             
-            <!-- Bottone Torna alla lobby (solo multiplayer, nascosto di default) -->
             <button id="btn-return-lobby" style="display:none;" onclick="returnToLobby()" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-2 text-lg transition transform hover:scale-[1.02]">
                 <i data-lucide="users" class="w-5 h-5"></i> Torna alla lobby
             </button>
             
-            <!-- Bottone Torna al menu principale (invariato) -->
             <button onclick="showMainMenu()" class="w-full bg-slate-600 hover:bg-slate-500 text-white font-bold py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm mt-2 transition">
                 🏠 Torna al menu principale
             </button>
@@ -239,128 +235,9 @@
                 <h3 class="font-bold text-lg">Guida & Eventi</h3>
                 <button onclick="document.getElementById('info-modal').style.display='none'"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
-            <div class="h-[60vh] overflow-y-auto pr-2 text-xs">
-    <h4 class="font-bold mb-2 uppercase text-slate-500">Eventi</h4>
-    <div class="space-y-2 mb-4">
-        <div class="bg-red-50 p-2 rounded border border-red-200"><strong>💀 Carestia:</strong> Perdi 2 Monete e 2 Bestiame (o Legno/Mattone). 3 Luoghi bloccati.</div>
-        <div class="bg-red-50 p-2 rounded border border-red-200"><strong>⚔️ Guerra:</strong> Costo monete per truppe ridotto di 1. Caserma dà +1 Fante.</div>
-        <div class="bg-yellow-50 p-2 rounded border border-yellow-200"><strong>⚖️ Mercato Nero:</strong> Mercato ha 3 slot, +1 Lusso, ma le monete calano ad ogni uso (3->2->1).</div>
-        <div class="bg-blue-50 p-2 rounded border border-blue-200"><strong>☀️ Sole:</strong> Nessun effetto.</div>
-        <div class="bg-slate-100 p-2 rounded border border-slate-200"><strong>☁️ Nuvole:</strong> 5 Luoghi bloccati casualmente.</div>
-    </div>
-
-    <h4 class="font-bold mb-2 uppercase text-slate-500">Guida</h4>
-    <div class="space-y-4 text-slate-700">
-
-        <!-- SEZIONE REGOLE GENERALI -->
-        <div>
-            <p class="font-bold text-slate-800">Regole Generali</p>
-            <div class="mt-1 space-y-2">
-                <div>
-                    <p class="font-semibold">💰 Reddito Passivo</p>
-                    <p>All’inizio di ogni round ricevi automaticamente:</p>
-                    <ul class="list-disc pl-4 space-y-1">
-                        <li>1 moneta base</li>
-                        <li>+1 moneta ogni 2 🐄 Bestiame posseduto (arrotondato per difetto)</li>
-                        <li>+ eventuali modificatori (es. da edifici o tecnologie)</li>
-                    </ul>
-                    <p class="italic text-slate-500 mt-1">Esempio: con 3 🐄 ottieni 1 base + 1 per il bestiame = 2 monete.</p>
-                </div>
-                <div>
-                    <p class="font-semibold">🪵 A cosa servono le risorse</p>
-                    <ul class="list-disc pl-4 space-y-1">
-                        <li><strong>Monete (💰)</strong> → pagare spazi azione, edifici, tecnologie e accesso agli edifici avversari.</li>
-                        <li><strong>Legno (🪵)</strong> → costo per alcune unità militari e costruzioni.</li>
-                        <li><strong>Mattoni (🧱)</strong> → costo principale per costruire al Cantiere e per alcuni edifici.</li>
-                        <li><strong>Bestiame (🐄)</strong> → genera reddito passivo, serve come costo per Scuderia e Pensione, e vale punti a fine partita.</li>
-                        <li><strong>Lusso (💎)</strong> → usato per la Residenza e per il Palazzo (conversione in PV). Si ottiene da Sartoria, Mercato Nero ed effetti speciali.</li>
-                    </ul>
-                </div>
-                <div>
-                    <p class="font-semibold">👷 Lavoratori</p>
-                    <ul class="list-disc pl-4 space-y-1">
-                        <li>Il numero massimo di lavoratori è <strong>4</strong>.</li>
-                        <li>La tecnologia <strong>“+1👷 (ORA)”</strong> aggiunge temporaneamente 1 lavoratore <strong>solo per il turno corrente</strong>; all’inizio del round successivo si torna al massimo normale (4, salvo modifiche permanenti).</li>
-                        <li>La tecnologia <strong>“+1👷 (Prox)”</strong> aumenta permanentemente il massimo di 1, fino a un limite di 4. Se sei già a 4, ricevi +3 monete.</li>
-                    </ul>
-                </div>
-                <div>
-                    <p class="font-semibold">🏗️ Inflazione del Cantiere</p>
-                    <ul class="list-disc pl-4 space-y-1">
-                        <li>Il Cantiere costa normalmente 2 🧱. Ogni volta che viene usato, il suo costo aumenta per il resto della partita.</li>
-                        <li>L’aumento massimo è di 2 🧱, quindi il costo totale non supera mai 4 🧱.</li>
-                    </ul>
-                </div>
+            <div id="rules-container" class="h-[60vh] overflow-y-auto pr-2 text-xs">
+                <!-- Verrà popolato dinamicamente tramite utils.js -->
             </div>
-        </div>
-
-        <!-- SEZIONE CALCOLO PUNTI VITTORIA -->
-        <div>
-            <p class="font-bold text-slate-800">Calcolo dei Punti Vittoria</p>
-            <p>In Roccaforte i punti vittoria (PV 🏆) si accumulano sia con le azioni svolte durante i round sia con il calcolo dei bonus nel riepilogo di fine partita. Ecco l'elenco:</p>
-
-            <div class="mt-2">
-                <p class="font-bold">1. 🏆 PV Guadagnati in Partita</p>
-                <p class="font-semibold">Spazi Azione e Edifici:</p>
-                <ul class="list-disc pl-4 space-y-1">
-                    <li>🏰 Roccaforte: +1🏆 ogni volta che depositi truppe</li>
-                    <li>Palazzo: Converti le tue gemme ottenendo +3🏆 per ciascun Lusso 💎 pagato</li>
-                    <li>Cantiere: +3🏆 ogni volta che costruisci un nuovo edificio</li>
-                    <li>Edifici Amministrativi e Speciali: Cattedrale (+2🏆 alla costruzione e +2🏆 via azione), Monastero (+2🏆), Accampamento (+1🏆 o +2🏆), Taverna (+1🏆), Sala Consiglio (+1🏆), Gogna (+1🏆)</li>
-                    <li>Tecnologie: Alcune tecnologie forniscono 🏆 immediati</li>
-                </ul>
-            </div>
-
-            <div class="mt-2">
-                <p class="font-bold">2. 🏰 Truppe dentro la Roccaforte</p>
-                <p class="font-semibold">Punti Base delle unità (dentro):</p>
-                <ul class="list-disc pl-4 space-y-1">
-                    <li>⚔️ Fanteria: ottieni 1🏆 ogni 3 fanti</li>
-                    <li>🏹 Arcieri: ottieni 1🏆 ogni 2 arcieri</li>
-                    <li>🐴 Cavalieri: ottieni 1🏆 per ogni cavaliere</li>
-                </ul>
-                <p class="font-semibold">Bonus Maggioranze dentro la Roccaforte:</p>
-                <ul class="list-disc pl-4 space-y-1">
-                    <li>⚔️ Maggioranza Fanti: +7🏆</li>
-                    <li>🏹 Maggioranza Arcieri: +7🏆</li>
-                    <li>🐴 Maggioranza Cavalieri: +10🏆</li>
-                </ul>
-            </div>
-
-            <div class="mt-2">
-                <p class="font-bold">3. 🏰 Truppe fuori dalla Roccaforte</p>
-                <p class="font-semibold">Punti Base delle unità (fuori):</p>
-                <ul class="list-disc pl-4 space-y-1">
-                    <li>⚔️+🏹: ottieni 1🏆 ogni 2 unità combinate tra Fanti e Arcieri rimasti fuori</li>
-                    <li>🐴: ottieni 1🏆 per ogni Cavaliere rimasto fuori</li>
-                </ul>
-                <p class="font-semibold">Bonus Maggioranza fuori dalla Roccaforte:</p>
-                <ul class="list-disc pl-4 space-y-1">
-                    <li>⚔️ Maggioranza Fanti: +7🏆</li>
-                </ul>
-                <p class="italic">Nota pareggio Maggioranze: Se due o più giocatori condividono la quantità più alta di una unità (min. 1), ciascuno di essi guadagna il bonus di maggioranza per intero.</p>
-            </div>
-
-            <div class="mt-2">
-                <p class="font-bold">4. 💎 Conversione Risorse Inutilizzate</p>
-                <ul class="list-disc pl-4 space-y-1">
-                    <li>💎 Lusso: 1🏆 per ogni Lusso</li>
-                    <li>🐄 Bestiame: 1🏆 ogni 2 capi di bestiame</li>
-                    <li>💰+🪵+🧱 Risorse Base: 1🏆 ogni 3 risorse totali combinate tra Monete, Legno e Mattoni</li>
-                </ul>
-            </div>
-
-            <div class="mt-2">
-                <p class="font-bold">5. 👑 Bonus Condizionali e Spareggio</p>
-                <ul class="list-disc pl-4 space-y-1">
-                    <li>👑 Primo Giocatore: +3🏆 a chi possiede il segnalino 1° Giocatore al termine dell'ultimo round</li>
-                    <li>Residenza: +6🏆 se hai costruito l'edificio residenziale blu</li>
-                    <li>Criterio di Spareggio: In caso di parità nel punteggio totale, vince il giocatore che possiede più Mattoni 🧱; se ancora pari, si guarda il Legno 🪵; se ancora pari, le Monete 💰; se anche le monete sono uguali, vince chi aveva iniziato più per ultimo a inizio partita (ordine di turno iniziale più alto).</li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
         </div>
     </div>
 
