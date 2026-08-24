@@ -1,6 +1,6 @@
 /**
  * ======================================================
- * UI.JS - v1.4.4
+ * UI.JS - v1.5.0
  * ======================================================
  * Questo file contiene tutti i metodi di interfaccia utente.
  * Le funzioni vengono aggiunte al prototype della classe Game
@@ -116,7 +116,9 @@
             let slotHtml = '';
             if (!isResidential) {
                 s.slotsOccupied.forEach(pid => {
-                    slotHtml += `<div class="worker-slot token-p${pid}">${pid === 0 ? '★' : ''}</div>`;
+                    const workerOwner = this.players[pid];
+                    const isMyWorker = workerOwner && workerOwner.isLocal;
+                    slotHtml += `<div class="worker-slot token-p${pid}">${isMyWorker ? '★' : ''}</div>`;
                 });
                 if (s.slots !== 99) {
                     for (let i = 0; i < (s.slots - s.slotsOccupied.length); i++) {
@@ -156,8 +158,10 @@
                 badgeHtml += '<div class="absolute -top-2 -right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-md border-2 border-white z-10 war-badge">+1⚔️</div>';
             }
             if (s.ownerId !== undefined) {
-                const ownerColor = NS.PLAYER_COLORS[s.ownerId] || '#000';
-                badgeHtml += `<div class="owner-badge" style="background:${ownerColor};" title="Proprietario: ${this.players[s.ownerId].name}">${s.ownerId === 0 ? '★' : ('P' + s.ownerId)}</div>`;
+                const owner = this.players[s.ownerId];
+                const ownerColor = (NS.PLAYER_COLORS && NS.PLAYER_COLORS[s.ownerId]) || '#000';
+                const badgeText = (owner && owner.isLocal) ? '★' : (owner ? owner.name : '');
+                badgeHtml += `<div class="owner-badge" style="background:${ownerColor};" title="Proprietario: ${owner ? owner.name : ''}">${badgeText}</div>`;
             }
             if (s.id === 201 && this.accumulatedCoinsPorta > 0) {
                 costHtml += `<span class="res-pill bg-yellow-400 text-black border-yellow-600">+${this.accumulatedCoinsPorta}💰 Qui</span>`;
