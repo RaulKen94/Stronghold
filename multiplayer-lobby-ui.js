@@ -1,6 +1,7 @@
 /**
- * MULTIPLAYER-LOBBY-UI.JS
+ * MULTIPLAYER-LOBBY-UI.JS - v1.2.0
  * Mostra la sala d'attesa di una stanza multiplayer.
+ * Aggiorna la RAM locale delle statistiche per gli ospiti all'avvio del match.
  */
 (function() {
     window.Roccaforte = window.Roccaforte || {};
@@ -140,6 +141,13 @@
             (newMove) => { /* per ora ignora */ },
             (updatedRoom) => {
                 if (updatedRoom.status === 'playing') {
+                    // Incremento ottimistico RAM locale per i partecipanti non-host
+                    if (!isHost && NS.gameStats) {
+                        const humanCount = updatedRoom.human_count || 2;
+                        const key = `mp_${humanCount}p_count`;
+                        NS.gameStats[key] = (NS.gameStats[key] || 0) + 1;
+                    }
+
                     const seed = updatedRoom.game_seed;
                     if (seed === undefined || seed === null) {
                         alert('Errore: seed non disponibile');
