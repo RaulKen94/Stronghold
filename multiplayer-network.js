@@ -1,6 +1,10 @@
 /**
- * MULTIPLAYER-NETWORK.JS
- * Gestisce la comunicazione con Supabase per le stanze multiplayer.
+ * ======================================================
+ * MULTIPLAYER-NETWORK.JS - v1.1.0
+ * ======================================================
+ * Gestisce la comunicazione con Supabase per le stanze multiplayer
+ * e aggiorna le statistiche all'avvio della stanza.
+ * ======================================================
  */
 (function() {
     window.Roccaforte = window.Roccaforte || {};
@@ -166,7 +170,6 @@
     /**
      * SET ROOM TO COMPLETED
      * Imposta lo stato della stanza a 'completed'.
-     * @param {string} roomId - ID della stanza
      */
     NS.setRoomToCompleted = async function(roomId) {
         const { error } = await NS.supabase
@@ -178,7 +181,7 @@
 
     /**
      * AVVIA LA PARTITA
-     * Elimina le vecchie mosse, genera un nuovo seed e imposta lo stato 'playing'.
+     * Elimina le vecchie mosse, genera un nuovo seed, aggiorna le statistiche e imposta lo stato 'playing'.
      */
     NS.startRoom = async function(roomId) {
         // Elimina le vecchie mosse della stanza per evitare residui
@@ -187,6 +190,26 @@
             .delete()
             .eq('room_id', roomId);
         if (deleteMovesError) throw deleteMovesError;
+
+        // Recupera human_count della stanza per aggiornare le statistiche
+        const { data: roomData } = await NS.supabase
+            .from('rooms')
+            .select('human_count')
+            .eq('id', roomId)
+            .single();
+
+        const humanCount = roomData ? roomData.human_count : 2;
+        const statName = `mp_${humanCount}p`;
+
+        // Incremento atomico nel DB per la specifica modalità MP
+        NS.supabase.rpc('increment_game_stat', { stat_name: statName })
+            .catch(e => console.warn('Errore incremento stat MP:', e));
+
+        // Aggiornamento ottimistico della memoria RAM locale
+        if (NS.gameStats) {
+            const key = `${statName}_count`;
+            NS.gameStats[key] = (NS.gameStats[key] || 0) + 1;
+        }
 
         const seed = Math.floor(Math.random() * 1000000);
 
