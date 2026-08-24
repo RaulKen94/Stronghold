@@ -1,16 +1,16 @@
 /**
  * ======================================================
- * MENU.JS - v1.1.0
+ * MENU.JS - v1.2.0
  * ======================================================
  * Gestisce il menu principale, il caricamento/rendering delle statistiche e la modale multiplayer.
- * Le funzioni sono esposte globalmente per essere usate dagli eventi onclick.
+ * Le chiamate Supabase sono isolate per evitare blocchi nell'avvio della partita Single Player.
  * ======================================================
  */
 (function() {
     window.Roccaforte = window.Roccaforte || {};
     var NS = window.Roccaforte;
 
-    // Stato globale in memoria per le statistiche (evita letture ripetute dal DB)
+    // Stato globale in memoria per le statistiche
     NS.gameStats = NS.gameStats || null;
 
     /**
@@ -72,7 +72,7 @@
         document.getElementById('multiplayer-modal').style.display = 'none';
         document.getElementById('end-modal').style.display = 'none';
 
-        // Carica le statistiche dal DB soltanto la prima volta (1 sola SELECT)
+        // Carica le statistiche dal DB soltanto la prima volta (1 sola SELECT protetta)
         if (!NS.gameStats && NS.supabase) {
             try {
                 const { data, error } = await NS.supabase
@@ -85,7 +85,7 @@
                     NS.gameStats = data;
                 }
             } catch (e) {
-                console.warn('Errore lettura game_stats:', e);
+                console.warn('Lettura game_stats ignorata:', e.message);
             }
         }
 
@@ -101,24 +101,35 @@
     };
 
     /**
-     * Avvia una partita in singolo contro 3 PC e aggiorna il contatore.
+     * Avvia una partita in singolo contro 3 PC.
+     * Garantisce l'inizializzazione della plancia anche in caso di errori di rete.
      */
     NS.startSinglePlayerGame = function() {
         NS.hideMainMenu();
 
-        // Incremento atomico nel DB
-        if (NS.supabase) {
-            NS.supabase.rpc('increment_game_stat', { stat_name: 'singleplayer' })
-                .catch(e => console.warn('Errore incremento singleplayer:', e));
-        }
-
-        // Aggiornamento ottimistico in memoria RAM locale
+        // 1. Aggiornamento ottimistico in memoria RAM locale
         if (NS.gameStats) {
             NS.gameStats.singleplayer_count = (NS.gameStats.singleplayer_count || 0) + 1;
         }
 
-        // Crea una nuova istanza di gioco
-        window.game = new NS.Game();
+        // 2. Incremento atomico asincrono non bloccante sul DB
+        if (NS.supabase && typeof NS.supabase.rpc === 'function') {
+            Promise.resolve().then(async () => {
+                try {
+                    await NS.supabase.rpc('increment_game_stat', { stat_name: 'singleplayer' });
+                } catch (e) {
+                    console.warn('Incremento DB Single Player non riuscito:', e.message);
+                }
+            });
+        }
+
+        // 3. Creazione immediata dell'istanza di gioco
+        try {
+            window.game = new NS.Game();
+        } catch (err) {
+            console.error('Errore durante la creazione del gioco:', err);
+            alert('Errore durante l\'avvio della partita: ' + err.message);
+        }
     };
 
     /**
@@ -171,7 +182,7 @@
         }
     };
 
-    // Esponi le funzioni globalmente per poterle usare negli attributi onclick
+    // Esponi le funzioni globalmente per gli attributi onclick
     window.showMainMenu = NS.showMainMenu;
     window.startSinglePlayerGame = NS.startSinglePlayerGame;
     window.openMultiplayerModal = NS.openMultiplayerModal;
