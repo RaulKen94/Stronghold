@@ -1,3 +1,11 @@
+/**
+ * ======================================================
+ * GAME.JS - v1.1.0
+ * ======================================================
+ * Classe principale del gioco. Gestisce il ciclo di vita, i round,
+ * le fasi del turno e il riavvio della partita con tracciamento statistico.
+ * ======================================================
+ */
 (function() {
     window.Roccaforte = window.Roccaforte || {};
     var NS = window.Roccaforte;
@@ -74,10 +82,30 @@
 
         /**
          * RESET GAME
-         * Riporta lo stato iniziale e riavvia la partita.
+         * Riporta lo stato iniziale, incrementa la statistica in Single Player e riavvia la partita.
          */
         resetGame() {
             document.getElementById('end-modal').style.display = 'none';
+
+            // Incremento statistica Single Player solo se in modalità single-player
+            if (!this.isMultiplayer) {
+                // 1. Aggiornamento ottimistico RAM locale
+                if (NS.gameStats) {
+                    NS.gameStats.singleplayer_count = (NS.gameStats.singleplayer_count || 0) + 1;
+                }
+
+                // 2. Incremento atomico asincrono isolato sul DB
+                if (NS.supabase && typeof NS.supabase.rpc === 'function') {
+                    Promise.resolve().then(async () => {
+                        try {
+                            await NS.supabase.rpc('increment_game_stat', { stat_name: 'singleplayer' });
+                        } catch (e) {
+                            console.warn('Incremento DB Single Player da resetGame non riuscito:', e.message);
+                        }
+                    });
+                }
+            }
+
             this.players = [];
             this.round = 1;
             this.currentPlayerIndex = 0;
@@ -103,6 +131,7 @@
             this.gognaTarget = null;
             this.tavernaUsedOptions = [];
             this.actionHistory = [];
+
             // Reset stato multiplayer temporaneo
             this.sendMove = null;               // verrà reimpostato dall'adapter in multiplayer
             this.pendingBuildPlayer = null;
@@ -628,7 +657,7 @@
          * APPLY REMOTE MOVE
          * Applica una mossa ricevuta dal database.
          */
-          applyRemoteMove(move) {
+        applyRemoteMove(move) {
             if (this.isGameOver) return;
             const player = this.players[move.player_id];
             if (!player) return;
@@ -725,7 +754,6 @@
                                        currentEntry.type === 'stronghold' &&
                                        currentEntry.playerId === move.player_id;
                     if (!isExpected) {
-                        // Mossa duplicata o fuori contesto: ignora
                         break;
                     }
         
@@ -757,7 +785,6 @@
                                        currentEntry.type === 'cantiere' &&
                                        currentEntry.playerId === move.player_id;
                     if (!isExpected) {
-                        // Mossa duplicata o fuori contesto: ignora
                         break;
                     }
         
@@ -769,7 +796,6 @@
                             player.hasResidence = true;
                         }
                         this.applyBuild(player, building);
-                        // Avanza la risoluzione su tutti i client
                         this.advanceResolution();
                     }
                     break;
@@ -813,7 +839,6 @@
                 const porta = this.spaces.find(s => s.id === 201);
                 if (porta) this.accumulatedCoinsPorta++;
             }
-            // Non registrare qui se lo spazio è speciale: lo farà applySpecialReward
             if (!space.reward || !space.reward.special) {
                 this.recordAction({ player_id: p.id, type: 'space', space_id: space.id, desc: space.name, turn: this.currentPlayerIndex });
             }
@@ -1003,7 +1028,6 @@
                 NS.setRoomToCompleted(NS.currentLobbyData.roomId)
                     .catch(e => console.error('Errore setRoomToCompleted:', e));
             }
-            
         }
     }
 
