@@ -1,9 +1,9 @@
 /**
  * ======================================================
- * MULTIPLAYER-NETWORK.JS - v1.1.0
+ * MULTIPLAYER-NETWORK.JS - v1.2.0
  * ======================================================
  * Gestisce la comunicazione con Supabase per le stanze multiplayer
- * e aggiorna le statistiche all'avvio della stanza.
+ * e aggiorna le statistiche in modo isolato all'avvio della stanza.
  * ======================================================
  */
 (function() {
@@ -107,7 +107,7 @@
             .channel('players-changes')
             .on(
                 'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'players', filter: `room_id=eq.${roomId}` },
+                { event: 'INSERT', schema: 'public', table: 'players', filter: `room_id=${roomId}` },
                 (payload) => {
                     if (onPlayerJoined) onPlayerJoined(payload.new);
                 }
@@ -118,7 +118,7 @@
             .channel('moves-changes')
             .on(
                 'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'moves', filter: `room_id=eq.${roomId}` },
+                { event: 'INSERT', schema: 'public', table: 'moves', filter: `room_id=${roomId}` },
                 (payload) => {
                     if (onMoveInserted) onMoveInserted(payload.new);
                 }
@@ -129,7 +129,7 @@
             .channel('room-status-changes')
             .on(
                 'postgres_changes',
-                { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
+                { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=${roomId}` },
                 (payload) => {
                     if (onRoomStatusChanged) onRoomStatusChanged(payload.new);
                 }
@@ -157,7 +157,6 @@
 
     /**
      * RESET ROOM TO WAITING
-     * Riporta la stanza in stato 'waiting' per ripartire con una nuova partita.
      */
     NS.resetRoomToWaiting = async function(roomId) {
         const { error } = await NS.supabase
@@ -169,7 +168,6 @@
 
     /**
      * SET ROOM TO COMPLETED
-     * Imposta lo stato della stanza a 'completed'.
      */
     NS.setRoomToCompleted = async function(roomId) {
         const { error } = await NS.supabase
@@ -191,24 +189,31 @@
             .eq('room_id', roomId);
         if (deleteMovesError) throw deleteMovesError;
 
-        // Recupera human_count della stanza per aggiornare le statistiche
-        const { data: roomData } = await NS.supabase
-            .from('rooms')
-            .select('human_count')
-            .eq('id', roomId)
-            .single();
+        // Recupera human_count della stanza per le statistiche (con fallback a 2)
+        let humanCount = 2;
+        try {
+            const { data: roomData } = await NS.supabase
+                .from('rooms')
+                .select('human_count')
+                .eq('id', roomId)
+                .single();
+            if (roomData && roomData.human_count) humanCount = roomData.human_count;
+        } catch (e) {
+            console.warn('Impossibile recuperare human_count per stat:', e.message);
+        }
 
-        const humanCount = roomData ? roomData.human_count : 2;
         const statName = `mp_${humanCount}p`;
 
-        // Incremento atomico nel DB per la specifica modalità MP
-        NS.supabase.rpc('increment_game_stat', { stat_name: statName })
-            .catch(e => console.warn('Errore incremento stat MP:', e));
-
-        // Aggiornamento ottimistico della memoria RAM locale
+        // Aggiornamento ottimistico RAM locale
         if (NS.gameStats) {
             const key = `${statName}_count`;
             NS.gameStats[key] = (NS.gameStats[key] || 0) + 1;
+        }
+
+        // Incremento atomico asincrono isolato sul DB
+        if (typeof NS.supabase.rpc === 'function') {
+            NS.supabase.rpc('increment_game_stat', { stat_name: statName })
+                .catch(e => console.warn('Incremento stat MP fallito:', e.message));
         }
 
         const seed = Math.floor(Math.random() * 1000000);
