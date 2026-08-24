@@ -1,9 +1,9 @@
 /**
  * ======================================================
- * MULTIPLAYER-NETWORK.JS - v1.3.0
+ * MULTIPLAYER-NETWORK.JS - v1.4.0
  * ======================================================
- * Gestisce la comunicazione con Supabase per le stanze multiplayer,
- * corretto il filtro per le sottoscrizioni Realtime (room_id=eq. e id=eq.).
+ * Gestisce la comunicazione con Supabase per le stanze multiplayer.
+ * Corretta l'invocazione RPC con gestione degli errori tramite try/catch asincrono protetto.
  * ======================================================
  */
 (function() {
@@ -179,6 +179,7 @@
 
     /**
      * AVVIA LA PARTITA
+     * Elimina le vecchie mosse, genera un nuovo seed, aggiorna le statistiche e imposta lo stato 'playing'.
      */
     NS.startRoom = async function(roomId) {
         // Elimina le vecchie mosse della stanza per evitare residui
@@ -203,16 +204,21 @@
 
         const statName = `mp_${humanCount}p`;
 
-        // Aggiornamento ottimistico RAM locale
+        // 1. Aggiornamento ottimistico della memoria RAM locale
         if (NS.gameStats) {
             const key = `${statName}_count`;
             NS.gameStats[key] = (NS.gameStats[key] || 0) + 1;
         }
 
-        // Incremento atomico asincrono isolato sul DB
-        if (typeof NS.supabase.rpc === 'function') {
-            NS.supabase.rpc('increment_game_stat', { stat_name: statName })
-                .catch(e => console.warn('Incremento stat MP fallito:', e.message));
+        // 2. Incremento atomico asincrono isolato e sicuro sul DB
+        if (NS.supabase && typeof NS.supabase.rpc === 'function') {
+            Promise.resolve().then(async () => {
+                try {
+                    await NS.supabase.rpc('increment_game_stat', { stat_name: statName });
+                } catch (e) {
+                    console.warn('Incremento stat MP fallito:', e.message);
+                }
+            });
         }
 
         const seed = Math.floor(Math.random() * 1000000);
