@@ -164,6 +164,19 @@
     };
 
     /**
+     * SET ROOM TO COMPLETED
+     * Imposta lo stato della stanza a 'completed'.
+     * @param {string} roomId - ID della stanza
+     */
+    NS.setRoomToCompleted = async function(roomId) {
+        const { error } = await NS.supabase
+            .from('rooms')
+            .update({ status: 'completed' })
+            .eq('id', roomId);
+        if (error) throw error;
+    };
+
+    /**
      * AVVIA LA PARTITA
      * Elimina le vecchie mosse, genera un nuovo seed e imposta lo stato 'playing'.
      */
