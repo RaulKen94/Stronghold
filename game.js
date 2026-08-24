@@ -997,6 +997,13 @@
             
             if (window.lucide) lucide.createIcons();
             document.getElementById('end-modal').style.display = 'flex';
+
+            // Aggiorna lo stato della stanza a completed solo se host e multiplayer
+            if (this.isMultiplayer && this.isHost && NS.currentLobbyData) {
+                NS.setRoomToCompleted(NS.currentLobbyData.roomId)
+                    .catch(e => console.error('Errore setRoomToCompleted:', e));
+            }
+            
         }
     }
 
