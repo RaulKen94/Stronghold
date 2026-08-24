@@ -1,9 +1,9 @@
 /**
  * ======================================================
- * MULTIPLAYER-NETWORK.JS - v1.2.0
+ * MULTIPLAYER-NETWORK.JS - v1.3.0
  * ======================================================
- * Gestisce la comunicazione con Supabase per le stanze multiplayer
- * e aggiorna le statistiche in modo isolato all'avvio della stanza.
+ * Gestisce la comunicazione con Supabase per le stanze multiplayer,
+ * corretto il filtro per le sottoscrizioni Realtime (room_id=eq. e id=eq.).
  * ======================================================
  */
 (function() {
@@ -107,7 +107,7 @@
             .channel('players-changes')
             .on(
                 'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'players', filter: `room_id=${roomId}` },
+                { event: 'INSERT', schema: 'public', table: 'players', filter: `room_id=eq.${roomId}` },
                 (payload) => {
                     if (onPlayerJoined) onPlayerJoined(payload.new);
                 }
@@ -118,7 +118,7 @@
             .channel('moves-changes')
             .on(
                 'postgres_changes',
-                { event: 'INSERT', schema: 'public', table: 'moves', filter: `room_id=${roomId}` },
+                { event: 'INSERT', schema: 'public', table: 'moves', filter: `room_id=eq.${roomId}` },
                 (payload) => {
                     if (onMoveInserted) onMoveInserted(payload.new);
                 }
@@ -129,7 +129,7 @@
             .channel('room-status-changes')
             .on(
                 'postgres_changes',
-                { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=${roomId}` },
+                { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${roomId}` },
                 (payload) => {
                     if (onRoomStatusChanged) onRoomStatusChanged(payload.new);
                 }
@@ -179,7 +179,6 @@
 
     /**
      * AVVIA LA PARTITA
-     * Elimina le vecchie mosse, genera un nuovo seed, aggiorna le statistiche e imposta lo stato 'playing'.
      */
     NS.startRoom = async function(roomId) {
         // Elimina le vecchie mosse della stanza per evitare residui
