@@ -1,6 +1,6 @@
 /**
  * ======================================================
- * UI.JS - v1.5.0
+ * UI.JS - v1.5.1
  * ======================================================
  * Questo file contiene tutti i metodi di interfaccia utente.
  * Le funzioni vengono aggiunte al prototype della classe Game
@@ -160,8 +160,15 @@
             if (s.ownerId !== undefined) {
                 const owner = this.players[s.ownerId];
                 const ownerColor = (NS.PLAYER_COLORS && NS.PLAYER_COLORS[s.ownerId]) || '#000';
-                const badgeText = (owner && owner.isLocal) ? '★' : (owner ? owner.name : '');
-                badgeHtml += `<div class="owner-badge" style="background:${ownerColor};" title="Proprietario: ${owner ? owner.name : ''}">${badgeText}</div>`;
+                const isMyProperty = owner && owner.isLocal;
+                const badgeText = isMyProperty ? '★' : (owner ? owner.name : '');
+                
+                // Stile flessibile: pillola adattiva per i nomi degli avversari, cerchio compatto per la stella locale
+                const badgeStyle = isMyProperty 
+                    ? `background:${ownerColor};` 
+                    : `background:${ownerColor}; min-width:20px; width:auto; height:20px; padding:0 6px; border-radius:10px; white-space:nowrap; font-size:9px;`;
+                
+                badgeHtml += `<div class="owner-badge" style="${badgeStyle}" title="Proprietario: ${owner ? owner.name : ''}">${badgeText}</div>`;
             }
             if (s.id === 201 && this.accumulatedCoinsPorta > 0) {
                 costHtml += `<span class="res-pill bg-yellow-400 text-black border-yellow-600">+${this.accumulatedCoinsPorta}💰 Qui</span>`;
