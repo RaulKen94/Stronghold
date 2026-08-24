@@ -1,9 +1,9 @@
 /**
  * ======================================================
- * MENU.JS - v1.2.0
+ * MENU.JS - v1.3.0
  * ======================================================
  * Gestisce il menu principale, il caricamento/rendering delle statistiche e la modale multiplayer.
- * Le chiamate Supabase sono isolate per evitare blocchi nell'avvio della partita Single Player.
+ * Include l'helper unico askPlayerName() con validazione del nome (max 20 caratteri).
  * ======================================================
  */
 (function() {
@@ -12,6 +12,30 @@
 
     // Stato globale in memoria per le statistiche
     NS.gameStats = NS.gameStats || null;
+
+    /**
+     * Helper centralizzato per richiedere e validare il nome del giocatore.
+     * @returns {string|null} Nome validato oppure null se l'utente annulla l'operazione.
+     */
+    function askPlayerName() {
+        while (true) {
+            const input = prompt('Inserisci il tuo nome (max 20 caratteri):');
+            if (input === null) return null; // Annullato dall'utente
+
+            const trimmed = input.trim();
+            if (!trimmed) {
+                alert('Il nome è obbligatorio');
+                continue;
+            }
+
+            if (trimmed.length > 20) {
+                alert('Il nome non può superare i 20 caratteri');
+                continue;
+            }
+
+            return trimmed;
+        }
+    }
 
     /**
      * Renderizza il box grafico delle statistiche nel menu principale.
@@ -150,11 +174,9 @@
      * Flusso per creare una stanza.
      */
     NS.createRoomFlow = async function() {
-        let playerName = '';
-        while (!playerName.trim()) {
-            playerName = prompt('Inserisci il tuo nome:') || '';
-            if (!playerName.trim()) alert('Il nome è obbligatorio');
-        }
+        const playerName = askPlayerName();
+        if (!playerName) return;
+
         try {
             const { roomId, code, playerId } = await NS.createRoom(playerName);
             NS.showLobby(roomId, code, playerName, true, playerId);
@@ -167,13 +189,12 @@
      * Flusso per partecipare a una stanza.
      */
     NS.joinRoomFlow = async function() {
-        let playerName = '';
-        while (!playerName.trim()) {
-            playerName = prompt('Inserisci il tuo nome:') || '';
-            if (!playerName.trim()) alert('Il nome è obbligatorio');
-        }
+        const playerName = askPlayerName();
+        if (!playerName) return;
+
         const roomCode = prompt('Inserisci il codice stanza:');
         if (!roomCode) return;
+
         try {
             const { roomId, code, playerId } = await NS.joinRoom(playerName, roomCode.trim().toUpperCase());
             NS.showLobby(roomId, code, playerName, false, playerId);
