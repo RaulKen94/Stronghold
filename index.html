@@ -157,21 +157,20 @@
     </div>
 
     <!-- Modale Stronghold (Roccaforte) -->
+    <!-- Modale Stronghold (Roccaforte) -->
     <div id="stronghold-modal" class="modal" style="z-index: 2500;">
-        <div class="modal-content max-w-md">
+        <div class="modal-content max-w-lg">
             <h3 class="text-xl font-bold mb-2 fantasy-font text-purple-800">🏰 Arrivo in Roccaforte</h3>
-            <p class="text-xs text-slate-500 mb-4">Arcieri e Cavalieri entrati. Quanti Fanti?</p>
-            <div class="bg-slate-100 p-3 rounded mb-4">
-                <table class="w-full text-xs text-left comparison-table">
-                    <thead><tr class="text-slate-500"><th>Giocatore</th><th>Dentro 🏰</th><th>Fuori ⛺</th></tr></thead>
-                    <tbody id="stronghold-comparison-body"></tbody>
-                </table>
-            </div>
+            <p class="text-xs text-slate-500 mb-4">Arcieri e Cavalieri entrati. Quanti Fanti depositare?</p>
+            
+            <div id="stronghold-comparison-container" class="bg-slate-100 p-3 rounded mb-4 overflow-x-auto"></div>
+
             <div class="mb-6 text-center">
-                <label class="block font-bold mb-2">Deposita: <span id="sh-range-val" class="text-blue-600 text-xl">0</span></label>
+                <label class="block font-bold mb-2">Deposita: <span id="sh-range-val" class="text-blue-600 text-xl">0</span> ⚔️</label>
                 <input type="range" id="sh-range" class="range-slider" min="0" max="0" value="0" oninput="document.getElementById('sh-range-val').innerText = this.value">
                 <div class="flex justify-between text-xs text-slate-400"><span>0</span><span>Tutti</span></div>
             </div>
+            
             <button id="btn-confirm-stronghold" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl shadow-lg">Conferma</button>
         </div>
     </div>
