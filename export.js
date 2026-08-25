@@ -1,5 +1,7 @@
 /**
- * EXPORT.JS - v1.0.2
+ * ======================================================
+ * EXPORT.JS - v1.0.3
+ * ======================================================
  * Gestisce l'esportazione dei risultati di fine partita in formato Excel (TSV).
  */
 (function() {
@@ -155,7 +157,7 @@
             const resStr = formatTextCell(`${p.coin}-${p.wood}-${p.brick}-${p.luxury}-${p.cattle}`);
             const outTroops = formatTextCell(`${p.infantry}-${p.archer}-${p.knight}`);
             const inTroops = formatTextCell(`${p.stronghold.infantry}-${p.stronghold.archer}-${p.stronghold.knight}`);
-            const detailsStr = formatTextCell(`${s.baseVp}-${s.baseFirst}-${s.baseResidence}-${s.res}-${s.fortBase}-${s.fortMaj}-${s.outMaj}-${s.troopOut}`);
+            const detailsStr = formatTextCell(`${s.baseVp}-${s.baseFirst}-${s.baseResidence}-${s.res}-${s.fortBase}-${s.fortMaj}-${s.outBase}-${s.outMaj}`);
 
             rows.push([
                 movCounter++,          // 1. Nr. Movimento
