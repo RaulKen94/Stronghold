@@ -1,10 +1,11 @@
 /**
  * ======================================================
- * ENDGAMECALC.JS - v1.9.0
+ * ENDGAMECALC.JS - v1.9.2
  * ======================================================
  * Calcolo dei punteggi finali della partita e scomposizione
  * nei singoli componenti (con supporto a 1° e 2° posto nelle maggioranze,
- * punti base OutBase per truppe e legno fuori e tracciamento tipo di maggioranza).
+ * punti base OutBase per truppe e legno fuori, tracciamento tipo di maggioranza
+ * e lettura dinamica dei punteggi da NS.MAJORITY_CONFIG senza ternari nè else).
  */
 (function() {
     window.Roccaforte = window.Roccaforte || {};
@@ -106,12 +107,16 @@
         // ----------------------------------------------------
         // MAGGIORANZE IN ROCCAFORTE (1° e 2° posto + Parità)
         // ----------------------------------------------------
+        const cfgIn = NS.MAJORITY_CONFIG.stronghold_in;
+
         const applyMaj = (prop, pts1, pts2, tie1, tie2) => {
             // Estrazione valori per ciascun giocatore
             const values = scores.map(s => ({ scoreObj: s, val: s.p.stronghold[prop] }));
             const max1 = Math.max(...values.map(v => v.val));
 
-            const typeProp = prop === 'infantry' ? 'fortMInfType' : (prop === 'archer' ? 'fortMArcType' : 'fortMKniType');
+            let typeProp = 'fortMKniType';
+            if (prop === 'infantry') { typeProp = 'fortMInfType'; }
+            if (prop === 'archer') { typeProp = 'fortMArcType'; }
 
             if (max1 > 0) {
                 const firstPlace = values.filter(v => v.val === max1);
@@ -125,7 +130,9 @@
                         if (prop === 'archer') v.scoreObj.fortMArc = tie1;
                         if (prop === 'knight') v.scoreObj.fortMKni = tie1;
                     });
-                } else {
+                }
+                
+                if (firstPlace.length === 1) {
                     // 1° posto solitario
                     const firstWinner = firstPlace[0];
                     firstWinner.scoreObj.fortMaj += pts1;
@@ -141,8 +148,12 @@
                         const secondPlace = remaining.filter(v => v.val === max2);
 
                         const isSecondTie = (secondPlace.length > 1);
-                        const ptsSecond = isSecondTie ? tie2 : pts2;
-                        const secondType = isSecondTie ? 'tie2' : 'solo2';
+                        let ptsSecond = pts2;
+                        let secondType = 'solo2';
+                        if (isSecondTie) {
+                            ptsSecond = tie2;
+                            secondType = 'tie2';
+                        }
 
                         secondPlace.forEach(v => {
                             v.scoreObj.fortMaj += ptsSecond;
@@ -156,16 +167,22 @@
             }
         };
 
-        // Fanteria: 1° (7), 2° (4) | Parità 1° (5), Parità 2° (4)
-        applyMaj('infantry', 7, 4, 5, 4);
-        // Arcieri: 1° (9), 2° (5) | Parità 1° (7), Parità 2° (5)
-        applyMaj('archer', 9, 5, 7, 5);
-        // Cavalieri: 1° (12), 2° (6) | Parità 1° (9), Parità 2° (6)
-        applyMaj('knight', 12, 6, 9, 6);
+        const infIn = cfgIn.infantry;
+        const arcIn = cfgIn.archer;
+        const kniIn = cfgIn.knight;
+
+        // Fanteria
+        applyMaj('infantry', infIn.first, infIn.second, infIn.tieFirst, infIn.tieSecond);
+        // Arcieri
+        applyMaj('archer', arcIn.first, arcIn.second, arcIn.tieFirst, arcIn.tieSecond);
+        // Cavalieri
+        applyMaj('knight', kniIn.first, kniIn.second, kniIn.tieFirst, kniIn.tieSecond);
         
         // ----------------------------------------------------
         // MAGGIORANZA UNITA' FUORI (Solo Fanteria, Prerequisito: >= 1 Fante in Roccaforte)
         // ----------------------------------------------------
+        const cfgOut = NS.MAJORITY_CONFIG.stronghold_out.infantry;
+
         const eligibleOut = scores.filter(s => (s.p.stronghold.infantry || 0) >= 1);
         if (eligibleOut.length > 0) {
             const outValues = eligibleOut.map(s => ({ scoreObj: s, val: s.p.infantry }));
@@ -175,17 +192,19 @@
                 const firstOut = outValues.filter(v => v.val === maxOut1);
 
                 if (firstOut.length > 1) {
-                    // Parità 1° posto fuori: 4 PV a ciascuno
+                    // Parità 1° posto fuori
                     firstOut.forEach(v => {
-                        v.scoreObj.outMaj += 4;
-                        v.scoreObj.outMInf = 4;
+                        v.scoreObj.outMaj += cfgOut.tieFirst;
+                        v.scoreObj.outMInf = cfgOut.tieFirst;
                         v.scoreObj.outMInfType = 'tie1';
                     });
-                } else {
-                    // 1° posto solitario fuori: 6 PV
+                }
+                
+                if (firstOut.length === 1) {
+                    // 1° posto solitario fuori
                     const winnerOut = firstOut[0];
-                    winnerOut.scoreObj.outMaj += 6;
-                    winnerOut.scoreObj.outMInf = 6;
+                    winnerOut.scoreObj.outMaj += cfgOut.first;
+                    winnerOut.scoreObj.outMInf = cfgOut.first;
                     winnerOut.scoreObj.outMInfType = 'solo1';
 
                     // 2° posto fuori tra i rimanenti idonei
@@ -195,12 +214,17 @@
                         const secondOut = remOut.filter(v => v.val === maxOut2);
                         
                         const isSecondTie = (secondOut.length > 1);
-                        const secondType = isSecondTie ? 'tie2' : 'solo2';
+                        let secondPts = cfgOut.second;
+                        let secondType = 'solo2';
+                        if (isSecondTie) {
+                            secondPts = cfgOut.tieSecond;
+                            secondType = 'tie2';
+                        }
 
-                        // Solitario o Parità 2° posto fuori: 3 PV
+                        // Solitario o Parità 2° posto fuori
                         secondOut.forEach(v => {
-                            v.scoreObj.outMaj += 3;
-                            v.scoreObj.outMInf += 3;
+                            v.scoreObj.outMaj += secondPts;
+                            v.scoreObj.outMInf += secondPts;
                             v.scoreObj.outMInfType = secondType;
                         });
                     }
