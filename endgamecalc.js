@@ -28,7 +28,7 @@
         return `<td class="p-2 text-center">
             <span class="inline-block relative">
                 <span>${val}</span>
-                <span class="${badgeClass} text-white text-[11px] w-5 h-5 rounded-full font-bold shadow-xs flex items-center justify-center shrink-0 absolute left-full top-1/2 -translate-y-[calc(50%-4px)] ml-1" title="${titleText}">${emoji}</span>
+                <span class="${badgeClass} text-white text-[9px] w-4 h-4 rounded-full font-bold shadow-xs flex items-center justify-center shrink-0 absolute left-full top-1/2 -translate-y-[calc(50%-4px)] ml-1" title="${titleText}">${emoji}</span>
             </span>
         </td>`;
     };
