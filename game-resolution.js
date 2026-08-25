@@ -1,9 +1,9 @@
 /**
  * ======================================================
- * GAME-RESOLUTION.JS - v1.1.0
+ * GAME-RESOLUTION.JS - v1.2.0
  * ======================================================
  * Gestione della risoluzione di fine round:
- * depositi in Roccaforte (con AI tattica v1.5.0), costruzioni al Cantiere e avanzamento della coda.
+ * depositi in Roccaforte (con AI tattica), costruzioni al Cantiere e avanzamento della coda.
  */
 (function() {
     window.Roccaforte = window.Roccaforte || {};
@@ -57,9 +57,7 @@
                 return;
             } else {
                 // AI: deposito tattico (confronto doppia maggioranza e anteprima eventi)
-                const putIn = (typeof this.chooseAIStrongholdDeposit === 'function') 
-                    ? this.chooseAIStrongholdDeposit(p) 
-                    : (this.rng() > 0.2 ? p.infantry : 0);
+                const putIn = this.chooseAIStrongholdDeposit(p);
 
                 p.stronghold.infantry += putIn;
                 p.infantry -= putIn;
@@ -154,9 +152,7 @@
                 return;
             } else if (!p.isHuman) {
                 // AI: deposita fanti usando la logica tattica
-                const putIn = (typeof this.chooseAIStrongholdDeposit === 'function') 
-                    ? this.chooseAIStrongholdDeposit(p) 
-                    : (this.rng() > 0.2 ? p.infantry : 0);
+                const putIn = this.chooseAIStrongholdDeposit(p);
 
                 if (putIn > 0) {
                     p.stronghold.infantry += putIn;
