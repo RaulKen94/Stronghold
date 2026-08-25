@@ -18,18 +18,16 @@
      */
     NS.renderMajorityCell = function(val, type) {
         if (!val || !type) return `<td class="p-2 text-center">0</td>`;
-        
+    
         const isTie = type.startsWith('tie');
         const isFirst = type.endsWith('1');
         const emoji = isFirst ? '🥇' : '🥈';
         const badgeClass = isTie ? 'bg-red-600' : 'bg-emerald-600';
         const titleText = `${isFirst ? '1°' : '2°'} Posto ${isTie ? 'Pari Merito' : 'Solitario'}`;
-
-        return `<td class="p-2 font-bold text-center">
-            <div class="inline-flex items-center justify-center gap-1.5">
-                <span>${val}</span>
-                <span class="${badgeClass} text-white text-[11px] w-5 h-5 rounded-full font-bold shadow-xs flex items-center justify-center shrink-0" title="${titleText}">${emoji}</span>
-            </div>
+    
+        return `<td class="p-2 text-center relative pr-6">
+            <span>${val}</span>
+            <span class="${badgeClass} text-white text-[11px] w-5 h-5 rounded-full font-bold shadow-xs flex items-center justify-center shrink-0 absolute right-1 top-[calc(50%+2px)] -translate-y-1/2" title="${titleText}">${emoji}</span>
         </td>`;
     };
 
