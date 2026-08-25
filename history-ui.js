@@ -24,8 +24,8 @@
         if (type === 'build') return '🏗️ ';
         if (type === 'stronghold') return '🏰 ';
         if (type === 'special') return '✨ ';
-        if (type === 'pass') return '⏭️ ';
-        if (type === 'tech') return '🔬 ';
+        if (type === 'pass') return '💤 ';
+        if (type === 'tech') return '📜 ';
         return '';
     };
 
