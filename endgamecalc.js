@@ -27,7 +27,7 @@
 
         return `<td class="relative p-2 font-bold text-center">
             <span>${val}</span>
-            <span class="absolute bottom-0.5 right-0.5 ${badgeClass} text-white text-[11px] px-1 rounded-full font-bold shadow-xs flex items-center justify-center leading-none" title="${titleText}">${emoji}</span>
+            <span class="absolute bottom-0.5 right-0.5 ${badgeClass} text-white text-[11px] px-1 rounded-full font-bold shadow-xs flex items-center justify-center" title="${titleText}">${emoji}</span>
         </td>`;
     };
 
