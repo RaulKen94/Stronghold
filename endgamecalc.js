@@ -1,6 +1,6 @@
 /**
  * ======================================================
- * ENDGAMECALC.JS - v1.2.0
+ * ENDGAMECALC.JS - v1.8.0
  * ======================================================
  * Calcolo dei punteggi finali della partita e scomposizione
  * nei singoli componenti (con supporto a 1° e 2° posto nelle maggioranze
@@ -67,6 +67,9 @@
                 fortMKni: 0,
                 outMaj: 0,
                 outMInf: 0,
+                outBaseGroup,
+                outBaseArc,
+                outBaseKni,
                 outBase,
                 troopOut: outBase, // Alias di retrocompatibilità
                 total: 0
