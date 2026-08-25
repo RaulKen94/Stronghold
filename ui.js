@@ -447,28 +447,72 @@
 
     /**
      * RENDER STRONGHOLD MODAL
-     * Mostra la modale per scegliere quanti fanti depositare nella Roccaforte.
+     * Mostra la modale per scegliere quanti fanti depositare nella Roccaforte,
+     * includendo l'ordine di presenza nello spazio (#7) e il dettaglio completo delle truppe fuori e dentro.
      */
     NS.Game.prototype.renderStrongholdModal = function(p) {
         const modal = document.getElementById('stronghold-modal');
         const range = document.getElementById('sh-range');
         const valDisplay = document.getElementById('sh-range-val');
-        const tableBody = document.getElementById('stronghold-comparison-body');
+        const container = document.getElementById('stronghold-comparison-container');
         const btn = document.getElementById('btn-confirm-stronghold');
     
         range.max = p.infantry;
         range.value = p.infantry;
         valDisplay.innerText = p.infantry;
     
-        let html = '';
+        const fortSpace = this.spaces.find(s => s.id === 7);
+        const occupied = fortSpace ? fortSpace.slotsOccupied : [];
+
+        let tableHtml = `
+            <table class="w-full text-xs text-center comparison-table border-collapse">
+                <thead>
+                    <tr class="text-slate-600 bg-slate-200 border-b border-slate-300">
+                        <th class="text-left p-1">Giocatore</th>
+                        <th colspan="3" class="p-1 border-l border-slate-300 bg-amber-100/60">Fuori ⛺</th>
+                        <th colspan="3" class="p-1 border-l border-slate-300 bg-purple-100/60">Dentro 🏰</th>
+                    </tr>
+                    <tr class="text-slate-500 border-b border-slate-300 bg-slate-100 text-[11px]">
+                        <th class="text-left p-1"></th>
+                        <th class="p-1 border-l border-slate-300">⚔️</th>
+                        <th class="p-1">🏹</th>
+                        <th class="p-1">🐴</th>
+                        <th class="p-1 border-l border-slate-300">⚔️</th>
+                        <th class="p-1">🏹</th>
+                        <th class="p-1">🐴</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
         this.players.forEach(pl => {
-            html += `<tr class="${pl.id === p.id ? 'font-bold bg-blue-50' : ''}">
-                <td>${pl.name}</td>
-                <td>${pl.stronghold.infantry} ⚔️</td>
-                <td>${pl.infantry} ⚔️</td>
+            const isCurrent = (pl.id === p.id);
+            const isFirstPlayer = (this.firstPlayerIndex === pl.id);
+            const playerColor = (NS.PLAYER_COLORS && NS.PLAYER_COLORS[pl.id]) ? NS.PLAYER_COLORS[pl.id] : '#3b82f6';
+
+            // Calcolo dell'ordine d'arrivo nello spazio Roccaforte (#7)
+            const queueIdx = occupied.indexOf(pl.id);
+            const orderText = queueIdx !== -1 ? `${queueIdx + 1}° in Roccaforte` : 'Fuori Roccaforte';
+
+            tableHtml += `<tr class="${isCurrent ? 'bg-purple-50 font-bold' : 'border-b border-slate-200'} text-xs">
+                <td class="text-left p-1">
+                    <div class="font-bold flex items-center gap-1" style="color: ${playerColor};">
+                        ${isFirstPlayer ? '👑' : ''} ${pl.name}
+                    </div>
+                    <div class="text-[9px] text-slate-400 font-normal leading-tight">${orderText}</div>
+                </td>
+                <!-- Macro-gruppo Fuori ⛺ (Fanti, Arcieri, Cavalieri) -->
+                <td class="p-1 border-l border-slate-200">${pl.infantry}</td>
+                <td class="p-1">${pl.archer}</td>
+                <td class="p-1">${pl.knight}</td>
+                <!-- Macro-gruppo Dentro 🏰 (Fanti, Arcieri, Cavalieri) -->
+                <td class="p-1 border-l border-slate-200">${pl.stronghold.infantry}</td>
+                <td class="p-1">${pl.stronghold.archer}</td>
+                <td class="p-1">${pl.stronghold.knight}</td>
             </tr>`;
         });
-        tableBody.innerHTML = html;
+
+        tableHtml += `</tbody></table>`;
+        container.innerHTML = tableHtml;
 
         btn.onclick = () => {
             const val = parseInt(range.value);
