@@ -1,15 +1,15 @@
 /**
  * ======================================================
- * AI.JS - v1.6.0
+ * AI.JS - v1.7.1
  * ======================================================
  * Gestione avanzata dell'Intelligenza Artificiale (Eurogame AI):
  * - Gestione avanzata iniziativa e Primo Giocatore (Punto 2)
  * - Fasi di gioco bilanciate EARLY/MID/LATE
  * - Prevenzione sprechi risorse in LATE game
- * - Simulazione matematica deposito fanti aggiornata alle regole di maggioranza v1.2.0:
+ * - Simulazione matematica deposito fanti sincronizzata con NS.MAJORITY_CONFIG:
  *   - Valori base dentro: Fante=0.5, Arciere=2, Cavaliere=4
- *   - Maggioranze dentro 1°/2° posto (7/4 Fanti, 9/5 Arcieri, 12/6 Cavalieri)
- *   - Prerequisito Fante in Roccaforte per Maggioranza Fuori (6/3 VP)
+ *   - Maggioranze dentro e fuori lette dinamicamente da config.js (stronghold_in, stronghold_out)
+ *   - Prerequisito Fante in Roccaforte per Maggioranza Fuori
  *   - Conteggio OutBase (1 VP ogni 4 elementi tra truppe+legno +1 per Arc/Kni)
  * ======================================================
  */
@@ -24,7 +24,7 @@
     /**
      * CHOOSE AI STRONGHOLD DEPOSIT
      * Calcola il numero di fanti k da depositare simulando il punteggio totale netto
-     * sia dentro che fuori dalla Fortezza con le formule aggiornate al v1.2.0.
+     * sia dentro che fuori dalla Fortezza leggendo i parametri da NS.MAJORITY_CONFIG (senza ternari nè else).
      */
     NS.Game.prototype.chooseAIStrongholdDeposit = function(p) {
         if (!p.infantry || p.infantry <= 0) return 0;
@@ -36,6 +36,9 @@
 
         let bestK = 0;
         let maxNetVP = -999;
+
+        const cfgIn = NS.MAJORITY_CONFIG.stronghold_in;
+        const cfgOut = NS.MAJORITY_CONFIG.stronghold_out.infantry;
 
         // Simulazione per ogni possibile quantità k di fanti versati (da 0 a p.infantry)
         for (let k = 0; k <= p.infantry; k++) {
@@ -68,16 +71,19 @@
 
                 if (simVal === 0) return 0;
                 if (higher === 0) {
-                    return equal > 0 ? tie1 : pts1;
-                } else if (higher === 1) {
-                    return equal > 0 ? tie2 : pts2;
+                    if (equal > 0) return tie1;
+                    return pts1;
+                }
+                if (higher === 1) {
+                    if (equal > 0) return tie2;
+                    return pts2;
                 }
                 return 0;
             };
 
-            vpInsideMaj += evalInsideCategory(simInfantryInside, 'infantry', 7, 4, 5, 4);
-            vpInsideMaj += evalInsideCategory(simArchersInside, 'archer', 9, 5, 7, 5);
-            vpInsideMaj += evalInsideCategory(simKnightsInside, 'knight', 12, 6, 9, 6);
+            vpInsideMaj += evalInsideCategory(simInfantryInside, 'infantry', cfgIn.infantry.first, cfgIn.infantry.second, cfgIn.infantry.tieFirst, cfgIn.infantry.tieSecond);
+            vpInsideMaj += evalInsideCategory(simArchersInside, 'archer', cfgIn.archer.first, cfgIn.archer.second, cfgIn.archer.tieFirst, cfgIn.archer.tieSecond);
+            vpInsideMaj += evalInsideCategory(simKnightsInside, 'knight', cfgIn.knight.first, cfgIn.knight.second, cfgIn.knight.tieFirst, cfgIn.knight.tieSecond);
 
             // ----------------------------------------------------
             // 2. CALCOLO PUNTEGGIO FUORI DALLA FORTEZZA (OutBase & Maggioranza)
@@ -95,9 +101,16 @@
                 const equal = oppOutVals.filter(v => v === simInfantryOutside).length;
 
                 if (higher === 0) {
-                    vpOutsideMaj = equal > 0 ? 4 : 6;
-                } else if (higher === 1) {
-                    vpOutsideMaj = 3;
+                    vpOutsideMaj = cfgOut.first;
+                    if (equal > 0) {
+                        vpOutsideMaj = cfgOut.tieFirst;
+                    }
+                }
+                if (higher === 1) {
+                    vpOutsideMaj = cfgOut.second;
+                    if (equal > 0) {
+                        vpOutsideMaj = cfgOut.tieSecond;
+                    }
                 }
             }
 
