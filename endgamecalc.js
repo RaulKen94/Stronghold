@@ -11,13 +11,13 @@
     var NS = window.Roccaforte;
     
     /**
-     * Helper per la renderizzazione delle celle con badge per le maggioranze (con Emoji 🥇 e 🥈 ingrandite)
+     * Helper per la renderizzazione delle celle con badge per le maggioranze (con distanza fissa dal numero)
      * @param {number} val - Punti Vittoria ottenuti
      * @param {string|null} type - Tipo di maggioranza ('solo1' | 'tie1' | 'solo2' | 'tie2' | null)
      * @returns {string} - Stringa HTML della cella <td>
      */
     NS.renderMajorityCell = function(val, type) {
-        if (!val || !type) return `<td class="p-2">0</td>`;
+        if (!val || !type) return `<td class="p-2 text-center">0</td>`;
         
         const isTie = type.startsWith('tie');
         const isFirst = type.endsWith('1');
@@ -25,9 +25,11 @@
         const badgeClass = isTie ? 'bg-red-600' : 'bg-emerald-600';
         const titleText = `${isFirst ? '1°' : '2°'} Posto ${isTie ? 'Pari Merito' : 'Solitario'}`;
 
-        return `<td class="relative p-2 font-bold text-center">
-            <span>${val}</span>
-            <span class="absolute bottom-0.5 right-0.5 ${badgeClass} text-white text-[11px] px-1 rounded-full font-bold shadow-xs flex items-center justify-center" title="${titleText}">${emoji}</span>
+        return `<td class="p-2 font-bold text-center">
+            <div class="inline-flex items-center justify-center gap-1.5">
+                <span>${val}</span>
+                <span class="${badgeClass} text-white text-[11px] w-5 h-5 rounded-full font-bold shadow-xs flex items-center justify-center shrink-0" title="${titleText}">${emoji}</span>
+            </div>
         </td>`;
     };
 
