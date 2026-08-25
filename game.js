@@ -1,6 +1,6 @@
 /**
  * ======================================================
- * GAME.JS - v1.1.0
+ * GAME.JS - v1.8.0
  * ======================================================
  * Classe principale del gioco. Gestisce il ciclo di vita, i round,
  * le fasi del turno e il riavvio della partita con tracciamento statistico.
@@ -956,7 +956,7 @@
                     <td class="text-xs text-left">${s.p.coin}💰 ${s.p.wood}🪵 ${s.p.brick}🧱<br>${s.p.luxury}💎 ${s.p.cattle}🐄</td>
                     <td class="text-xs">${s.p.infantry}⚔️ ${s.p.archer}🏹 ${s.p.knight}🐴</td>
                     <td class="text-xs bg-slate-100 font-bold text-slate-700">${s.p.stronghold.infantry}⚔️ ${s.p.stronghold.archer}🏹 ${s.p.stronghold.knight}🐴</td>
-                    <td class="text-xs text-left">Base:${s.base} Res:${s.res} FortB:${s.fortBase}<br>FortM:${s.fortMaj} OutM:${s.outMaj} Set:${s.troopOut}</td>
+                    <td class="text-xs text-left">Base:${s.base} Res:${s.res} FortB:${s.fortBase}<br>FortM:${s.fortMaj} OutB:${s.outBase} OutM:${s.outMaj}</td>
                     <td class="font-bold text-lg text-green-700">${s.total}</td>
                 </tr>`;
             });
@@ -971,8 +971,8 @@
                         <th colspan="3" class="th-pietra">Risorse</th>
                         <th colspan="3" class="th-ambra">Fortezza Base</th>
                         <th colspan="3" class="th-pietra">Fortezza Magg.</th>
-                        <th class="th-ambra">Fuori Magg.</th>
-                        <th colspan="4" class="th-pietra">Set</th>
+                        <th colspan="3" class="th-ambra">Fuori Base</th>
+                        <th class="th-pietra">Fuori Magg.</th>
                     </tr>
                     <tr>
                         <th class="th-gioc"></th>
@@ -980,8 +980,8 @@
                         <th class="th-pietra">Ris. Base</th><th class="th-pietra">Bestiame</th><th class="th-pietra">Lusso</th>
                         <th class="th-ambra">Fanti</th><th class="th-ambra">Arcieri</th><th class="th-ambra">Cavalieri</th>
                         <th class="th-pietra">Fanti</th><th class="th-pietra">Arcieri</th><th class="th-pietra">Cavalieri</th>
-                        <th class="th-ambra">Fanti</th>
-                        <th class="th-pietra">Nr. Fanti</th><th class="th-pietra">Nr. Arcieri</th><th class="th-pietra">Coppie PV</th><th class="th-pietra">Cavalieri</th>
+                        <th class="th-ambra">Quartetti</th><th class="th-ambra">Arcieri</th><th class="th-ambra">Cavalieri</th>
+                        <th class="th-pietra">Fanti</th>
                     </tr>
                 </thead>
                 <tbody>`;
@@ -994,8 +994,8 @@
                     <td>${s.resBase}</td><td>${s.resCattle}</td><td>${s.resLuxury}</td>
                     <td>${s.fortBInf}</td><td>${s.fortBArc}</td><td>${s.fortBKni}</td>
                     <td>${s.fortMInf}</td><td>${s.fortMArc}</td><td>${s.fortMKni}</td>
+                    <td>${s.outBaseGroup}</td><td>${s.outBaseArc}</td><td>${s.outBaseKni}</td>
                     <td>${s.outMInf}</td>
-                    <td>${s.p.infantry}</td><td>${s.p.archer}</td><td>${s.outPairs}</td><td>${s.p.knight}</td>
                 </tr>`;
             });
             detailHtml += `</tbody></table>`;
