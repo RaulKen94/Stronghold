@@ -9,9 +9,9 @@
 (function() {
     window.Roccaforte = window.Roccaforte || {};
     var NS = window.Roccaforte;
-
+    
     /**
-     * Helper per la renderizzazione delle celle con badge per le maggioranze (con Emoji 🥇 e 🥈)
+     * Helper per la renderizzazione delle celle con badge per le maggioranze (con Emoji 🥇 e 🥈 ingrandite)
      * @param {number} val - Punti Vittoria ottenuti
      * @param {string|null} type - Tipo di maggioranza ('solo1' | 'tie1' | 'solo2' | 'tie2' | null)
      * @returns {string} - Stringa HTML della cella <td>
@@ -27,7 +27,7 @@
 
         return `<td class="relative p-2 font-bold text-center">
             <span>${val}</span>
-            <span class="absolute bottom-0.5 right-0.5 ${badgeClass} text-white text-[9px] px-1 rounded-full font-bold shadow-xs flex items-center justify-center" title="${titleText}">${emoji}</span>
+            <span class="absolute bottom-0.5 right-0.5 ${badgeClass} text-white text-[11px] px-1 rounded-full font-bold shadow-xs flex items-center justify-center leading-none" title="${titleText}">${emoji}</span>
         </td>`;
     };
 
