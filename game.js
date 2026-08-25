@@ -1,6 +1,6 @@
 /**
  * ======================================================
- * GAME.JS - v1.8.0
+ * GAME.JS - v1.9.0
  * ======================================================
  * Classe principale del gioco. Gestisce il ciclo di vita, i round,
  * le fasi del turno e il riavvio della partita con tracciamento statistico.
@@ -993,9 +993,11 @@
                     <td>${s.baseVp}</td><td>${s.baseFirst}</td><td>${s.baseResidence}</td>
                     <td>${s.resBase}</td><td>${s.resCattle}</td><td>${s.resLuxury}</td>
                     <td>${s.fortBInf}</td><td>${s.fortBArc}</td><td>${s.fortBKni}</td>
-                    <td>${s.fortMInf}</td><td>${s.fortMArc}</td><td>${s.fortMKni}</td>
+                    ${NS.renderMajorityCell(s.fortMInf, s.fortMInfType)}
+                    ${NS.renderMajorityCell(s.fortMArc, s.fortMArcType)}
+                    ${NS.renderMajorityCell(s.fortMKni, s.fortMKniType)}
                     <td>${s.outBaseGroup}</td><td>${s.outBaseArc}</td><td>${s.outBaseKni}</td>
-                    <td>${s.outMInf}</td>
+                    ${NS.renderMajorityCell(s.outMInf, s.outMInfType)}
                 </tr>`;
             });
             detailHtml += `</tbody></table>`;
