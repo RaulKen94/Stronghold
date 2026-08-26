@@ -376,7 +376,7 @@
                 }
             });
         } else if (type === 'accampamento') {
-            this.createChoiceBtn(opts, "Paga 1🪵 -> 1🏆 1⚔️", () => {
+            this.createChoiceBtn(opts, "Paga 1🪵 -> 2🏆 2⚔️", () => {
                 if (p.wood < 1) {
                     alert("Manca Legno");
                     return;
@@ -384,7 +384,7 @@
                 this.sendChoice({ option: 'wood' });
             });
         
-            this.createChoiceBtn(opts, "Paga 1🐄 -> 1🏹", () => {
+            this.createChoiceBtn(opts, "Paga 1🐄 -> 2🏹", () => {
                 if (p.cattle < 1) {
                     alert("Manca Bestiame");
                     return;
@@ -392,8 +392,8 @@
                 this.sendChoice({ option: 'cattle' });
             });
         
-            this.createChoiceBtn(opts, "Paga 1🪵 1🐄 3💰 -> 2🏆 2⚔️ 1🏹", () => {
-                if (p.wood < 1 || p.cattle < 1 || p.coin < 3) {
+            this.createChoiceBtn(opts, "Paga 1🪵 1🐄 5💰 -> 2🏆 3⚔️ 2🏹", () => {
+                if (p.wood < 1 || p.cattle < 1 || p.coin < 5) {
                     alert("Risorse insufficienti per questa opzione");
                     return;
                 }
