@@ -57,10 +57,10 @@
             let res = resBase + resCattle + resLuxury;
 
             // --- FORTEZZA BASE ---
-            // 1 VP ogni 2 Fanti, 2 VP per Arciere, 4 VP per Cavaliere
+            // 1 VP ogni 2 Fanti, 2 VP per Arciere, 3 VP per Cavaliere
             let fortBInf = Math.floor(p.stronghold.infantry / 2);
             let fortBArc = p.stronghold.archer * 2;
-            let fortBKni = p.stronghold.knight * 4;
+            let fortBKni = p.stronghold.knight * 3;
             let fortBase = fortBInf + fortBArc + fortBKni;
 
             // --- TRUPPE E LEGNO FUORI (OutBase) ---
