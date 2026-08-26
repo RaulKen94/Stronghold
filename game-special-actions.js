@@ -150,6 +150,8 @@
                 historyDesc = 'Accampamento: scelta truppe';
             }
         } else if (type === 'gogna') {
+            p.vp += 1;
+            if (p.isHuman) this.showFloatingText(spaceId, '+1🏆', 'yellow');
             if (choiceData) {
                 if (choiceData.targetId !== undefined) {
                     const target = this.players.find(pl => pl.id === choiceData.targetId);
