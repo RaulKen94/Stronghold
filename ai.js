@@ -59,7 +59,7 @@
             // Punti Unità dentro (1 VP ogni 2 Fanti, 2 VP per Arciere, 4 VP per Cavaliere)
             const vpInsideUnits = Math.floor(simInfantryInside / 2) + 
                                   (simArchersInside * 2) + 
-                                  (simKnightsInside * 4);
+                                  (simKnightsInside * 3);
 
             // Calcolo stima maggioranze dentro
             let vpInsideMaj = 0;
@@ -308,7 +308,7 @@
         let score = p.vp;
         score += Math.floor((p.stronghold.infantry || 0) / 2);
         score += (p.stronghold.archer || 0) * 2;
-        score += (p.stronghold.knight || 0) * 4;
+        score += (p.stronghold.knight || 0) * 3;
         if (p.hasResidence) score += 6;
         return score;
     };
