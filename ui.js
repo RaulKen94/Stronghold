@@ -362,10 +362,10 @@
             choices.forEach(o => this.createChoiceBtn(opts, o.txt, o.cb));
         } else if (type === 'taverna') {
             const menu = [
-                { id: 'A', txt: "🧱+🏆", cb: () => { this.sendChoice({ option: 'A' }); } },
-                { id: 'B', txt: "🪵+🐄", cb: () => { this.sendChoice({ option: 'B' }); } },
-                { id: 'C', txt: "🏹", cb: () => { this.sendChoice({ option: 'C' }); } },
-                { id: 'D', txt: "⚔️+🏆", cb: () => { this.sendChoice({ option: 'D' }); } }
+                { id: 'A', txt: "3🧱+3🏆", cb: () => { this.sendChoice({ option: 'A' }); } },
+                { id: 'B', txt: "2🪵+7🐄", cb: () => { this.sendChoice({ option: 'B' }); } },
+                { id: 'C', txt: "1🏹", cb: () => { this.sendChoice({ option: 'C' }); } },
+                { id: 'D', txt: "2⚔️+1🏆", cb: () => { this.sendChoice({ option: 'D' }); } }
             ];
             menu.forEach(m => {
                 const used = this.tavernaUsedOptions.includes(m.id);
