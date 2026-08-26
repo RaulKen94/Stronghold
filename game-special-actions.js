@@ -65,6 +65,8 @@
                 historyDesc = 'Consiglio: nessun rinforzo. +1 VP';
             }
         } else if (type === 'monastero') {
+            p.vp += 3;
+            if (p.isHuman) this.showFloatingText(spaceId, '+3🏆', 'yellow');
             if (choiceData) {
                 if (choiceData.resource === 'wood') {
                     p.wood++;
