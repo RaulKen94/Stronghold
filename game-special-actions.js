@@ -116,25 +116,25 @@
                 if (choiceData.option === 'wood') {
                     if (p.wood >= 1) {
                         p.wood--;
-                        p.vp++;
-                        p.infantry++;
-                        historyDesc = 'Accampamento: 1 Legno → 1 VP +1 Fante';
+                        p.vp += 2;
+                        p.infantry += 2;
+                        historyDesc = 'Accampamento: 1 Legno → 2 VP +2 Fanti';
                     }
                 } else if (choiceData.option === 'cattle') {
                     if (p.cattle >= 1) {
                         p.cattle--;
-                        p.archer++;
-                        historyDesc = 'Accampamento: 1 Bestiame → 1 Arciere';
+                        p.archer += 2;
+                        historyDesc = 'Accampamento: 1 Bestiame → 2 Arcieri';
                     }
                 } else if (choiceData.option === 'all') {
-                    if (p.wood >= 1 && p.cattle >= 1 && p.coin >= 3) {
+                    if (p.wood >= 1 && p.cattle >= 1 && p.coin >= 5) {
                         p.wood--;
                         p.cattle--;
-                        p.coin -= 3;
+                        p.coin -= 5;
                         p.vp += 2;
-                        p.infantry += 2;
-                        p.archer++;
-                        historyDesc = 'Accampamento: 1 Legno +1 Bestiame +3 Monete → 2 VP +2 Fanti +1 Arciere';
+                        p.infantry += 3;
+                        p.archer += 2;
+                        historyDesc = 'Accampamento: 1 Legno +1 Bestiame +5 Monete → 2 VP +3 Fanti +2 Arcieri';
                     }
                 }
             } else if (!p.isHuman) {
