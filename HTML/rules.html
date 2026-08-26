@@ -1,13 +1,4 @@
-<!-- rules.html - v1.7.0 -->
-<h4 class="font-bold mb-3 uppercase text-slate-500 tracking-wide">Eventi</h4>
-<div class="space-y-2 mb-6">
-    <div class="bg-red-50 p-2.5 rounded border border-red-200"><strong>💀 Carestia:</strong> Perdi 2 Monete e 2 Bestiame (o Legno/Mattone). 3 Luoghi bloccati.</div>
-    <div class="bg-red-50 p-2.5 rounded border border-red-200"><strong>⚔️ Guerra:</strong> Costo monete per truppe ridotto di 1. Caserma dà +1 Fante.</div>
-    <div class="bg-yellow-50 p-2.5 rounded border border-yellow-200"><strong>⚖️ Mercato Nero:</strong> Mercato ha 3 slot, +1 Lusso, ma le monete calano ad ogni uso (3->2->1).</div>
-    <div class="bg-blue-50 p-2.5 rounded border border-blue-200"><strong>☀️ Sole:</strong> Nessun effetto.</div>
-    <div class="bg-slate-100 p-2.5 rounded border border-slate-200"><strong>☁️ Nuvole:</strong> 5 Luoghi bloccati casualmente.</div>
-</div>
-
+<!-- rules.html - v1.8.0 -->
 <h4 class="font-bold mb-3 uppercase text-slate-500 tracking-wide">Guida</h4>
 <div class="space-y-6 text-slate-700">
 
@@ -149,6 +140,46 @@
                     <li><strong>Residenza</strong> (Costo: 1💎 | Passivo - 0 Slot): Effetto passivo permanente. Fornisce +6🏆 direttamente al calcolo del punteggio a fine partita.</li>
                 </ul>
             </div>
+        </div>
+    </div>
+
+    <!-- SEZIONE EVENTI (spostata qui) -->
+    <div class="pb-4 border-b border-slate-200">
+        <h4 class="font-bold mb-3 uppercase text-slate-500 tracking-wide">Eventi</h4>
+        <div class="space-y-2 mb-2">
+            <div class="bg-red-50 p-2.5 rounded border border-red-200"><strong>💀 Carestia:</strong> Perdi 2 Monete e 2 Bestiame (o Legno/Mattone). 3 Luoghi bloccati.</div>
+            <div class="bg-red-50 p-2.5 rounded border border-red-200"><strong>⚔️ Guerra:</strong> Costo monete per truppe ridotto di 1. Caserma dà +1 Fante.</div>
+            <div class="bg-yellow-50 p-2.5 rounded border border-yellow-200"><strong>⚖️ Mercato Nero:</strong> Mercato ha 3 slot, +1 Lusso, ma le monete calano ad ogni uso (3->2->1).</div>
+            <div class="bg-blue-50 p-2.5 rounded border border-blue-200"><strong>☀️ Sole:</strong> Nessun effetto.</div>
+            <div class="bg-slate-100 p-2.5 rounded border border-slate-200"><strong>☁️ Nuvole:</strong> 5 Luoghi bloccati casualmente.</div>
+        </div>
+    </div>
+
+    <!-- SEZIONE TECNOLOGIE (nuova) -->
+    <div class="pb-4 border-b border-slate-200">
+        <h4 class="font-bold mb-3 uppercase text-slate-500 tracking-wide">Tecnologie</h4>
+        <p class="mb-3 text-xs text-slate-600">Le tecnologie sono disponibili nella parte alta della plancia. Ogni giocatore può acquisirne una per round (salvo diversamente specificato).</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+1👷 (Prox):</strong> Aumenta permanentemente il massimo dei lavoratori di 1 (fino a 4). Se hai già 4 lavoratori, ottieni +3💰.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>Copia Tech:</strong> Copia una tecnologia già acquisita da un avversario. Se nessuna è disponibile, ottieni +3💰.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+3🧱:</strong> Ottieni 3 Mattoni.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+3🪵:</strong> Ottieni 3 Legna.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+3💎:</strong> Ottieni 3 Lussi.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+6💰:</strong> Ottieni 6 Monete.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+5⚔️:</strong> Ottieni 5 Fanti.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+2🐴:</strong> Ottieni 2 Cavalieri.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+3🏹:</strong> Ottieni 3 Arcieri.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+5🏆 (1x):</strong> Ottieni 5 PV. Se usata una seconda volta nella stessa partita, ottieni 2💰.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+1⚔️ +1🐴 +1🏹:</strong> Ottieni 1 Fante, 1 Cavaliere e 1 Arciere.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+1💰 +1🪵 +2🧱:</strong> Ottieni 1 Moneta, 1 Legna e 2 Mattoni.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+1💰 +1🧱 +2🪵:</strong> Ottieni 1 Moneta, 1 Mattone e 2 Legna.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+1👷 (ORA):</strong> Ottieni 1 lavoratore extra <strong>solo per il turno corrente</strong> (puoi sforare temporaneamente il massimo).</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+3🐄:</strong> Ottieni 3 Bestiame.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+1🐄 +1⚔️ +1🪵:</strong> Ottieni 1 Bestiame, 1 Fante e 1 Legna.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+1🐄 +1⚔️ +1🧱:</strong> Ottieni 1 Bestiame, 1 Fante e 1 Mattone.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+1🐄 +3💰:</strong> Ottieni 1 Bestiame e 3 Monete.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>+1🐄 +1⚔️ +1🏆:</strong> Ottieni 1 Bestiame, 1 Fante e 1 PV.</div>
+            <div class="p-2 bg-slate-50 rounded border border-slate-200"><strong>1° Gioc. 👑:</strong> Ottieni il segnalino Primo Giocatore per il prossimo round e blocchi la Torre di Guardia per gli altri.</div>
         </div>
     </div>
 
