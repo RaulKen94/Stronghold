@@ -85,19 +85,31 @@
             if (choiceData) {
                 if (choiceData.option === 'A') {
                     p.brick++;
+                    p.brick++;
+                    p.brick++;
                     p.vp++;
-                    historyDesc = 'Taverna: +1 Mattone +1 VP';
+                    p.vp++;
+                    p.vp++;
+                    historyDesc = 'Taverna: +3 Mattone +3 VP';
                 } else if (choiceData.option === 'B') {
                     p.wood++;
+                    p.wood++;
                     p.cattle++;
-                    historyDesc = 'Taverna: +1 Legno +1 Bestiame';
+                    p.cattle++;
+                    p.cattle++;
+                    p.cattle++;
+                    p.cattle++;
+                    p.cattle++;
+                    p.cattle++;
+                    historyDesc = 'Taverna: +2 Legno +7 Bestiame';
                 } else if (choiceData.option === 'C') {
                     p.archer++;
                     historyDesc = 'Taverna: +1 Arciere';
                 } else if (choiceData.option === 'D') {
                     p.infantry++;
+                    p.infantry++;
                     p.vp++;
-                    historyDesc = 'Taverna: +1 Fante +1 VP';
+                    historyDesc = 'Taverna: +2 Fante +1 VP';
                 }
             } else if (!p.isHuman) {
                 historyDesc = this.applySpecialRewardAI(type, p, spaceId);
