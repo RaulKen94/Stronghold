@@ -371,7 +371,6 @@
                 const used = this.tavernaUsedOptions.includes(m.id);
                 if (!used) {
                     this.createChoiceBtn(opts, m.txt, () => {
-                        this.tavernaUsedOptions.push(m.id);
                         this.sendChoice({ option: m.id });
                     });
                 }
