@@ -46,7 +46,7 @@
         } else if (type === 'consiglio') {
             p.vp += 1;
             if (p.isHuman) this.showFloatingText(spaceId, '+1🏆', 'yellow');
-        
+
             let gained = [];
             ['knight', 'archer', 'infantry'].forEach(unit => {
                 let maxOthers = 0;
@@ -58,7 +58,7 @@
                     gained.push(unit);
                 }
             });
-        
+
             if (gained.length > 0) {
                 historyDesc = `Consiglio: rinforzi (${gained.join(', ')}) + 1 VP`;
             } else {
@@ -85,31 +85,24 @@
             }
         } else if (type === 'taverna') {
             if (choiceData) {
+                // ✅ Centralizzazione: aggiorna le opzioni usate per tutti i client
+                if (!this.tavernaUsedOptions.includes(choiceData.option)) {
+                    this.tavernaUsedOptions.push(choiceData.option);
+                }
+
                 if (choiceData.option === 'A') {
-                    p.brick++;
-                    p.brick++;
-                    p.brick++;
-                    p.vp++;
-                    p.vp++;
-                    p.vp++;
+                    p.brick += 3;
+                    p.vp += 3;
                     historyDesc = 'Taverna: +3 Mattone +3 VP';
                 } else if (choiceData.option === 'B') {
-                    p.wood++;
-                    p.wood++;
-                    p.cattle++;
-                    p.cattle++;
-                    p.cattle++;
-                    p.cattle++;
-                    p.cattle++;
-                    p.cattle++;
-                    p.cattle++;
+                    p.wood += 2;
+                    p.cattle += 7;
                     historyDesc = 'Taverna: +2 Legno +7 Bestiame';
                 } else if (choiceData.option === 'C') {
                     p.archer++;
                     historyDesc = 'Taverna: +1 Arciere';
                 } else if (choiceData.option === 'D') {
-                    p.infantry++;
-                    p.infantry++;
+                    p.infantry += 2;
                     p.vp++;
                     historyDesc = 'Taverna: +2 Fante +1 VP';
                 }
