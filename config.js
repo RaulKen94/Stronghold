@@ -2,20 +2,6 @@
     window.Roccaforte = window.Roccaforte || {};
     var NS = window.Roccaforte;
 
-    // Configurazioni centralizzate dei Punti Vittoria delle maggioranze
-    NS.MAJORITY_CONFIG = {
-        // Maggioranze dentro la Roccaforte
-        stronghold_in: {
-            infantry: { first: 7, second: 4, tieFirst: 5, tieSecond: 4 },
-            archer:   { first: 9, second: 5, tieFirst: 7, tieSecond: 5 },
-            knight:   { first: 12, second: 6, tieFirst: 9, tieSecond: 6 }
-        },
-        // Maggioranza truppe fuori dalla Roccaforte (solo Fanteria)
-        stronghold_out: {
-            infantry: { first: 6, second: 3, tieFirst: 4, tieSecond: 3 }
-        }
-    };
-
     NS.EVENTS = [
         { id: 'famine', name: "Carestia", emoji: "💀", prob: 0.20 },
         { id: 'war', name: "Guerra Imminente", emoji: "⚔️", prob: 0.20 },
@@ -92,4 +78,19 @@
         { id: 19, text: "+1🐄 +1⚔️ +1🏆", effect: (p, g) => { p.cattle++; p.infantry++; p.vp++; } },
         { id: 20, text: "1° Gioc. 👑", effect: (p, g) => { p.getIndicator = true; if(g) g.watchtowerBlocked = true; } }
     ];
+    
+    // Configurazioni centralizzate dei Punti Vittoria delle maggioranze
+    NS.MAJORITY_CONFIG = {
+        // Maggioranze dentro la Roccaforte
+        stronghold_in: {
+            infantry: { first: 7, second: 4, tieFirst: 5, tieSecond: 4 },
+            archer:   { first: 9, second: 5, tieFirst: 7, tieSecond: 5 },
+            knight:   { first: 12, second: 6, tieFirst: 9, tieSecond: 6 }
+        },
+        // Maggioranza truppe fuori dalla Roccaforte (solo Fanteria)
+        stronghold_out: {
+            infantry: { first: 6, second: 3, tieFirst: 4, tieSecond: 3 }
+        }
+    };
+    
 })();
