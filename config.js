@@ -51,7 +51,7 @@
         { id: 103, type: 'res', name: "Monastero", cost: {}, reward: { special: 'monastero', vp: 3 }, slots: 1, desc: "+3🏆. Scegli 1🪵, 1🧱 o 1🐄", short: "+3🏆. Scegli 1 risorsa" },
         { id: 203, type: 'vp', name: "Sala Consiglio", cost: {}, reward: { vp: 1, special: 'consiglio' }, slots: 1, desc: "+1🏆. Se hai meno truppe in fortezza del leader, guadagni truppe.", short: "+1🏆. Catch-up Truppe" },
         { id: 204, type: 'vp', name: "Cattedrale", cost: { coin: 1 }, reward: { vp: 2 }, slots: 1, desc: "1💰 -> 2🏆", short: "1💰 ➔ 2🏆", onBuild: (p) => p.vp += 2, bonusDesc: "Build: +2🏆" },
-        { id: 206, type: 'vp', name: "Accampamento", cost: {}, reward: { special: 'accampamento' }, slots: 2, desc: "Paga risorse -> ottieni truppe", short: "Scambia: 1🪵->1🏆1⚔️ | 1🐄->1🏹 | 1🪵1🐄3💰->2🏆2⚔️1🏹" },
+        { id: 206, type: 'vp', name: "Accampamento", cost: {}, reward: { special: 'accampamento' }, slots: 2, desc: "Paga risorse -> ottieni truppe", short: "Scambia: 1🪵->2🏆2⚔️ | 1🐄->2🏹 | 1🪵1🐄5💰->2🏆3⚔️2🏹" },
         { id: 207, type: 'vp', name: "Gogna", cost: {}, reward: { vp: 1, special: 'gogna' }, slots: 1, desc: "+1🏆. Blocca l'utilizzo di edifici rossi e della Torre di Guardia a un avversario.", short: "+1🏆. Blocca avversario." },
         { id: 301, type: 'blue', name: "Residenza", cost: { luxury: 1 }, reward: {}, slots: 0, desc: "Passivo: +6🏆 fine partita.", short: "+6🏆 Fine Partita" }
     ];
