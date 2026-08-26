@@ -67,7 +67,7 @@
         { id: 8, text: "+2🐴", effect: (p, g) => p.knight += 2 },
         { id: 9, text: "+3🏹", effect: (p, g) => p.archer += 3 },
         { id: 10, text: "+5🏆 (1x)", effect: (p, g) => { if(!p.tech10Used){ p.vp += 5; p.tech10Used=true; } else p.coin+=2; } },
-        { id: 11, text: "+1⚔️ +1🐴 +1🏹", effect: (p, g) => { p.infantry++; p.knight++; p.archer++; } },
+        { id: 11, text: "+1⚔️ +1🏹 +1🐴", effect: (p, g) => { p.infantry++; p.knight++; p.archer++; } },
         { id: 12, text: "+1💰 +1🪵 +2🧱", effect: (p, g) => { p.coin++; p.wood++; p.brick+=2; } },
         { id: 13, text: "+1💰 +1🧱 +2🪵", effect: (p, g) => { p.coin++; p.brick++; p.wood+=2; } },
         { id: 14, text: "+1👷 (ORA)", effect: (p, g) => p.workers++ },
