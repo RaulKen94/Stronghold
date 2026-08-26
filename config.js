@@ -46,9 +46,9 @@
     ];
 
     NS.NEW_BUILDINGS = [
-        { id: 101, type: 'res', name: "Bottega", cost: {}, reward: { luxury: 1, brick: 1 }, slots: 1, desc: "+1💎 +1🧱", short: "+1💎 +1🧱" },
-        { id: 205, type: 'res', name: "Taverna", cost: { coin: 1 }, reward: { special: 'taverna' }, slots: 3, desc: "1💰 -> Scegli Menu (max 1x tipo)", short: "1💰 ➔ Scegli: 🧱+🏆 | 🪵+🐄 | 🏹 | ⚔️+🏆" },
-        { id: 103, type: 'res', name: "Monastero", cost: {}, reward: { special: 'monastero', vp: 2 }, slots: 1, desc: "+2🏆. Scegli 1🪵, 1🧱 o 1🐄", short: "+2🏆. Scegli 1 risorsa" },
+        { id: 101, type: 'res', name: "Bottega", cost: {}, reward: { luxury: 3, brick: 5 }, slots: 1, desc: "+3💎 +5🧱", short: "+3💎 +5🧱" },
+        { id: 205, type: 'res', name: "Taverna", cost: { coin: 1 }, reward: { special: 'taverna' }, slots: 3, desc: "1💰 -> Scegli Menu (max 1x tipo)", short: "1💰 ➔ Scegli: 3🧱+3🏆 | 2🪵+6🐄 | 1🏹 | 2⚔️+1🏆" },
+        { id: 103, type: 'res', name: "Monastero", cost: {}, reward: { special: 'monastero', vp: 3 }, slots: 1, desc: "+3🏆. Scegli 1🪵, 1🧱 o 1🐄", short: "+3🏆. Scegli 1 risorsa" },
         { id: 203, type: 'vp', name: "Sala Consiglio", cost: {}, reward: { vp: 1, special: 'consiglio' }, slots: 1, desc: "+1🏆. Se hai meno truppe in fortezza del leader, guadagni truppe.", short: "+1🏆. Catch-up Truppe" },
         { id: 204, type: 'vp', name: "Cattedrale", cost: { coin: 1 }, reward: { vp: 2 }, slots: 1, desc: "1💰 -> 2🏆", short: "1💰 ➔ 2🏆", onBuild: (p) => p.vp += 2, bonusDesc: "Build: +2🏆" },
         { id: 206, type: 'vp', name: "Accampamento", cost: {}, reward: { special: 'accampamento' }, slots: 2, desc: "Paga risorse -> ottieni truppe", short: "Scambia: 1🪵->1🏆1⚔️ | 1🐄->1🏹 | 1🪵1🐄3💰->2🏆2⚔️1🏹" },
