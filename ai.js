@@ -333,13 +333,26 @@
             p.vp++;
             return 'Taverna (AI): +1 Fante +1 VP';
         } else if (type === 'accampamento') {
-            if (p.wood > 0) {
+            if (p.wood >= 1 && p.cattle >= 1 && p.coin >= 5) {
                 p.wood--;
-                p.vp++;
-                p.infantry++;
-                return 'Accampamento (AI): 1 Legno → 1 VP +1 Fante';
+                p.cattle--;
+                p.coin -= 5;
+                p.vp += 2;
+                p.infantry += 3;
+                p.archer += 2;
+                return 'Accampamento (AI): 1 Legno +1 Bestiame +5 Monete → 2 VP +3 Fanti +2 Arcieri';
+            } else if (p.wood >= 1) {
+                p.wood--;
+                p.vp += 2;
+                p.infantry += 2;
+                return 'Accampamento (AI): 1 Legno → 2 VP +2 Fanti';
+            } else if (p.cattle >= 1) {
+                p.cattle--;
+                p.archer += 2;
+                return 'Accampamento (AI): 1 Bestiame → 2 Arcieri';
+            } else {
+                return 'Accampamento (AI): nessuna azione (risorse insufficienti)';
             }
-            return 'Accampamento (AI): nessuna azione (manca Legno)';
         } else if (type === 'gogna') {
             const target = this.players.find(pl => pl.id !== p.id && pl.id !== spaceId.ownerId);
             if (target) {
